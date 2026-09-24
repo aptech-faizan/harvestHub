@@ -9,6 +9,7 @@ import 'app/modules/customer/wishlist/views/wishlist_view.dart';
 import 'app/modules/customer/wishlist/bindings/wishlist_binding.dart';
 import 'app/modules/customer/cart/views/cart_view.dart';
 import 'app/modules/customer/cart/bindings/cart_binding.dart';
+import 'app/modules/customer/auth/controllers/customer_auth_controller.dart';
 import 'dev_seed.dart';
 
 // Development aur testing ke liye temporary navigation menu
@@ -75,6 +76,21 @@ class DevMenu extends StatelessWidget {
             ),
             onPressed: _handleSeedData,
             child: const Text('Seed test data'),
+          ),
+          const SizedBox(height: 12),
+          // TEMP: Profile module mein permanent logout aayega
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              final authCtrl = Get.isRegistered<CustomerAuthController>()
+                  ? Get.find<CustomerAuthController>()
+                  : Get.put(CustomerAuthController());
+              authCtrl.logout();
+            },
+            child: const Text('Logout'),
           ),
         ],
       ),
