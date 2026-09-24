@@ -15,7 +15,6 @@ class SearchView extends GetView<ProductSearchController> {
       appBar: AppBar(title: const Text('Search Products')),
       body: Column(
         children: [
-          // Filter inputs section
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -70,12 +69,26 @@ class SearchView extends GetView<ProductSearchController> {
                 ),
                 Row(
                   children: [
+                    // Farmer name search field
                     Expanded(
                       child: TextField(
                         decoration: const InputDecoration(labelText: 'Farmer Name'),
                         onChanged: (val) => controller.farmerQuery.value = val,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    // Distance dropdown
+                    Obx(() => DropdownButton<double>(
+                      value: controller.maxDistanceKm.value,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('Any dist')),
+                        DropdownMenuItem(value: 2, child: Text('2 km')),
+                        DropdownMenuItem(value: 5, child: Text('5 km')),
+                        DropdownMenuItem(value: 10, child: Text('10 km')),
+                        DropdownMenuItem(value: 25, child: Text('25 km')),
+                      ],
+                      onChanged: (val) => controller.selectDistance(val ?? 0),
+                    )),
                     TextButton(
                       onPressed: () => controller.clearFilters(),
                       child: const Text('Clear'),
@@ -100,6 +113,7 @@ class SearchView extends GetView<ProductSearchController> {
                 itemBuilder: (context, index) {
                   final p = controller.results[index];
                   final isOutOfStock = p.stockQty <= 0;
+                  final distLabel = controller.distanceKmOf(p);
 
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -117,10 +131,10 @@ class SearchView extends GetView<ProductSearchController> {
                           Text('Price: Rs. ${p.pricePerUnit} / ${p.unit}'),
                           Text(
                             isOutOfStock ? 'Out of stock' : 'Stock: ${p.stockQty}',
-                            style: TextStyle(
-                              color: isOutOfStock ? Colors.red : Colors.green,
-                            ),
+                            style: TextStyle(color: isOutOfStock ? Colors.red : Colors.green),
                           ),
+                          if (distLabel.isNotEmpty)
+                            Text(distLabel, style: const TextStyle(color: Colors.blueGrey)),
                         ],
                       ),
                       trailing: ElevatedButton(

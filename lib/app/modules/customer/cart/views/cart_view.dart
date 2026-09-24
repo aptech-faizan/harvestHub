@@ -1,7 +1,6 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../data/models/product_model.dart';
 import '../../checkout/bindings/checkout_binding.dart';
 import '../../checkout/views/checkout_view.dart';
 import '../controllers/cart_controller.dart';
@@ -15,13 +14,6 @@ class CartView extends GetView<CartController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cart'),
-        actions: [
-          // TODO: testing ke baad hata dena
-          TextButton(
-            onPressed: () => _addDummyProducts(),
-            child: const Text('Add dummy products', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
       body: Obx(() {
         return Column(
@@ -91,39 +83,5 @@ class CartView extends GetView<CartController> {
         );
       }),
     );
-  }
-
-  // Testing ke liye 3 dummy products add karne ka method
-  void _addDummyProducts() {
-    controller.add(ProductModel(
-      id: 'p1',
-      farmerId: 'farmer_1',
-      farmerName: 'Ali Khan',
-      itemName: 'Fresh Tomatoes',
-      pricePerUnit: 120.0,
-      unit: 'kg',
-      stockQty: 5,
-      imageUrl: '',
-    ));
-    controller.add(ProductModel(
-      id: 'p2',
-      farmerId: 'farmer_1',
-      farmerName: 'Ali Khan',
-      itemName: 'Organic Potatoes',
-      pricePerUnit: 80.0,
-      unit: 'kg',
-      stockQty: 10,
-      imageUrl: '',
-    ));
-    controller.add(ProductModel(
-      id: 'p3',
-      farmerId: 'farmer_2',
-      farmerName: 'Ahmed Raza',
-      itemName: 'Red Apples',
-      pricePerUnit: 250.0,
-      unit: 'kg',
-      stockQty: 3,
-      imageUrl: '',
-    ));
   }
 }

@@ -37,7 +37,6 @@ class HomeController extends GetxController {
       products.assignAll(productList);
       categories.assignAll(categoryList);
     } catch (e) {
-      print(e);
       Get.snackbar('Error', 'Data load karne mein masla hua: $e');
     } finally {
       isLoading.value = false;

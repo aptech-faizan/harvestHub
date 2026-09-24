@@ -1,3 +1,4 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/category_model.dart';
 import '../../../../data/models/market_model.dart';
@@ -6,6 +7,7 @@ import '../../../../data/repositories/category_repository.dart';
 import '../../../../data/repositories/market_repository.dart';
 import '../../../../data/repositories/product_repository.dart';
 import '../../cart/controllers/cart_controller.dart';
+import '../location_helper.dart';
 
 // Ye search aur filter ki tamaam state aur logic handle karta hai
 class ProductSearchController extends GetxController {
@@ -13,20 +15,18 @@ class ProductSearchController extends GetxController {
   final CategoryRepository _categoryRepo = CategoryRepository();
   final MarketRepository _marketRepo = MarketRepository();
 
-  // Input filters ke reactive variables
   final RxString query = ''.obs;
   final RxString selectedCategoryId = ''.obs;
   final RxString selectedMarketId = ''.obs;
   final RxString farmerQuery = ''.obs;
   final RxBool isLoading = false.obs;
 
-  // Sab products (filter ke liye)
+  // Distance filter ke reactive variables
+  final RxDouble maxDistanceKm = 0.0.obs;
+  final Rxn<Position> userPos = Rxn<Position>();
+
   final List<ProductModel> allProducts = [];
-
-  // Filtered results ki reactive list
   final RxList<ProductModel> results = <ProductModel>[].obs;
-
-  // Categories aur markets dropdowns ke liye
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxList<MarketModel> markets = <MarketModel>[].obs;
 
@@ -34,8 +34,6 @@ class ProductSearchController extends GetxController {
   void onInit() {
     super.onInit();
     loadData();
-
-    // Text typing par 300ms debounce taake har keystroke par filter na chale
     debounce(query, (_) => applyFilters(), time: const Duration(milliseconds: 300));
     debounce(farmerQuery, (_) => applyFilters(), time: const Duration(milliseconds: 300));
   }
@@ -53,36 +51,74 @@ class ProductSearchController extends GetxController {
       markets.assignAll(marketList);
       applyFilters();
     } catch (e) {
-      print(e);
       Get.snackbar('Error', 'Data load nahi hua: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
+  // Distance filter set karta hai; km > 0 hone par location fetch karta hai
+  Future<void> selectDistance(double km) async {
+    if (km > 0) {
+      final pos = await LocationHelper.getCurrentPosition();
+      if (pos == null) {
+        Get.snackbar('Location Error', 'Location nahi mil saki, distance filter reset ho gaya');
+        maxDistanceKm.value = 0;
+        applyFilters();
+        return;
+      }
+      userPos.value = pos;
+    }
+    maxDistanceKm.value = km;
+    applyFilters();
+  }
+
   // Sab active filters ek saath apply karne ka method
   void applyFilters() {
-    // TODO: distance filter, geolocator baad mein
     final q = query.value.trim().toLowerCase();
     final fq = farmerQuery.value.trim().toLowerCase();
     final cat = selectedCategoryId.value;
     final mkt = selectedMarketId.value;
+    final maxDist = maxDistanceKm.value;
+    final pos = userPos.value;
 
     results.value = allProducts.where((p) {
       final matchesQuery = q.isEmpty || p.itemName.toLowerCase().contains(q);
       final matchesFarmer = fq.isEmpty || p.farmerName.toLowerCase().contains(fq);
       final matchesCat = cat.isEmpty || p.categoryId == cat;
       final matchesMkt = mkt.isEmpty || p.marketId == mkt;
-      return matchesQuery && matchesFarmer && matchesCat && matchesMkt;
+
+      // Distance filter: lat/lng dono 0 wale products skip karo
+      bool matchesDist = true;
+      if (maxDist > 0 && pos != null) {
+        if (p.lat == 0.0 && p.lng == 0.0) {
+          matchesDist = false;
+        } else {
+          final distM = Geolocator.distanceBetween(pos.latitude, pos.longitude, p.lat, p.lng);
+          matchesDist = (distM / 1000) <= maxDist;
+        }
+      }
+
+      return matchesQuery && matchesFarmer && matchesCat && matchesMkt && matchesDist;
     }).toList();
   }
 
-  // Tamaam filters reset karne ka method
+  // Product se user ki distance km mein string format mein deta hai
+  String distanceKmOf(ProductModel p) {
+    final pos = userPos.value;
+    if (pos == null || (p.lat == 0.0 && p.lng == 0.0)) return '';
+    final distM = Geolocator.distanceBetween(pos.latitude, pos.longitude, p.lat, p.lng);
+    return '${(distM / 1000).toStringAsFixed(1)} km';
+  }
+
+  // Tamaam filters (distance samait) reset karne ka method
   void clearFilters() {
     query.value = '';
     farmerQuery.value = '';
     selectedCategoryId.value = '';
     selectedMarketId.value = '';
+    maxDistanceKm.value = 0;
+    userPos.value = null;
     applyFilters();
   }
 

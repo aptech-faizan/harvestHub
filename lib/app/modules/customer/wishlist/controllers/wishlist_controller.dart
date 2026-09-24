@@ -28,7 +28,7 @@ class WishlistController extends GetxController {
       }
       items.assignAll(loaded);
     } catch (e) {
-      print('Wishlist load error: $e');
+      // silent: snackbar nahi dikhana, sirf load fail
     }
   }
 
@@ -74,7 +74,7 @@ class WishlistController extends GetxController {
       try {
         await UserRepository().removeFromWishlist(currentUid, productId);
       } catch (e) {
-        print('Wishlist remove error: $e');
+        // silent: remove fail ho to bhi UI already updated
       }
     }
   }
