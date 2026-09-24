@@ -51,6 +51,10 @@ class ReportsController extends GetxController {
     return allOrders.where((o) => o.createdAt != null && o.createdAt!.isAfter(from!)).toList();
   }
 
+  // Total valid orders count excluding cancelled orders
+  int validOrdersCount(List<OrderModel> orders) =>
+      orders.where((o) => o.status != OrderStatus.cancelled).length;
+
   double revenueOf(List<OrderModel> orders) => repo.totalRevenue(orders);
 
   Map<String, int> ordersByStatus(List<OrderModel> orders) {

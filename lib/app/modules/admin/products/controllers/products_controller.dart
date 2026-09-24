@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
 import 'package:harvest_hub/app/core/widgets/edit_dialog.dart';
@@ -60,6 +61,7 @@ class ProductsController extends GetxController {
     Get.toNamed(Routes.productDetails);
   }
 
+  // Updates product with all customer and admin compatible keys
   Future<void> edit(ProductModel p) async {
     final categoryOptions = {for (final c in categories) c.name: c.name};
     if (p.category.isNotEmpty) categoryOptions.putIfAbsent(p.category, () => p.category);
@@ -80,14 +82,42 @@ class ProductsController extends GetxController {
       showError('Price and stock cannot be negative');
       return;
     }
+
+    final cat = categories.firstWhereOrNull((c) => c.name == r['category']);
+    final fDoc = await FirebaseFirestore.instance.collection('farmers').doc(p.farmerId).get();
+    final fData = fDoc.data() ?? {};
+    final fName = (fData['businessName'] ?? farmerName(p.farmerId)).toString();
+    final mId = (fData['marketId'] ?? '').toString();
+    String mName = '';
+    double mLat = 0.0;
+    double mLng = 0.0;
+    if (mId.isNotEmpty) {
+      final mDoc = await FirebaseFirestore.instance.collection('markets').doc(mId).get();
+      final mData = mDoc.data() ?? {};
+      mName = (mData['marketName'] ?? '').toString();
+      mLat = readDouble(mData['lat'] ?? mData['latitude']);
+      mLng = readDouble(mData['lng'] ?? mData['longitude']);
+    }
+
     try {
       await repo.updateProduct(p.id, {
+        'farmerId': p.farmerId,
+        'farmerName': fName,
         'itemName': r['itemName'],
-        'category': r['category'],
-        'description': r['description'],
+        'itemNameLower': r['itemName']!.toLowerCase(),
+        'description': r['description'] ?? '',
+        'categoryId': cat?.id ?? '',
+        'categoryName': r['category'] ?? '',
+        'category': r['category'] ?? '',
+        'marketId': mId,
+        'marketName': mName,
         'pricePerUnit': price,
+        'unit': 'kg',
         'stockQty': stock,
-        'imageUrl': r['imageUrl'],
+        'imageUrl': r['imageUrl'] ?? '',
+        'lat': mLat,
+        'lng': mLng,
+        'isActive': true,
       });
       showSuccess('Product updated');
       await load();

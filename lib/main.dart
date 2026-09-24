@@ -1,12 +1,12 @@
-import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
+import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
+import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
+import 'package:harvest_hub/app/modules/splash/views/splash_view.dart';
 import 'package:harvest_hub/app/routes/app_pages.dart';
-import 'package:harvest_hub/app/routes/app_routes.dart';
 import 'package:harvest_hub/firebase_options.dart';
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,10 +17,11 @@ Future<void> main() async {
   );
 
   // Global permanent controllers inject karna
+  Get.put(AuthService(), permanent: true);
   Get.put(CartController(), permanent: true);
   Get.put(WishlistController(), permanent: true);
 
-  runApp(const MyApp());
+  runApp(const HarvestHubApp());
 }
 
 class HarvestHubApp extends StatelessWidget {
@@ -32,9 +33,7 @@ class HarvestHubApp extends StatelessWidget {
       title: 'HarvestHub',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
-      // Temporary start page. Later, point this at your splash / role-select screen
-      // and send the "Admin" choice to Routes.adminLogin.
-      initialRoute: Routes.adminLogin,
+      home: const SplashView(),
       getPages: AppPages.pages,
     );
   }

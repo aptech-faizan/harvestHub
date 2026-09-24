@@ -18,7 +18,8 @@ class OrderDetailsView extends GetView<OrdersController> {
         return ListView(padding: const EdgeInsets.all(16), children: [
           InfoRow('Order ID', o.id),
           InfoRow('Customer', controller.customerName(o.customerId)),
-          InfoRow('Farmer', controller.farmerName(o.farmerId)),
+          InfoRow('Farmer', o.farmerName.isNotEmpty ? o.farmerName : controller.farmerName(o.farmerId)),
+          if (o.deliveryAddress.isNotEmpty) InfoRow('Delivery address', o.deliveryAddress),
           InfoRow('Order date', formatDate(o.createdAt)),
           InfoRow('Pickup slot', o.pickupSlot),
           InfoRow('Total price', money(o.totalPrice)),
@@ -41,7 +42,7 @@ class OrderDetailsView extends GetView<OrdersController> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(item.itemName),
-              subtitle: Text('${item.quantity} × ${money(item.price)}'),
+              subtitle: Text('${item.quantity}${item.unit.isNotEmpty ? ' ${item.unit}' : ''} × ${money(item.price)}'),
               trailing: Text(money(item.quantity * item.price)),
             ),
         ]);

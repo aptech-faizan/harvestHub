@@ -68,6 +68,7 @@ class FarmersController extends GetxController {
     }
   }
 
+  // Updates farmer business and user account details
   Future<void> edit(FarmerModel f) async {
     final r = await showEditDialog('Edit farmer', [
       FieldDef('name', 'Owner name', initial: f.ownerName),
@@ -84,7 +85,9 @@ class FarmersController extends GetxController {
         {
           'businessName': r['businessName'],
           'description': r['description'],
-          'marketId': r['marketId'],
+          'marketId': r['marketId'] ?? '',
+          'userId': f.userId,
+          'lowStockThreshold': f.lowStockThreshold,
         },
         {'name': r['name'], 'phone': r['phone']},
       );

@@ -28,7 +28,7 @@ class ProductModel {
       id: doc.id,
       farmerId: (d['farmerId'] ?? '').toString(),
       itemName: (d['itemName'] ?? '').toString(),
-      category: (d['category'] ?? '').toString(),
+      category: (d['categoryName'] ?? d['category'] ?? '').toString(),
       description: (d['description'] ?? '').toString(),
       pricePerUnit: readDouble(d['pricePerUnit']),
       stockQty: readInt(d['stockQty']),

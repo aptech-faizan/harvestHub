@@ -59,13 +59,13 @@ class MarketsController extends GetxController {
     final data = <String, dynamic>{
       'marketName': r['marketName'],
       'address': r['address'],
-      'latitude': lat,
-      'longitude': lng,
+      'lat': lat,
+      'lng': lng,
       'operatingHours': r['operatingHours'],
     };
     try {
       if (m == null) {
-        await repo.addMarket({...data, 'activeStatus': true});
+        await repo.addMarket({...data, 'isActive': true});
       } else {
         await repo.updateMarket(m.id, data);
       }
@@ -76,9 +76,10 @@ class MarketsController extends GetxController {
     }
   }
 
+  // Toggles the active status of a market
   Future<void> setActive(MarketModel m, bool value) async {
     try {
-      await repo.updateMarket(m.id, {'activeStatus': value});
+      await repo.updateMarket(m.id, {'isActive': value});
       await load();
     } catch (e) {
       showError('Could not change status: ${errorText(e)}');

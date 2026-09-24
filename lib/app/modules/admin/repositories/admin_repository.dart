@@ -105,8 +105,13 @@ class AdminRepository {
     return list;
   }
 
+  // Adds a category with default iconUrl and active status
   Future<void> addCategory(String name) {
-    return _db.collection(Db.categories).add({'name': name});
+    return _db.collection(Db.categories).add({
+      'name': name,
+      'iconUrl': '',
+      'isActive': true,
+    });
   }
 
   // Products store the category name, so they are renamed together with the category.

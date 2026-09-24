@@ -26,10 +26,10 @@ class MarketModel {
       id: doc.id,
       marketName: (d['marketName'] ?? '').toString(),
       address: (d['address'] ?? '').toString(),
-      latitude: readDouble(d['latitude']),
-      longitude: readDouble(d['longitude']),
+      latitude: readDouble(d['lat'] ?? d['latitude']),
+      longitude: readDouble(d['lng'] ?? d['longitude']),
       operatingHours: (d['operatingHours'] ?? '').toString(),
-      activeStatus: d['activeStatus'] ?? true,
+      activeStatus: (d['isActive'] ?? d['activeStatus'] ?? true) as bool,
     );
   }
 }

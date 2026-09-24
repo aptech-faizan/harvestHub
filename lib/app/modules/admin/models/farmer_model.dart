@@ -10,6 +10,7 @@ class FarmerModel {
   final String businessName;
   final String description;
   final double rating;
+  final int lowStockThreshold;
   final String ownerName;
   final String email;
   final String phone;
@@ -22,12 +23,14 @@ class FarmerModel {
     required this.businessName,
     required this.description,
     required this.rating,
+    this.lowStockThreshold = 5,
     required this.ownerName,
     required this.email,
     required this.phone,
     required this.isActive,
   });
 
+  // Creates FarmerModel from Firestore document snapshot and joined user
   factory FarmerModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc, UserModel? user) {
     final d = doc.data() ?? {};
     return FarmerModel(
@@ -37,6 +40,7 @@ class FarmerModel {
       businessName: (d['businessName'] ?? '').toString(),
       description: (d['description'] ?? '').toString(),
       rating: readDouble(d['rating']),
+      lowStockThreshold: readInt(d['lowStockThreshold'] ?? 5),
       ownerName: user?.name ?? '',
       email: user?.email ?? '',
       phone: user?.phone ?? '',

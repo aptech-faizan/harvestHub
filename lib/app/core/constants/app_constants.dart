@@ -16,10 +16,10 @@ class Roles {
 }
 
 class OrderStatus {
-  static const pending = 'Pending';
-  static const confirmed = 'Confirmed';
-  static const ready = 'Ready for Pickup';
-  static const completed = 'Completed';
-  static const cancelled = 'Cancelled';
+  static const pending = 'pending';
+  static const confirmed = 'confirmed';
+  static const ready = 'ready_for_pickup';
+  static const completed = 'completed';
+  static const cancelled = 'cancelled';
   static const all = [pending, confirmed, ready, completed, cancelled];
 }

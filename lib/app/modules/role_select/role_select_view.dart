@@ -1,6 +1,7 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../routes/app_routes.dart';
 import '../customer/auth/bindings/customer_auth_binding.dart';
 import '../customer/auth/views/customer_login_view.dart';
 
@@ -41,11 +42,11 @@ class RoleSelectView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // TODO: Dev 3 ka login
+              // Admin login par navigate karta hai
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Get.snackbar('Abhi nahi', 'Ye module abhi baaki hai'),
+                  onPressed: () => Get.toNamed(Routes.adminLogin),
                   child: const Text('Admin'),
                 ),
               ),

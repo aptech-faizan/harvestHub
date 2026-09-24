@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../routes/app_routes.dart';
 import '../../customer/shell/bindings/customer_shell_binding.dart';
 import '../../customer/shell/views/customer_shell_view.dart';
 import '../../customer/wishlist/controllers/wishlist_controller.dart';
@@ -35,7 +37,7 @@ class SplashController extends GetxController {
       }
 
       final data = doc.data()!;
-      final role = data['role'] as String? ?? '';
+      final role = (data['role'] as String? ?? '').toLowerCase();
       final isActive = data['isActive'] as bool? ?? true;
 
       if (!isActive) {
@@ -52,8 +54,15 @@ class SplashController extends GetxController {
           () => const CustomerShellView(),
           binding: CustomerShellBinding(),
         );
+      } else if (role == 'admin') {
+        if (Get.isRegistered<AuthService>()) {
+          await Get.find<AuthService>().loadRole();
+        }
+        Get.offAllNamed(Routes.adminDashboard);
+      } else if (role == 'farmer') {
+        // TODO: Dev 2 ka farmer dashboard
+        Get.offAll(() => const RoleSelectView());
       } else {
-        // TODO: Dev 2/3 ka redirect
         await _auth.signOut();
         Get.offAll(() => const RoleSelectView());
       }

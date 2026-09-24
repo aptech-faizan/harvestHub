@@ -33,7 +33,7 @@ class ReportsView extends GetView<ReportsController> {
       const Text('Daily = today, Weekly = last 7 days, Monthly = last 30 days',
           style: TextStyle(fontSize: 12, color: Colors.grey)),
       _title('Summary'),
-      Card(child: ListTile(title: const Text('Total orders'), trailing: Text('${orders.length}'))),
+      Card(child: ListTile(title: const Text('Total orders'), trailing: Text('${c.validOrdersCount(orders)}'))),
       Card(
         child: ListTile(
           title: const Text('Total revenue (excluding cancelled)'),

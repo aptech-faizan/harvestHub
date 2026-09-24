@@ -14,7 +14,7 @@ Widget productImage(String url, {double size = 56}) {
     width: size,
     height: size,
     fit: BoxFit.cover,
-    errorBuilder: (_, _, _) => Icon(Icons.broken_image, size: size),
+    errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: size),
   );
 }
 

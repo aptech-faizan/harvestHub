@@ -47,13 +47,7 @@ dependencies:
   fl_chart: ^1.2.0
   intl: ^0.20.3
   uuid: ^4.6.0
-<<<<<<< HEAD
   geolocator: ^14.0.3
-=======
-  get: ^4.7.3
-  cloud_firestore: ^6.10.0
-  firebase_auth: ^6.7.0
->>>>>>> 74bc9c0483c7506362b2b272b5d281aa45e9eeb0
 
 dev_dependencies:
   flutter_test:
