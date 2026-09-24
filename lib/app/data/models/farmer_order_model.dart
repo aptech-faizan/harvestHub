@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Valid order statuses for farmer workflow.
 enum OrderStatus {
   pending,
@@ -8,7 +10,7 @@ enum OrderStatus {
 }
 
 extension OrderStatusX on OrderStatus {
-  /// Firestore-safe string value (camelCase)
+  /// Firestore snake_case status string value.
   String get value {
     switch (this) {
       case OrderStatus.pending:
@@ -16,7 +18,7 @@ extension OrderStatusX on OrderStatus {
       case OrderStatus.confirmed:
         return 'confirmed';
       case OrderStatus.readyForPickup:
-        return 'readyForPickup';
+        return 'ready_for_pickup';
       case OrderStatus.completed:
         return 'completed';
       case OrderStatus.cancelled:
@@ -43,7 +45,11 @@ extension OrderStatusX on OrderStatus {
   static OrderStatus fromValue(String v) {
     return OrderStatus.values.firstWhere(
       (e) => e.value == v,
-      orElse: () => OrderStatus.pending,
+      // Also accept old camelCase values from existing Firestore data
+      orElse: () {
+        if (v == 'readyForPickup') return OrderStatus.readyForPickup;
+        return OrderStatus.pending;
+      },
     );
   }
 }
@@ -68,19 +74,24 @@ class OrderItem {
 
   factory OrderItem.fromMap(Map<String, dynamic> m) {
     return OrderItem(
-      productId: m['productId'] as String,
-      productName: m['productName'] as String,
-      pricePerUnit: (m['pricePerUnit'] as num).toDouble(),
-      quantity: (m['quantity'] as num).toInt(),
-      unit: m['unit'] as String,
+      productId: m['productId'] as String? ?? '',
+      productName: m['name'] as String? ?? m['productName'] as String? ?? '',
+      pricePerUnit: (m['price'] as num?)?.toDouble() ??
+          (m['pricePerUnit'] as num?)?.toDouble() ??
+          0.0,
+      quantity: (m['qty'] as num?)?.toInt() ??
+          (m['quantity'] as num?)?.toInt() ??
+          0,
+      unit: m['unit'] as String? ?? '',
     );
   }
 
+  /// Serialises using Firestore schema field names: name, price, qty.
   Map<String, dynamic> toMap() => {
         'productId': productId,
-        'productName': productName,
-        'pricePerUnit': pricePerUnit,
-        'quantity': quantity,
+        'name': productName,
+        'price': pricePerUnit,
+        'qty': quantity,
         'unit': unit,
       };
 }
@@ -112,32 +123,44 @@ class FarmerOrder {
   });
 
   factory FarmerOrder.fromMap(Map<String, dynamic> map, String docId) {
-    final rawItems = map['items'] as List<dynamic>;
+    final rawItems = map['items'] as List<dynamic>? ?? [];
     return FarmerOrder(
       id: docId,
-      farmerId: map['farmerId'] as String,
-      customerId: map['customerId'] as String,
-      customerName: map['customerName'] as String,
+      farmerId: map['farmerId'] as String? ?? '',
+      customerId: map['customerId'] as String? ?? '',
+      customerName: map['customerName'] as String? ?? '',
       items: rawItems
           .map((e) => OrderItem.fromMap(e as Map<String, dynamic>))
           .toList(),
-      status: OrderStatusX.fromValue(map['status'] as String),
-      totalAmount: (map['totalAmount'] as num).toDouble(),
-      createdAt: DateTime.parse(map['createdAt'] as String),
-      updatedAt: DateTime.parse(map['updatedAt'] as String),
+      status: OrderStatusX.fromValue(map['status'] as String? ?? 'pending'),
+      totalAmount: (map['totalPrice'] as num?)?.toDouble() ??
+          (map['totalAmount'] as num?)?.toDouble() ??
+          0.0,
+      createdAt: _parseTimestamp(map['createdAt']),
+      updatedAt: _parseTimestamp(map['updatedAt']),
       notes: map['notes'] as String?,
     );
   }
 
+  /// Serialises using Firestore schema field names.
   Map<String, dynamic> toMap() => {
         'farmerId': farmerId,
         'customerId': customerId,
         'customerName': customerName,
         'items': items.map((i) => i.toMap()).toList(),
         'status': status.value,
-        'totalAmount': totalAmount,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
+        'totalPrice': totalAmount,
+        'createdAt': Timestamp.fromDate(createdAt),
+        'updatedAt': Timestamp.fromDate(updatedAt),
         'notes': notes,
       };
+
+  // ── Private helpers ───────────────────────────────────────────────────────
+
+  static DateTime _parseTimestamp(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
+  }
 }

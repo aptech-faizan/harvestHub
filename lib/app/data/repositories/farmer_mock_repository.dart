@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:uuid/uuid.dart';
 
 import '../models/farmer_product_model.dart';
@@ -15,12 +17,39 @@ class FarmerMockRepository implements FarmerRepository {
   final List<FarmerProduct> _products = _seedProducts();
   final List<FarmerOrder> _orders = _seedOrders();
 
+  // Stream controllers for reactive mock streams
+  final _productsController =
+      StreamController<List<FarmerProduct>>.broadcast();
+  final _ordersController = StreamController<List<FarmerOrder>>.broadcast();
+
+  int _lowStockThreshold = 5;
+
+  void _broadcastProducts() {
+    if (!_productsController.isClosed) {
+      _productsController.add(List.unmodifiable(_products));
+    }
+  }
+
+  void _broadcastOrders() {
+    if (!_ordersController.isClosed) {
+      _ordersController.add(List.unmodifiable(_orders));
+    }
+  }
+
   // ── Products ──────────────────────────────────────────────────────────────
 
   @override
   Future<List<FarmerProduct>> getProducts(String farmerId) async {
     await _fakeDelay();
     return _products.where((p) => p.farmerId == farmerId).toList();
+  }
+
+  @override
+  Stream<List<FarmerProduct>> watchProducts(String farmerId) {
+    // Emit current state immediately, then push updates via broadcast stream
+    Future.delayed(const Duration(milliseconds: 300), _broadcastProducts);
+    return _productsController.stream
+        .map((list) => list.where((p) => p.farmerId == farmerId).toList());
   }
 
   @override
@@ -40,6 +69,7 @@ class FarmerMockRepository implements FarmerRepository {
       updatedAt: DateTime.now(),
     );
     _products.add(saved);
+    _broadcastProducts();
     return saved;
   }
 
@@ -49,13 +79,25 @@ class FarmerMockRepository implements FarmerRepository {
     final idx = _products.indexWhere((p) => p.id == product.id);
     if (idx == -1) throw Exception('Product not found: ${product.id}');
     _products[idx] = product;
+    _broadcastProducts();
     return product;
+  }
+
+  @override
+  Future<void> updateStock(String productId, int newQty) async {
+    await _fakeDelay();
+    final idx = _products.indexWhere((p) => p.id == productId);
+    if (idx == -1) throw Exception('Product not found: $productId');
+    if (newQty < 0) throw Exception('Stock cannot go below 0');
+    _products[idx] = _products[idx].copyWith(stockQty: newQty);
+    _broadcastProducts();
   }
 
   @override
   Future<void> deleteProduct(String productId) async {
     await _fakeDelay();
     _products.removeWhere((p) => p.id == productId);
+    _broadcastProducts();
   }
 
   // ── Orders ────────────────────────────────────────────────────────────────
@@ -74,13 +116,45 @@ class FarmerMockRepository implements FarmerRepository {
   }
 
   @override
+  Stream<List<FarmerOrder>> watchOrders(
+    String farmerId, {
+    OrderStatus? status,
+  }) {
+    Future.delayed(const Duration(milliseconds: 300), _broadcastOrders);
+    return _ordersController.stream.map((list) {
+      var filtered = list.where((o) => o.farmerId == farmerId).toList();
+      if (status != null) {
+        filtered = filtered.where((o) => o.status == status).toList();
+      }
+      return filtered;
+    });
+  }
+
+  @override
   Future<FarmerOrder> updateOrderStatus(
       String orderId, OrderStatus status) async {
     await _fakeDelay();
     final idx = _orders.indexWhere((o) => o.id == orderId);
     if (idx == -1) throw Exception('Order not found: $orderId');
+
+    final order = _orders[idx];
+
+    // Business rule: if cancelling, restore stock quantities
+    if (status == OrderStatus.cancelled &&
+        order.status != OrderStatus.cancelled) {
+      for (final item in order.items) {
+        final pIdx = _products.indexWhere((p) => p.id == item.productId);
+        if (pIdx != -1) {
+          _products[pIdx] =
+              _products[pIdx].copyWith(stockQty: _products[pIdx].stockQty + item.quantity);
+        }
+      }
+      _broadcastProducts();
+    }
+
     _orders[idx].status = status;
     _orders[idx].updatedAt = DateTime.now();
+    _broadcastOrders();
     return _orders[idx];
   }
 
@@ -103,6 +177,20 @@ class FarmerMockRepository implements FarmerRepository {
       'pendingOrders': pendingOrders,
       'totalRevenue': totalRevenue,
     };
+  }
+
+  // ── Farmer profile / settings ─────────────────────────────────────────────
+
+  @override
+  Future<int> getLowStockThreshold(String farmerId) async {
+    await _fakeDelay();
+    return _lowStockThreshold;
+  }
+
+  @override
+  Future<void> setLowStockThreshold(String farmerId, int threshold) async {
+    await _fakeDelay();
+    _lowStockThreshold = threshold;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

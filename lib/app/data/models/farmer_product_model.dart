@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Model representing a farm product listed by a farmer.
 class FarmerProduct {
   final String id;
@@ -38,34 +40,41 @@ class FarmerProduct {
 
   // ── Firestore serialisation ────────────────────────────────────────────────
 
+  /// Creates a [FarmerProduct] from a Firestore document snapshot.
+  /// Handles both [Timestamp] (Firestore) and ISO [String] (mock) timestamps.
   factory FarmerProduct.fromMap(Map<String, dynamic> map, String docId) {
     return FarmerProduct(
       id: docId,
-      farmerId: map['farmerId'] as String,
-      name: map['name'] as String,
-      category: map['category'] as String,
-      pricePerUnit: (map['pricePerUnit'] as num).toDouble(),
-      unit: map['unit'] as String,
-      stockQty: (map['stockQty'] as num).toInt(),
-      description: map['description'] as String,
+      farmerId: map['farmerId'] as String? ?? '',
+      name: map['itemName'] as String? ?? map['name'] as String? ?? '',
+      category:
+          map['categoryName'] as String? ?? map['category'] as String? ?? '',
+      pricePerUnit: (map['pricePerUnit'] as num?)?.toDouble() ?? 0.0,
+      unit: map['unit'] as String? ?? 'kg',
+      stockQty: (map['stockQty'] as num?)?.toInt() ?? 0,
+      description: map['description'] as String? ?? '',
       imageUrl: map['imageUrl'] as String?,
-      createdAt: DateTime.parse(map['createdAt'] as String),
-      updatedAt: DateTime.parse(map['updatedAt'] as String),
+      createdAt: _parseTimestamp(map['createdAt']),
+      updatedAt: _parseTimestamp(map['updatedAt']),
     );
   }
 
+  /// Serialises this product for writing to Firestore.
+  /// Uses the Firestore schema field names.
   Map<String, dynamic> toMap() {
     return {
       'farmerId': farmerId,
-      'name': name,
-      'category': category,
+      'itemName': name,
+      'itemNameLower': name.toLowerCase(),
+      'categoryName': category,
       'pricePerUnit': pricePerUnit,
       'unit': unit,
       'stockQty': stockQty,
       'description': description,
       'imageUrl': imageUrl,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'isActive': !isOutOfStock,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
     };
   }
 
@@ -92,5 +101,14 @@ class FarmerProduct {
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );
+  }
+
+  // ── Private helpers ───────────────────────────────────────────────────────
+
+  static DateTime _parseTimestamp(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
   }
 }
