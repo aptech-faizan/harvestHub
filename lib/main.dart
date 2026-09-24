@@ -1,13 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'app/modules/customer/cart/controllers/cart_controller.dart';
-import 'app/modules/customer/wishlist/controllers/wishlist_controller.dart';
-import 'app/modules/splash/views/splash_view.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:harvest_hub/app/data/services/auth_service.dart';
+import 'package:harvest_hub/app/routes/app_pages.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
+import 'package:harvest_hub/firebase_options.dart';
 
-// App ka main entry point jahan Firebase aur permanent controllers initialize hote hain
-void main() async {
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Firebase initialize karna
@@ -22,20 +23,19 @@ void main() async {
   runApp(const MyApp());
 }
 
-// HarvestHub application root widget
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HarvestHubApp extends StatelessWidget {
+  const HarvestHubApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'HarvestHub',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-      ),
-      home: const SplashView(),
+      theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
+      // Temporary start page. Later, point this at your splash / role-select screen
+      // and send the "Admin" choice to Routes.adminLogin.
+      initialRoute: Routes.adminLogin,
+      getPages: AppPages.pages,
     );
   }
 }
