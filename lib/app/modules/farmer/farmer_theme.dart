@@ -104,6 +104,18 @@ class FarmerColors {
       ];
 }
 
+/// Standardised single currency formatter for the entire Farmer module ("PKR 600").
+class FarmerCurrency {
+  FarmerCurrency._();
+
+  static String format(num amount, {int fractionDigits = 0}) {
+    if (fractionDigits > 0) {
+      return 'PKR ${amount.toStringAsFixed(fractionDigits)}';
+    }
+    return 'PKR ${amount.round()}';
+  }
+}
+
 /// Shared typography scale for the Farmer module.
 /// Clear scale: 28 bold headings, 18 semibold titles, 14 body, 12 captions (min 12, body 14+).
 class FarmerTextStyles {

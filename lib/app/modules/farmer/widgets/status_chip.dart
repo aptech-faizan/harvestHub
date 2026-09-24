@@ -17,8 +17,8 @@ class StatusChip extends StatelessWidget {
     required this.textColor,
     required this.backgroundColor,
     this.icon,
-    this.fontSize = 11,
-    this.padding = const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+    this.fontSize = 12,
+    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
   });
 
   /// Factory constructor for OrderStatus
@@ -48,7 +48,7 @@ class StatusChip extends StatelessWidget {
       case OrderStatus.completed:
         return const StatusChip(
           label: 'Completed',
-          textColor: FarmerColors.statusCompleted,
+          textColor: FarmerColors.primaryDark,
           backgroundColor: FarmerColors.statusCompletedBg,
           icon: Icons.done_all_rounded,
         );
@@ -84,7 +84,7 @@ class StatusChip extends StatelessWidget {
     } else {
       return StatusChip(
         label: 'In Stock ($stockQty)',
-        textColor: FarmerColors.inStock,
+        textColor: FarmerColors.primaryDark,
         backgroundColor: FarmerColors.inStockBg,
         icon: Icons.check_rounded,
       );

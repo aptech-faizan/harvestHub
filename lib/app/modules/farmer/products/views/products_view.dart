@@ -552,10 +552,10 @@ class _ProductCard extends StatelessWidget {
                       child: Text(
                         product.category,
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: FarmerColors.muted,
-                          letterSpacing: 0.2,
+                          color: FarmerColors.textSecondary,
+                          letterSpacing: 0.1,
                         ),
                       ),
                     ),
@@ -589,18 +589,10 @@ class _ProductCard extends StatelessWidget {
                     RichText(
                       text: TextSpan(
                         children: [
-                          const TextSpan(
-                            text: 'PKR ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: FarmerColors.primaryDark,
-                            ),
-                          ),
                           TextSpan(
-                            text: product.pricePerUnit.toStringAsFixed(0),
+                            text: FarmerCurrency.format(product.pricePerUnit),
                             style: const TextStyle(
-                              fontSize: 17,
+                              fontSize: 16,
                               fontWeight: FontWeight.w800,
                               color: FarmerColors.primaryDark,
                             ),

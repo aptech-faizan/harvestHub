@@ -124,18 +124,20 @@ class _FarmerBottomNavBar extends StatelessWidget {
                               size: 22,
                             ),
                             const SizedBox(height: 3),
-                            Text(
-                              item.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? FarmerColors.primaryDark
-                                    : FarmerColors.muted,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                item.label,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? FarmerColors.primaryDark
+                                      : FarmerColors.muted,
+                                ),
                               ),
                             ),
                           ],
@@ -246,7 +248,6 @@ class _DashboardHomeTab extends GetView<DashboardController> {
                             label: 'Total Products',
                             value: controller.totalProducts.value,
                             color: FarmerColors.primary,
-                            trendLabel: 'Active',
                             onTap: () => controller.changeTab(1),
                           ),
                           StatCard(
@@ -254,7 +255,6 @@ class _DashboardHomeTab extends GetView<DashboardController> {
                             label: 'Total Orders',
                             value: controller.totalOrders.value,
                             color: FarmerColors.statusConfirmed,
-                            trendLabel: '+12%',
                             onTap: () => controller.changeTab(2),
                           ),
                           StatCard(
@@ -262,17 +262,14 @@ class _DashboardHomeTab extends GetView<DashboardController> {
                             label: 'Pending Orders',
                             value: controller.pendingOrders.value,
                             color: FarmerColors.statusPending,
-                            trendLabel: 'Review',
-                            isTrendPositive: false,
                             onTap: () => controller.changeTab(2),
                           ),
                           StatCard(
                             icon: Icons.payments_rounded,
-                            label: 'Revenue',
+                            label: 'Total Revenue',
                             value: controller.totalRevenue.value,
-                            prefix: 'Rs ',
+                            prefix: 'PKR ',
                             color: FarmerColors.primaryDark,
-                            trendLabel: '+8%',
                             onTap: () => controller.changeTab(3),
                           ),
                         ],
@@ -696,11 +693,11 @@ class _RevenueMiniBarChart extends StatelessWidget {
                     getTooltipColor: (_) => FarmerColors.primaryDark,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       return BarTooltipItem(
-                        'PKR ${(rod.toY * 65).toInt()}',
+                        FarmerCurrency.format((rod.toY * 65).toInt()),
                         const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                          fontSize: 12,
                         ),
                       );
                     },
@@ -915,7 +912,7 @@ class _RecentOrderCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'PKR ${order.totalAmount.toStringAsFixed(0)}',
+                      FarmerCurrency.format(order.totalAmount),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
