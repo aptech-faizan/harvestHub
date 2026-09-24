@@ -22,6 +22,21 @@ class PickupSlotModel {
   // Check karta hai ke slot full hai ya nahi
   bool get isFull => bookedCount >= capacity;
 
+  // Human-readable slot label format (maslan: 25 Sep, 10:00 AM - 11:00 AM)
+  String get label {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    String formatTime(DateTime dt) {
+      final hour = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:$minute $period';
+    }
+    return '${startTime.day} ${months[startTime.month - 1]}, ${formatTime(startTime)} - ${formatTime(endTime)}';
+  }
+
   // Map se PickupSlotModel banane ke liye
   factory PickupSlotModel.fromMap(Map<String, dynamic> map, String id) {
     DateTime parseDate(dynamic value) {

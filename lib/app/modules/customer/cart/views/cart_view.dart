@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/product_model.dart';
+import '../../checkout/bindings/checkout_binding.dart';
+import '../../checkout/views/checkout_view.dart';
 import '../controllers/cart_controller.dart';
 
 // Ye cart ki simple placeholder UI screen hai
@@ -22,41 +24,39 @@ class CartView extends GetView<CartController> {
         ],
       ),
       body: Obx(() {
-        if (controller.items.isEmpty) {
-          return const Center(child: Text('Cart khali hai'));
-        }
-
         return Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                itemCount: controller.items.length,
-                itemBuilder: (context, index) {
-                  final item = controller.items[index];
-                  return ListTile(
-                    title: Text(item.product.itemName),
-                    subtitle: Text('Price: Rs. ${item.product.pricePerUnit} x ${item.qty} = Rs. ${item.total}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () => controller.setQty(item.product.id, item.qty - 1),
-                        ),
-                        Text('${item.qty}'),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () => controller.setQty(item.product.id, item.qty + 1),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => controller.remove(item.product.id),
-                        ),
-                      ],
+              child: controller.items.isEmpty
+                  ? const Center(child: Text('Cart khali hai'))
+                  : ListView.builder(
+                      itemCount: controller.items.length,
+                      itemBuilder: (context, index) {
+                        final item = controller.items[index];
+                        return ListTile(
+                          title: Text(item.product.itemName),
+                          subtitle: Text('Price: Rs. ${item.product.pricePerUnit} x ${item.qty} = Rs. ${item.total}'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () => controller.setQty(item.product.id, item.qty - 1),
+                              ),
+                              Text('${item.qty}'),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () => controller.setQty(item.product.id, item.qty + 1),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => controller.remove(item.product.id),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -64,9 +64,25 @@ class CartView extends GetView<CartController> {
                 children: [
                   Text('Subtotal: Rs. ${controller.subtotal}'),
                   Text('Total Items: ${controller.itemCount}'),
-                  ElevatedButton(
-                    onPressed: () => controller.clear(),
-                    child: const Text('Clear Cart'),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: controller.items.isEmpty ? null : () => controller.clear(),
+                        child: const Text('Clear Cart'),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: controller.items.isEmpty
+                            ? null
+                            : () => Get.to(
+                                  () => const CheckoutView(),
+                                  binding: CheckoutBinding(),
+                                ),
+                        child: const Text('Checkout'),
+                      ),
+                    ],
                   ),
                 ],
               ),

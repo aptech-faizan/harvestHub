@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 import '../../../role_select/role_select_view.dart';
 import '../../cart/controllers/cart_controller.dart';
 import '../../wishlist/controllers/wishlist_controller.dart';
-import '../../../../../dev_menu.dart';
+import '../../shell/bindings/customer_shell_binding.dart';
+import '../../shell/views/customer_shell_view.dart';
 
 // Ye customer login aur register ki logic handle karta hai
 class CustomerAuthController extends GetxController {
@@ -16,7 +17,7 @@ class CustomerAuthController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool hidePassword = true.obs;
 
-  // TextEditingControllers yahan rakhe hain taake view mein state na ho
+  // Form input controllers
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
   final TextEditingController nameCtrl = TextEditingController();
@@ -37,20 +38,13 @@ class CustomerAuthController extends GetxController {
   // Firebase error codes ke hisaab se user-friendly message deta hai
   String _getErrorMessage(String code) {
     switch (code) {
-      case 'email-already-in-use':
-        return 'Ye email pehle se registered hai.';
-      case 'wrong-password':
-        return 'Password galat hai.';
-      case 'user-not-found':
-        return 'Ye email registered nahi hai.';
-      case 'invalid-credential':
-        return 'Email ya password galat hai.';
-      case 'weak-password':
-        return 'Password kam az kam 6 characters ka hona chahiye.';
-      case 'network-request-failed':
-        return 'Internet connection check karein.';
-      default:
-        return 'Kuch masla hua: $code';
+      case 'email-already-in-use': return 'Ye email pehle se registered hai.';
+      case 'wrong-password': return 'Password galat hai.';
+      case 'user-not-found': return 'Ye email registered nahi hai.';
+      case 'invalid-credential': return 'Email ya password galat hai.';
+      case 'weak-password': return 'Password kam az kam 6 characters ka hona chahiye.';
+      case 'network-request-failed': return 'Internet connection check karein.';
+      default: return 'Kuch masla hua: $code';
     }
   }
 
@@ -87,8 +81,8 @@ class CustomerAuthController extends GetxController {
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      // TODO: customer bottom nav se replace hoga
-      Get.offAll(() => const DevMenu());
+      Get.find<WishlistController>().loadWishlist();
+      Get.offAll(() => const CustomerShellView(), binding: CustomerShellBinding());
     } on FirebaseAuthException catch (e) {
       Get.snackbar('Error', _getErrorMessage(e.code));
     } catch (e) {
@@ -120,8 +114,8 @@ class CustomerAuthController extends GetxController {
         Get.snackbar('Access Denied', 'Ye account customer nahi hai ya blocked hai.');
         return;
       }
-      // TODO: customer bottom nav se replace hoga
-      Get.offAll(() => const DevMenu());
+      Get.find<WishlistController>().loadWishlist();
+      Get.offAll(() => const CustomerShellView(), binding: CustomerShellBinding());
     } on FirebaseAuthException catch (e) {
       Get.snackbar('Error', _getErrorMessage(e.code));
     } catch (e) {
@@ -138,7 +132,7 @@ class CustomerAuthController extends GetxController {
       Get.find<CartController>().clear();
     }
     if (Get.isRegistered<WishlistController>()) {
-      Get.find<WishlistController>().items.clear();
+      Get.find<WishlistController>().clearAll();
     }
     Get.offAll(() => const RoleSelectView());
   }

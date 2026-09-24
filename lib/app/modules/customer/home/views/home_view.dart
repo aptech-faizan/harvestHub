@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../product_details/bindings/product_details_binding.dart';
 import '../../product_details/views/product_details_view.dart';
+import '../../wishlist/bindings/wishlist_binding.dart';
+import '../../wishlist/views/wishlist_view.dart';
 import '../controllers/home_controller.dart';
 
 // Ye Customer Home screen ki simple placeholder UI hai
@@ -14,6 +16,15 @@ class HomeView extends GetView<HomeController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('HarvestHub Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_border),
+            onPressed: () => Get.to(
+              () => const WishlistView(),
+              binding: WishlistBinding(),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
