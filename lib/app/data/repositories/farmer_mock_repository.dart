@@ -4,6 +4,8 @@ import 'package:uuid/uuid.dart';
 
 import '../models/farmer_product_model.dart';
 import '../models/farmer_order_model.dart';
+import '../models/farmer_slot_model.dart';
+import '../models/farmer_profile_model.dart';
 import 'farmer_repository.dart';
 
 /// In-memory mock implementation of [FarmerRepository].
@@ -193,7 +195,131 @@ class FarmerMockRepository implements FarmerRepository {
     _lowStockThreshold = threshold;
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Farmer profile ────────────────────────────────────────────────────────
+
+  @override
+  Future<FarmerProfile> getFarmerProfile(String farmerId) async {
+    await _fakeDelay();
+    return FarmerProfile(
+      userId: farmerId,
+      businessName: 'Green Valley Farm',
+      description: 'Fresh organic produce direct from the farm.',
+      marketId: 'market_001',
+      lowStockThreshold: _lowStockThreshold,
+      displayName: 'Ahmed Raza',
+      phone: '+92 300 1234567',
+    );
+  }
+
+  @override
+  Future<void> saveFarmerProfile(FarmerProfile profile) async {
+    await _fakeDelay();
+    // In-memory: no-op for mock
+  }
+
+  @override
+  Future<List<MarketInfo>> getMarkets() async {
+    await _fakeDelay();
+    return const [
+      MarketInfo(id: 'market_001', name: 'Lahore Farmers Market', lat: 31.5204, lng: 74.3587),
+      MarketInfo(id: 'market_002', name: 'Islamabad Green Bazaar', lat: 33.6844, lng: 73.0479),
+      MarketInfo(id: 'market_003', name: 'Karachi Organic Hub', lat: 24.8607, lng: 67.0011),
+    ];
+  }
+
+  // ── Pickup Slots ──────────────────────────────────────────────────────────
+
+  final List<PickupSlot> _slots = _seedSlots();
+  final _slotsController = StreamController<List<PickupSlot>>.broadcast();
+
+  void _broadcastSlots() {
+    if (!_slotsController.isClosed) {
+      _slotsController.add(List.unmodifiable(_slots));
+    }
+  }
+
+  @override
+  Stream<List<PickupSlot>> watchSlots(String farmerId) {
+    Future.delayed(const Duration(milliseconds: 300), _broadcastSlots);
+    return _slotsController.stream
+        .map((list) => list.where((s) => s.farmerId == farmerId).toList());
+  }
+
+  @override
+  Future<PickupSlot> addSlot(PickupSlot slot) async {
+    await _fakeDelay();
+    final saved = PickupSlot(
+      id: _uuid.v4(),
+      farmerId: slot.farmerId,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      capacity: slot.capacity,
+      bookedCount: 0,
+      isActive: slot.isActive,
+    );
+    _slots.add(saved);
+    _broadcastSlots();
+    return saved;
+  }
+
+  @override
+  Future<void> updateSlot(PickupSlot updated) async {
+    await _fakeDelay();
+    final idx = _slots.indexWhere((s) => s.id == updated.id);
+    if (idx == -1) throw Exception('Slot not found: ${updated.id}');
+    final current = _slots[idx];
+    if (updated.capacity < current.bookedCount) {
+      throw Exception(
+          'Cannot reduce capacity below ${current.bookedCount} (already booked).');
+    }
+    final timeChanged = updated.startTime != current.startTime ||
+        updated.endTime != current.endTime;
+    if (timeChanged && current.bookedCount > 0) {
+      throw Exception(
+          'Cannot change times: ${current.bookedCount} order(s) already booked.');
+    }
+    _slots[idx] = updated.copyWith();
+    _broadcastSlots();
+  }
+
+  @override
+  Future<void> deleteSlot(String slotId, int bookedCount) async {
+    await _fakeDelay();
+    if (bookedCount > 0) {
+      throw Exception(
+          'Cannot delete slot: $bookedCount order(s) are already booked.');
+    }
+    _slots.removeWhere((s) => s.id == slotId);
+    _broadcastSlots();
+  }
+
+  static List<PickupSlot> _seedSlots() {
+    const farmerId = 'farmer_001';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return [
+      PickupSlot(
+        id: 'slot_001',
+        farmerId: farmerId,
+        startTime: today.add(const Duration(hours: 8)),
+        endTime: today.add(const Duration(hours: 10)),
+        capacity: 10,
+        bookedCount: 8,
+        isActive: true,
+      ),
+      PickupSlot(
+        id: 'slot_002',
+        farmerId: farmerId,
+        startTime: today.add(const Duration(hours: 14)),
+        endTime: today.add(const Duration(hours: 16)),
+        capacity: 12,
+        bookedCount: 3,
+        isActive: true,
+      ),
+    ];
+  }
+
+
 
   /// Simulates a short network delay so the UI loading states are visible.
   Future<void> _fakeDelay() =>
