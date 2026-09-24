@@ -75,11 +75,9 @@ class _LegendRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          _LegendDot(color: FarmerColors.outOfStock, label: 'Out of Stock'),
-          const SizedBox(width: 16),
-          _LegendDot(color: FarmerColors.lowStock, label: 'Low Stock (≤5)'),
-          const SizedBox(width: 16),
-          _LegendDot(color: FarmerColors.statusCompleted, label: 'In Stock'),
+          Expanded(child: _LegendDot(color: FarmerColors.outOfStock, label: 'Out of Stock')),
+          Expanded(child: _LegendDot(color: FarmerColors.lowStock, label: 'Low Stock (≤5)')),
+          Expanded(child: _LegendDot(color: FarmerColors.statusCompleted, label: 'In Stock')),
         ],
       ),
     );
@@ -97,11 +95,18 @@ class _LegendDot extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-            width: 10,
-            height: 10,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 11)),
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 11),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
@@ -184,7 +189,7 @@ class _InventoryCardState extends State<_InventoryCard> {
           Row(
             children: [
               const Text('Stock:', style: FarmerTextStyles.body),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               // Decrement
               _CircleIconButton(
                 icon: Icons.remove,
@@ -193,20 +198,20 @@ class _InventoryCardState extends State<_InventoryCard> {
                   setState(() {});
                 },
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               // Quantity field
               SizedBox(
-                width: 72,
+                width: 54,
                 child: TextField(
                   controller: stockCtrl,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 15),
+                      fontWeight: FontWeight.bold, fontSize: 14),
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 10),
+                        horizontal: 4, vertical: 8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide:
@@ -220,7 +225,7 @@ class _InventoryCardState extends State<_InventoryCard> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               // Increment
               _CircleIconButton(
                 icon: Icons.add,
@@ -229,14 +234,14 @@ class _InventoryCardState extends State<_InventoryCard> {
                   setState(() {});
                 },
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(widget.product.unit,
                   style: FarmerTextStyles.caption
                       .copyWith(fontWeight: FontWeight.w600)),
               const Spacer(),
               // Save button
               SizedBox(
-                height: 36,
+                height: 34,
                 child: ElevatedButton(
                   onPressed: () => _ctrl.updateStock(widget.product),
                   style: ElevatedButton.styleFrom(
@@ -244,7 +249,7 @@ class _InventoryCardState extends State<_InventoryCard> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
                   child: const Text('Save'),
                 ),

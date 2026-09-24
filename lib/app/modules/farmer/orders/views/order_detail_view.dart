@@ -42,15 +42,17 @@ class OrderDetailView extends StatelessWidget {
                     child: Icon(Icons.person, color: Colors.white, size: 28),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(order.customerName,
-                          style: FarmerTextStyles.subheading
-                              .copyWith(color: const Color(0xFF1B1B1B))),
-                      Text('Customer ID: ${order.customerId}',
-                          style: FarmerTextStyles.caption),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(order.customerName,
+                            style: FarmerTextStyles.subheading
+                                .copyWith(color: const Color(0xFF1B1B1B))),
+                        Text('Customer ID: ${order.customerId}',
+                            style: FarmerTextStyles.caption),
+                      ],
+                    ),
                   ),
                 ],
               ),

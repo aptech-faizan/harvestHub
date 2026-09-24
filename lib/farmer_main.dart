@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'app/modules/farmer/dashboard/bindings/dashboard_binding.dart';
 import 'app/modules/farmer/dashboard/views/farmer_dashboard_view.dart';
 import 'app/modules/farmer/farmer_pages.dart';
+import 'app/modules/farmer/farmer_theme.dart';
 
 void main() {
   runApp(const FarmerApp());
@@ -20,11 +21,7 @@ class FarmerApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'HarvestHub – Farmer',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF2E7D32),
-        fontFamily: 'Roboto',
-      ),
+      theme: FarmerTheme.lightTheme,
       initialRoute: '/',
       initialBinding: DashboardBinding(),
       getPages: [

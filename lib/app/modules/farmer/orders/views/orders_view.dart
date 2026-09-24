@@ -172,11 +172,15 @@ class _OrderCard extends StatelessWidget {
               // Footer: total + status update
               Row(
                 children: [
-                  Text(
-                    'PKR ${order.totalAmount.toStringAsFixed(0)}',
-                    style: FarmerTextStyles.price,
+                  Expanded(
+                    child: Text(
+                      'PKR ${order.totalAmount.toStringAsFixed(0)}',
+                      style: FarmerTextStyles.price,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   // Status update dropdown
                   _StatusDropdown(order: order, controller: ctrl),
                 ],

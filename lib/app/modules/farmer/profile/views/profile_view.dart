@@ -122,13 +122,15 @@ class _ProfileRow extends StatelessWidget {
         children: [
           Icon(icon, size: 22, color: FarmerColors.primary),
           const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: FarmerTextStyles.caption),
-              const SizedBox(height: 2),
-              Text(value, style: FarmerTextStyles.body),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: FarmerTextStyles.caption),
+                const SizedBox(height: 2),
+                Text(value, style: FarmerTextStyles.body),
+              ],
+            ),
           ),
         ],
       ),

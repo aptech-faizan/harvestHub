@@ -18,18 +18,21 @@ class SlotsView extends GetView<SlotsController> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.schedule, size: 72, color: FarmerColors.secondary),
-            SizedBox(height: 16),
-            Text('Coming Soon',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-            SizedBox(height: 8),
-            Text('Pickup slot scheduling is planned for the next sprint.',
-                textAlign: TextAlign.center,
-                style: FarmerTextStyles.body),
-          ],
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.schedule, size: 72, color: FarmerColors.secondary),
+              SizedBox(height: 16),
+              Text('Coming Soon',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+              SizedBox(height: 8),
+              Text('Pickup slot scheduling is planned for the next sprint.',
+                  textAlign: TextAlign.center,
+                  style: FarmerTextStyles.body),
+            ],
+          ),
         ),
       ),
     );
