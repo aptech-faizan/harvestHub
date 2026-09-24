@@ -8,6 +8,8 @@ class ProfileController extends GetxController {
   final FarmerRepository _repo;
   ProfileController(this._repo);
 
+  FarmerRepository get repository => _repo;
+
   // Mocked profile data – will be replaced with auth team's currentUser
   final RxString name = 'Ahmed Raza'.obs;
   final RxString email = 'ahmed.raza@farm.pk'.obs;

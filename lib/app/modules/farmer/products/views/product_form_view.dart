@@ -47,7 +47,7 @@ class ProductFormView extends GetView<ProductsController> {
               // ── Category ───────────────────────────────────────────────
               _FormLabel('Category'),
               Obx(() => DropdownButtonFormField<String>(
-                    value: controller.selectedCategory.value,
+                    initialValue: controller.selectedCategory.value,
                     decoration: _inputDecoration(
                         hint: 'Select category', icon: Icons.category),
                     items: controller.categories
@@ -86,7 +86,7 @@ class ProductFormView extends GetView<ProductsController> {
                       children: [
                         _FormLabel('Unit'),
                         Obx(() => DropdownButtonFormField<String>(
-                              value: controller.selectedUnit.value,
+                              initialValue: controller.selectedUnit.value,
                               decoration: _inputDecoration(
                                   hint: 'Unit', icon: Icons.scale),
                               items: controller.units

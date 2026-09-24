@@ -7,4 +7,6 @@ import '../../../../data/repositories/farmer_repository.dart';
 class SlotsController extends GetxController {
   final FarmerRepository _repo;
   SlotsController(this._repo);
+
+  FarmerRepository get repository => _repo;
 }
