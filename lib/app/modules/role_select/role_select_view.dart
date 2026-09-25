@@ -1,9 +1,11 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/modules/farmer/farmer_entry.dart';
 import '../../routes/app_routes.dart';
 import '../customer/auth/bindings/customer_auth_binding.dart';
 import '../customer/auth/views/customer_login_view.dart';
+
 
 // Ye role select screen hai jahan user Customer, Farmer ya Admin chunti hai
 class RoleSelectView extends StatelessWidget {
@@ -36,10 +38,10 @@ class RoleSelectView extends StatelessWidget {
               // TODO: Dev 2 ka login
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Get.snackbar('Abhi nahi', 'Ye module abhi baaki hai'),
-                  child: const Text('Farmer'),
-                ),
+               child: ElevatedButton(
+  onPressed: () => FarmerEntry.open(),
+  child: const Text('Farmer'),
+),
               ),
               const SizedBox(height: 16),
               // Admin login par navigate karta hai
