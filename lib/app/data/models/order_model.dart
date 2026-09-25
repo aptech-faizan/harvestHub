@@ -12,7 +12,7 @@ class OrderModel {
   final String pickupSlotId;
   final String pickupSlotTime;
   final String status;
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   // Constructor
   OrderModel({
@@ -26,7 +26,7 @@ class OrderModel {
     required this.pickupSlotId,
     required this.pickupSlotTime,
     this.status = 'pending',
-    required this.createdAt,
+    this.createdAt,
   });
 
   // Check karta hai ke order modify/cancel kiya ja sakta hai ya nahi
@@ -34,10 +34,10 @@ class OrderModel {
 
   // Map se OrderModel banane ke liye
   factory OrderModel.fromMap(Map<String, dynamic> map, String id) {
-    DateTime parseDate(dynamic value) {
+    DateTime? parseDate(dynamic value) {
       if (value is Timestamp) return value.toDate();
-      if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
-      return DateTime.now();
+      if (value is String) return DateTime.tryParse(value);
+      return null;
     }
 
     final rawItems = map['items'];

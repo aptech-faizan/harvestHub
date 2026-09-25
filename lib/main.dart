@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:harvest_hub/app/core/theme/app_theme.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
 import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';

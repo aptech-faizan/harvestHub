@@ -100,7 +100,15 @@ class CheckoutController extends GetxController {
         final cartItems = entry.value;
         final farmerName = cartItems.isNotEmpty ? cartItems.first.product.farmerName : '';
         final slotId = selectedSlotId[farmerId]!;
-        final slot = (farmerSlots[farmerId] ?? []).firstWhere((s) => s.id == slotId);
+        // fix: orElse prevents StateError crash when slot is no longer available
+        final slot = (farmerSlots[farmerId] ?? [])
+            .cast<PickupSlotModel?>()
+            .firstWhere((s) => s?.id == slotId, orElse: () => null);
+        if (slot == null) {
+          isPlacing.value = false;
+          Get.snackbar('Slot Unavailable', 'Selected slot no longer available, please choose again');
+          return;
+        }
 
         final orderItems = cartItems.map((ci) => {
           'productId': ci.product.id,

@@ -98,9 +98,14 @@ class HomeView extends GetView<HomeController> {
                           ),
                         ],
                       ),
-                      trailing: ElevatedButton(
-                        onPressed: isOutOfStock ? null : () => controller.addToCart(p),
-                        child: const Text('Add to cart'),
+                      // fix: ElevatedButton in ListTile trailing needs bounded height/width to avoid overflow
+                      trailing: SizedBox(
+                        height: 40,
+                        width: 110,
+                        child: ElevatedButton(
+                          onPressed: isOutOfStock ? null : () => controller.addToCart(p),
+                          child: const Text('Add to cart'),
+                        ),
                       ),
                     ),
                   );

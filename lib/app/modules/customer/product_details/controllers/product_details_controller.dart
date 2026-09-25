@@ -17,7 +17,13 @@ class ProductDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    product = Get.arguments as ProductModel;
+    // fix: safe cast prevents crash when arguments are null or wrong type
+    final args = Get.arguments;
+    if (args is! ProductModel) {
+      Get.back();
+      return;
+    }
+    product = args;
     _checkWishlistStatus();
   }
 

@@ -13,6 +13,13 @@ class WishlistController extends GetxController {
   // Wishlisted products ki reactive list
   final RxList<ProductModel> items = <ProductModel>[].obs;
 
+  // fix: onInit mein loadWishlist() call kiya taake screen khulte hi wishlist load ho
+  @override
+  void onInit() {
+    super.onInit();
+    loadWishlist();
+  }
+
   // Firestore se logged in user ki wishlist items load karta hai
   Future<void> loadWishlist() async {
     final currentUid = uid;

@@ -75,7 +75,9 @@ class OrdersView extends GetView<OrdersController> {
             itemBuilder: (context, index) {
               final order = controller.orders[index];
               final orderShortId = order.id.length >= 6 ? order.id.substring(0, 6) : order.id;
-              final orderDate = '${order.createdAt.day}/${order.createdAt.month}/${order.createdAt.year}';
+              final orderDate = order.createdAt != null
+                  ? '${order.createdAt!.day}/${order.createdAt!.month}/${order.createdAt!.year}'
+                  : 'Date not available';
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 12.0),

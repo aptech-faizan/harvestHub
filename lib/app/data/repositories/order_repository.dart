@@ -16,7 +16,8 @@ class OrderRepository {
     final orders = snapshot.docs
         .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
         .toList();
-    orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final defaultDate = DateTime(0);
+    orders.sort((a, b) => (b.createdAt ?? defaultDate).compareTo(a.createdAt ?? defaultDate));
     return orders;
   }
 
@@ -75,8 +76,9 @@ class OrderRepository {
           if (snap == null || !snap.exists || snap.data() == null) {
             throw Exception('Slot full hai');
           }
-          final cap = (snap.data()!['capacity'] as num).toInt();
-          final booked = (snap.data()!['bookedCount'] as num).toInt();
+          // fix: null-safe cast prevents crash when old slot docs lack capacity/bookedCount
+          final cap = (snap.data()!['capacity'] as num?)?.toInt() ?? 0;
+          final booked = (snap.data()!['bookedCount'] as num?)?.toInt() ?? 0;
           final next = booked + (sIncrements[sid] ?? 0) + 1;
           if (next > cap) throw Exception('Slot full hai');
           sIncrements[sid] = (sIncrements[sid] ?? 0) + 1;
@@ -94,7 +96,8 @@ class OrderRepository {
 
       // 3b. WRITES — slot bookedCount increment
       for (final entry in sIncrements.entries) {
-        final booked = (sSnaps[entry.key]!.data()!['bookedCount'] as num).toInt();
+        // fix: null-safe cast for bookedCount write-back
+        final booked = (sSnaps[entry.key]!.data()!['bookedCount'] as num?)?.toInt() ?? 0;
         transaction.update(
           _firestore.collection('pickup_slots').doc(entry.key),
           {'bookedCount': booked + entry.value},

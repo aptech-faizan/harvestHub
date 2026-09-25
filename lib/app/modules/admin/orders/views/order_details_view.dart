@@ -20,7 +20,7 @@ class OrderDetailsView extends GetView<OrdersController> {
           InfoRow('Customer', controller.customerName(o.customerId)),
           InfoRow('Farmer', o.farmerName.isNotEmpty ? o.farmerName : controller.farmerName(o.farmerId)),
           if (o.deliveryAddress.isNotEmpty) InfoRow('Delivery address', o.deliveryAddress),
-          InfoRow('Order date', formatDate(o.createdAt)),
+          InfoRow('Order date', o.createdAt != null ? formatDate(o.createdAt) : 'Date not available'),
           InfoRow('Pickup slot', o.pickupSlot),
           InfoRow('Total price', money(o.totalPrice)),
           const SizedBox(height: 8),
