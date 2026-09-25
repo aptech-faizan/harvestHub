@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../data/repositories/user_repository.dart';
-import '../../auth/controllers/customer_auth_controller.dart';
+import '../../../../data/services/auth_service.dart';
 
 // Ye customer profile details, update, password change aur logout manage karta hai
 class ProfileController extends GetxController {
@@ -116,11 +116,8 @@ class ProfileController extends GetxController {
     }
   }
 
-  // Account logout karne ke liye CustomerAuthController call karta hai
-  void logout() {
-    final authCtrl = Get.isRegistered<CustomerAuthController>()
-        ? Get.find<CustomerAuthController>()
-        : Get.put(CustomerAuthController());
-    authCtrl.logout();
+  // Logs out user and cleans up session via AuthService
+  Future<void> logout() async {
+    await Get.find<AuthService>().logout();
   }
 }

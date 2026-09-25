@@ -5,7 +5,6 @@ import 'package:harvest_hub/app/core/theme/app_theme.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
 import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
-import 'package:harvest_hub/app/modules/splash/views/splash_view.dart';
 import 'package:harvest_hub/app/routes/app_pages.dart';
 import 'package:harvest_hub/firebase_options.dart';
 
@@ -33,8 +32,8 @@ class HarvestHubApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'HarvestHub',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const SplashView(),
+      theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
+      initialRoute: AppPages.initial,
       getPages: AppPages.pages,
     );
   }

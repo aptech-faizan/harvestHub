@@ -2,9 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/farmer_model.dart';
-import '../bindings/farmers_binding.dart';
+import '../../../../routes/app_routes.dart';
 import '../controllers/farmers_controller.dart';
-import 'farmer_details_view.dart';
 
 // Ye farmers ki list dikhane ki placeholder screen hai
 class FarmersView extends GetView<FarmersController> {
@@ -53,9 +52,8 @@ class _FarmerTile extends StatelessWidget {
               ],
             )
           : null,
-      onTap: () => Get.to(
-        () => const FarmerDetailsView(),
-        binding: FarmersBinding(),
+      onTap: () => Get.toNamed(
+        Routes.customerFarmerDetails,
         arguments: farmer,
       ),
     );

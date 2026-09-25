@@ -1,5 +1,8 @@
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/middleware/admin_middleware.dart';
+import 'package:harvest_hub/app/middleware/customer_middleware.dart';
+import 'package:harvest_hub/app/middleware/farmer_middleware.dart';
+import 'package:harvest_hub/app/middleware/guest_middleware.dart';
 import 'package:harvest_hub/app/modules/admin/categories/bindings/categories_binding.dart';
 import 'package:harvest_hub/app/modules/admin/categories/views/categories_view.dart';
 import 'package:harvest_hub/app/modules/admin/customers/bindings/customers_binding.dart';
@@ -20,19 +23,103 @@ import 'package:harvest_hub/app/modules/admin/products/views/product_details_vie
 import 'package:harvest_hub/app/modules/admin/products/views/products_view.dart';
 import 'package:harvest_hub/app/modules/admin/reports/bindings/reports_binding.dart';
 import 'package:harvest_hub/app/modules/admin/reports/views/reports_view.dart';
-import 'package:harvest_hub/app/modules/auth/bindings/admin_login_binding.dart';
-import 'package:harvest_hub/app/modules/auth/views/admin_login_view.dart';
+import 'package:harvest_hub/app/modules/auth/bindings/login_binding.dart';
+import 'package:harvest_hub/app/modules/auth/bindings/register_binding.dart';
+import 'package:harvest_hub/app/modules/auth/views/login_view.dart';
+import 'package:harvest_hub/app/modules/auth/views/register_view.dart';
+import 'package:harvest_hub/app/modules/customer/checkout/bindings/checkout_binding.dart';
+import 'package:harvest_hub/app/modules/customer/checkout/views/checkout_view.dart';
+import 'package:harvest_hub/app/modules/customer/farmers/bindings/farmers_binding.dart'
+    as customer_farmers_bind;
+import 'package:harvest_hub/app/modules/customer/farmers/views/farmer_details_view.dart'
+    as customer_farmer_details;
+import 'package:harvest_hub/app/modules/customer/farmers/views/farmers_view.dart'
+    as customer_farmers;
+import 'package:harvest_hub/app/modules/customer/product_details/bindings/product_details_binding.dart';
+import 'package:harvest_hub/app/modules/customer/product_details/views/product_details_view.dart'
+    as customer_product_details;
+import 'package:harvest_hub/app/modules/customer/shell/bindings/customer_shell_binding.dart';
+import 'package:harvest_hub/app/modules/customer/shell/views/customer_shell_view.dart';
+import 'package:harvest_hub/app/modules/customer/wishlist/bindings/wishlist_binding.dart';
+import 'package:harvest_hub/app/modules/customer/wishlist/views/wishlist_view.dart';
+import 'package:harvest_hub/app/modules/farmer/dashboard/bindings/farmer_dashboard_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/dashboard/views/farmer_dashboard_view.dart';
+import 'package:harvest_hub/app/modules/splash/bindings/splash_binding.dart';
+import 'package:harvest_hub/app/modules/splash/views/splash_view.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 
-
 class AppPages {
-  // Every admin page (except login) is protected by AdminMiddleware.
+  static const initial = Routes.splash;
+
   static final pages = <GetPage>[
+    // ----- Splash -----
     GetPage(
-      name: Routes.adminLogin,
-      page: () => const AdminLoginView(),
-      binding: AdminLoginBinding(),
+      name: Routes.splash,
+      page: () => const SplashView(),
+      binding: SplashBinding(),
     ),
+
+    // ----- Common Auth -----
+    GetPage(
+      name: Routes.login,
+      page: () => const LoginView(),
+      binding: LoginBinding(),
+      middlewares: [GuestMiddleware()],
+    ),
+    GetPage(
+      name: Routes.register,
+      page: () => const RegisterView(),
+      binding: RegisterBinding(),
+      middlewares: [GuestMiddleware()],
+    ),
+
+    // ----- Customer Module -----
+    GetPage(
+      name: Routes.customerShell,
+      page: () => const CustomerShellView(),
+      binding: CustomerShellBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerCheckout,
+      page: () => const CheckoutView(),
+      binding: CheckoutBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerFarmers,
+      page: () => const customer_farmers.FarmersView(),
+      binding: customer_farmers_bind.FarmersBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerFarmerDetails,
+      page: () => const customer_farmer_details.FarmerDetailsView(),
+      binding: customer_farmers_bind.FarmersBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerProductDetails,
+      page: () => const customer_product_details.ProductDetailsView(),
+      binding: ProductDetailsBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerWishlist,
+      page: () => const WishlistView(),
+      binding: WishlistBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+
+    // ----- Farmer Module -----
+    GetPage(
+      name: Routes.farmerDashboard,
+      page: () => const FarmerDashboardView(),
+      binding: FarmerDashboardBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+
+    // ----- Admin Module -----
     GetPage(
       name: Routes.adminDashboard,
       page: () => const DashboardView(),

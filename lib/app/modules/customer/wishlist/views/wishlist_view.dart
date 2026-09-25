@@ -1,8 +1,7 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../product_details/bindings/product_details_binding.dart';
-import '../../product_details/views/product_details_view.dart';
+import '../../../../routes/app_routes.dart';
 import '../controllers/wishlist_controller.dart';
 
 // Ye customer wishlist ki placeholder UI screen hai
@@ -31,9 +30,8 @@ class WishlistView extends GetView<WishlistController> {
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: ListTile(
-                onTap: () => Get.to(
-                  () => const ProductDetailsView(),
-                  binding: ProductDetailsBinding(),
+                onTap: () => Get.toNamed(
+                  Routes.customerProductDetails,
                   arguments: p,
                 ),
                 title: Text(p.itemName),
