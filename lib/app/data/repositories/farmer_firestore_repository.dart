@@ -60,7 +60,9 @@ class FarmerFirestoreRepository implements FarmerRepository {
 
   String get _farmerId {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) throw Exception('Farmer is not signed in.');
+    if (uid == null) {
+      throw Exception('Farmer is not signed in. Please log in again.');
+    }
     return uid;
   }
 
@@ -96,7 +98,11 @@ class FarmerFirestoreRepository implements FarmerRepository {
           return 'Firestore error (${e.code}): ${e.message}';
       }
     }
-    return e.toString();
+    final msg = e.toString();
+    if (msg.contains('not signed in') || msg.contains('log in again')) {
+      return 'Please log in again.';
+    }
+    return msg.replaceFirst('Exception: ', '');
   }
 
   // ── Products ──────────────────────────────────────────────────────────────
@@ -104,9 +110,13 @@ class FarmerFirestoreRepository implements FarmerRepository {
   @override
   Future<List<FarmerProduct>> getProducts(String farmerId) async {
     try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('Farmer is not signed in. Please log in again.');
+      }
       // Index 1: farmerId ASC + createdAt DESC
       final snap = await _products
-          .where('farmerId', isEqualTo: farmerId)
+          .where('farmerId', isEqualTo: uid)
           .orderBy('createdAt', descending: true)
           .get();
       return snap.docs
@@ -119,9 +129,13 @@ class FarmerFirestoreRepository implements FarmerRepository {
 
   @override
   Stream<List<FarmerProduct>> watchProducts(String farmerId) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      return Stream.error(Exception('Please log in again.'));
+    }
     // Index 1: farmerId ASC + createdAt DESC
     return _products
-        .where('farmerId', isEqualTo: farmerId)
+        .where('farmerId', isEqualTo: uid)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snap) =>
@@ -240,9 +254,13 @@ class FarmerFirestoreRepository implements FarmerRepository {
     OrderStatus? status,
   }) async {
     try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('Farmer is not signed in. Please log in again.');
+      }
       // Index 2 or 3 depending on whether status is set
       Query<Map<String, dynamic>> query = _orders
-          .where('farmerId', isEqualTo: farmerId)
+          .where('farmerId', isEqualTo: uid)
           .orderBy('createdAt', descending: true);
       if (status != null) {
         query = query.where('status', isEqualTo: status.value);
@@ -261,8 +279,12 @@ class FarmerFirestoreRepository implements FarmerRepository {
     String farmerId, {
     OrderStatus? status,
   }) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      return Stream.error(Exception('Please log in again.'));
+    }
     Query<Map<String, dynamic>> query = _orders
-        .where('farmerId', isEqualTo: farmerId)
+        .where('farmerId', isEqualTo: uid)
         .orderBy('createdAt', descending: true);
     if (status != null) {
       query = query.where('status', isEqualTo: status.value);
@@ -333,9 +355,13 @@ class FarmerFirestoreRepository implements FarmerRepository {
   @override
   Future<Map<String, dynamic>> getDashboardStats(String farmerId) async {
     try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('Farmer is not signed in. Please log in again.');
+      }
       final results = await Future.wait([
-        _products.where('farmerId', isEqualTo: farmerId).get(),
-        _orders.where('farmerId', isEqualTo: farmerId).get(),
+        _products.where('farmerId', isEqualTo: uid).get(),
+        _orders.where('farmerId', isEqualTo: uid).get(),
       ]);
 
       final productsSnap = results[0];
@@ -369,11 +395,15 @@ class FarmerFirestoreRepository implements FarmerRepository {
   @override
   Future<FarmerProfile> getFarmerProfile(String farmerId) async {
     try {
-      final snap = await _farmerDoc(farmerId).get();
-      if (!snap.exists) {
-        return FarmerProfile(userId: farmerId);
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('Farmer is not signed in. Please log in again.');
       }
-      return FarmerProfile.fromMap(snap.data()!, farmerId);
+      final snap = await _farmerDoc(uid).get();
+      if (!snap.exists) {
+        return FarmerProfile(userId: uid);
+      }
+      return FarmerProfile.fromMap(snap.data()!, uid);
     } catch (e) {
       throw Exception(_friendlyError(e));
     }
@@ -382,8 +412,12 @@ class FarmerFirestoreRepository implements FarmerRepository {
   @override
   Future<void> saveFarmerProfile(FarmerProfile profile) async {
     try {
-      await _farmerDoc(profile.userId).set(
-        profile.toMap(),
+      final uid = _farmerId;
+      await _farmerDoc(uid).set(
+        {
+          ...profile.toMap(),
+          'userId': uid,
+        },
         SetOptions(merge: true),
       );
     } catch (e) {
@@ -394,7 +428,9 @@ class FarmerFirestoreRepository implements FarmerRepository {
   @override
   Future<int> getLowStockThreshold(String farmerId) async {
     try {
-      final snap = await _farmerDoc(farmerId).get();
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) return 5;
+      final snap = await _farmerDoc(uid).get();
       if (!snap.exists) return 5;
       return (snap.data()?['lowStockThreshold'] as num?)?.toInt() ?? 5;
     } catch (_) {
@@ -405,7 +441,11 @@ class FarmerFirestoreRepository implements FarmerRepository {
   @override
   Future<void> setLowStockThreshold(String farmerId, int threshold) async {
     try {
-      await _farmerDoc(farmerId).set(
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('Farmer is not signed in. Please log in again.');
+      }
+      await _farmerDoc(uid).set(
         {'lowStockThreshold': threshold},
         SetOptions(merge: true),
       );
@@ -430,9 +470,13 @@ class FarmerFirestoreRepository implements FarmerRepository {
 
   @override
   Stream<List<PickupSlot>> watchSlots(String farmerId) {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      return Stream.error(Exception('Please log in again.'));
+    }
     // Index 4: farmerId ASC + startTime ASC
     return _slots
-        .where('farmerId', isEqualTo: farmerId)
+        .where('farmerId', isEqualTo: uid)
         .orderBy('startTime')
         .snapshots()
         .map((snap) =>

@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+lib/farmer_dev_config.dart
+lib/farmer_dev_config.dart 

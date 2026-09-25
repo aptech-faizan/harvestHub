@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../data/models/farmer_product_model.dart';
 import '../../../../data/repositories/farmer_repository.dart';
@@ -10,7 +11,7 @@ class InventoryController extends GetxController {
   final FarmerRepository _repo;
   InventoryController(this._repo);
 
-  final String currentFarmerId = 'farmer_001';
+  String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   final RxList<FarmerProduct> products = <FarmerProduct>[].obs;
   final RxBool isLoading = false.obs;
@@ -55,7 +56,10 @@ class InventoryController extends GetxController {
             p.id, () => TextEditingController(text: p.stockQty.toString()));
       }
     } catch (e) {
-      errorMessage.value = 'Failed to load inventory. Please try again.';
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      errorMessage.value = msg.contains('log in')
+          ? 'Please log in again.'
+          : 'Failed to load inventory. Please try again.';
     } finally {
       isLoading.value = false;
     }

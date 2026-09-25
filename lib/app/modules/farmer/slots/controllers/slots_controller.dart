@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../data/models/farmer_slot_model.dart';
 import '../../../../data/repositories/farmer_repository.dart';
@@ -11,7 +12,7 @@ class SlotsController extends GetxController {
   final FarmerRepository _repo;
   SlotsController(this._repo);
 
-  final String currentFarmerId = 'farmer_001';
+  String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   final RxList<PickupSlot> slots = <PickupSlot>[].obs;
   final RxBool isLoading = true.obs;
@@ -29,7 +30,10 @@ class SlotsController extends GetxController {
         errorMessage.value = '';
       },
       onError: (Object e) {
-        errorMessage.value = e.toString().replaceFirst('Exception: ', '');
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        errorMessage.value = msg.contains('log in')
+            ? 'Please log in again.'
+            : msg;
         isLoading.value = false;
       },
     );

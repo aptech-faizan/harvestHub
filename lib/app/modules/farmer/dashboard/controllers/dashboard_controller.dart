@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../data/repositories/farmer_repository.dart';
 
 /// Controls the dashboard overview cards and bottom-nav index.
@@ -7,7 +9,7 @@ class DashboardController extends GetxController {
   final FarmerRepository _repo;
   DashboardController(this._repo);
 
-  final String currentFarmerId = 'farmer_001';
+  String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   // Bottom navigation index (0=Dashboard, 1=Products, 2=Orders,
   //                          3=Reports, 4=Profile)
@@ -37,7 +39,10 @@ class DashboardController extends GetxController {
       pendingOrders.value = stats['pendingOrders'] as int;
       totalRevenue.value = (stats['totalRevenue'] as num).toDouble();
     } catch (e) {
-      errorMessage.value = 'Failed to load dashboard. Please try again.';
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      errorMessage.value = msg.contains('log in')
+          ? 'Please log in again.'
+          : 'Failed to load dashboard. Please try again.';
     } finally {
       isLoading.value = false;
     }

@@ -5,6 +5,7 @@ import '../../../../data/models/farmer_product_model.dart';
 import '../../farmer_theme.dart';
 import '../../widgets/farmer_widgets.dart';
 import '../controllers/products_controller.dart';
+import '../bindings/products_binding.dart';
 import 'product_form_view.dart';
 
 /// Modern Airbnb/Notion-inspired Products view with instant search,
@@ -89,6 +90,7 @@ class _ProductsViewState extends State<ProductsView> {
           controller.prepareForAdd();
           Get.to(
             () => const ProductFormView(),
+            binding: ProductsBinding(),
             transition: Transition.rightToLeft,
           );
         },
@@ -128,6 +130,7 @@ class _ProductsViewState extends State<ProductsView> {
               controller.prepareForAdd();
               Get.to(
                 () => const ProductFormView(),
+                binding: ProductsBinding(),
                 transition: Transition.rightToLeft,
               );
             },
@@ -516,6 +519,7 @@ class _ProductCard extends StatelessWidget {
         controller.prepareForEdit(product);
         Get.to(
           () => const ProductFormView(),
+          binding: ProductsBinding(),
           transition: Transition.rightToLeft,
         );
       },
@@ -644,6 +648,7 @@ class _ProductActionMenu extends StatelessWidget {
           controller.prepareForEdit(product);
           Get.to(
             () => const ProductFormView(),
+            binding: ProductsBinding(),
             transition: Transition.rightToLeft,
           );
         } else if (value == 'delete') {

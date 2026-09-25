@@ -6,6 +6,7 @@ import '../../../../data/models/farmer_order_model.dart';
 import '../../farmer_theme.dart';
 import '../../widgets/farmer_widgets.dart';
 import '../controllers/orders_controller.dart';
+import '../bindings/orders_binding.dart';
 import 'order_detail_view.dart';
 
 /// Modern Airbnb/Notion-inspired Orders view with animated filter chips,
@@ -224,6 +225,7 @@ class _OrderCard extends StatelessWidget {
       onTap: () {
         Get.to(
           () => OrderDetailView(order: order),
+          binding: OrdersBinding(),
           transition: Transition.rightToLeft,
         );
       },

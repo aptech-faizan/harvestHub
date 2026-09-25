@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../data/models/farmer_order_model.dart';
 import '../../../../data/repositories/farmer_repository.dart';
 
@@ -8,7 +10,7 @@ class OrdersController extends GetxController {
   final FarmerRepository _repo;
   OrdersController(this._repo);
 
-  final String currentFarmerId = 'farmer_001';
+  String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   final RxList<FarmerOrder> orders = <FarmerOrder>[].obs;
   final RxBool isLoading = false.obs;
@@ -33,7 +35,10 @@ class OrdersController extends GetxController {
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       orders.assignAll(list);
     } catch (e) {
-      errorMessage.value = 'Failed to load orders. Please try again.';
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      errorMessage.value = msg.contains('log in')
+          ? 'Please log in again.'
+          : 'Failed to load orders. Please try again.';
     } finally {
       isLoading.value = false;
     }

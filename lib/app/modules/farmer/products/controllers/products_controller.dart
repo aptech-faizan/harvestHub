@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../data/models/farmer_product_model.dart';
 import '../../../../data/repositories/farmer_repository.dart';
@@ -11,8 +12,7 @@ class ProductsController extends GetxController {
 
   ProductsController(this._repo);
 
-  // ── Session (injected externally in final version) ─────────────────────
-  final String currentFarmerId = 'farmer_001';
+  String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   // ── Reactive state ─────────────────────────────────────────────────────
   final RxList<FarmerProduct> products = <FarmerProduct>[].obs;
@@ -84,7 +84,10 @@ class ProductsController extends GetxController {
       final list = await _repo.getProducts(currentFarmerId);
       products.assignAll(list);
     } catch (e) {
-      errorMessage.value = 'Failed to load products. Please try again.';
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      errorMessage.value = msg.contains('log in')
+          ? 'Please log in again.'
+          : 'Failed to load products. Please try again.';
     } finally {
       isLoading.value = false;
     }

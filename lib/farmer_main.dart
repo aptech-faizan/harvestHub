@@ -12,7 +12,6 @@ import 'farmer_dev_config.dart';
 import 'app/data/repositories/farmer_firestore_repository.dart';
 import 'app/modules/farmer/dashboard/bindings/dashboard_binding.dart';
 import 'app/modules/farmer/dashboard/views/farmer_dashboard_view.dart';
-import 'app/modules/farmer/farmer_pages.dart';
 import 'app/modules/farmer/farmer_theme.dart';
 
 // ── DEV flags ─────────────────────────────────────────────────────────────────
@@ -94,16 +93,8 @@ class FarmerApp extends StatelessWidget {
       title: 'HarvestHub – Farmer',
       debugShowCheckedModeBanner: false,
       theme: FarmerTheme.lightTheme,
-      initialRoute: '/',
       initialBinding: DashboardBinding(),
-      getPages: [
-        GetPage(
-          name: '/',
-          page: () => const FarmerDashboardView(),
-          binding: DashboardBinding(),
-        ),
-        ...FarmerPages.farmerPages,
-      ],
+      home: const FarmerDashboardView(),
     );
   }
 }

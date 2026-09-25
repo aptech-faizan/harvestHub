@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../data/models/farmer_order_model.dart';
 import '../../farmer_theme.dart';
+import '../../farmer_entry.dart';
 import '../../widgets/farmer_widgets.dart';
 import '../controllers/profile_controller.dart';
 import '../../orders/controllers/orders_controller.dart';
 import '../../products/controllers/products_controller.dart';
 import '../../slots/views/slots_view.dart';
+import '../../slots/bindings/slots_binding.dart';
 import '../../inventory/views/inventory_view.dart';
+import '../../inventory/bindings/inventory_binding.dart';
 
 /// Modern Farmer Profile view displaying authentic account data,
 /// real order/product metrics, and organized operational tiles.
@@ -67,8 +72,11 @@ class ProfileView extends GetView<ProfileController> {
                     subtitle: 'Schedule customer farm collection hours',
                     showChevron: true,
                     onTap: () {
-                      Get.to(() => const SlotsView(),
-                          transition: Transition.rightToLeft);
+                      Get.to(
+                        () => const SlotsView(),
+                        binding: SlotsBinding(),
+                        transition: Transition.rightToLeft,
+                      );
                     },
                   ),
                   _SettingsTile(
@@ -77,8 +85,11 @@ class ProfileView extends GetView<ProfileController> {
                     subtitle: 'Daily batch counters and stock warnings',
                     showChevron: true,
                     onTap: () {
-                      Get.to(() => const InventoryView(),
-                          transition: Transition.rightToLeft);
+                      Get.to(
+                        () => const InventoryView(),
+                        binding: InventoryBinding(),
+                        transition: Transition.rightToLeft,
+                      );
                     },
                   ),
                   _SettingsTile(
@@ -140,15 +151,11 @@ class ProfileView extends GetView<ProfileController> {
             StaggeredFadeSlide(
               index: 5,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  Get.snackbar(
-                    'Session',
-                    'Auth session will be signed out in integrated mode.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.white,
-                    colorText: FarmerColors.text,
-                    margin: const EdgeInsets.all(16),
-                  );
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  // Reset back to farmer module entry.
+                  // (When SplashView is committed by the team, navigate to SplashView)
+                  FarmerEntry.open();
                 },
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),

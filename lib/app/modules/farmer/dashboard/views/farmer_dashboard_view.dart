@@ -10,10 +10,13 @@ import '../controllers/dashboard_controller.dart';
 import '../../products/views/products_view.dart';
 import '../../products/views/product_form_view.dart';
 import '../../products/controllers/products_controller.dart';
+import '../../products/bindings/products_binding.dart';
 import '../../inventory/views/inventory_view.dart';
+import '../../inventory/bindings/inventory_binding.dart';
 import '../../orders/views/orders_view.dart';
 import '../../orders/views/order_detail_view.dart';
 import '../../orders/controllers/orders_controller.dart';
+import '../../orders/bindings/orders_binding.dart';
 import '../../reports/views/reports_view.dart';
 import '../../profile/views/profile_view.dart';
 
@@ -515,8 +518,11 @@ class _HorizontalQuickActions extends StatelessWidget {
           if (Get.isRegistered<ProductsController>()) {
             Get.find<ProductsController>().prepareForAdd();
           }
-          Get.to(() => const ProductFormView(),
-              transition: Transition.rightToLeft);
+          Get.to(
+            () => const ProductFormView(),
+            binding: ProductsBinding(),
+            transition: Transition.rightToLeft,
+          );
         },
       ),
       _QuickActionData(
@@ -524,8 +530,11 @@ class _HorizontalQuickActions extends StatelessWidget {
         label: 'Inventory',
         color: FarmerColors.secondary,
         onTap: () {
-          Get.to(() => const InventoryView(),
-              transition: Transition.rightToLeft);
+          Get.to(
+            () => const InventoryView(),
+            binding: InventoryBinding(),
+            transition: Transition.rightToLeft,
+          );
         },
       ),
       _QuickActionData(
@@ -873,6 +882,7 @@ class _RecentOrderCard extends StatelessWidget {
       onTap: () {
         Get.to(
           () => OrderDetailView(order: order),
+          binding: OrdersBinding(),
           transition: Transition.rightToLeft,
         );
       },

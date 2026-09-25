@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../data/repositories/farmer_repository.dart';
 
 /// Controller for the reports/analytics screen.
@@ -7,7 +9,7 @@ class ReportsController extends GetxController {
   final FarmerRepository _repo;
   ReportsController(this._repo);
 
-  final String currentFarmerId = 'farmer_001';
+  String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
@@ -34,7 +36,10 @@ class ReportsController extends GetxController {
       pendingOrders.value = stats['pendingOrders'] as int;
       totalRevenue.value = (stats['totalRevenue'] as num).toDouble();
     } catch (e) {
-      errorMessage.value = 'Failed to load reports. Please try again.';
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      errorMessage.value = msg.contains('log in')
+          ? 'Please log in again.'
+          : 'Failed to load reports. Please try again.';
     } finally {
       isLoading.value = false;
     }
