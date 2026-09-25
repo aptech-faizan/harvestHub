@@ -53,12 +53,17 @@ class FarmerDetailsView extends GetView<FarmersController> {
                           ),
                         ],
                         const SizedBox(height: 8),
-                        // TODO: Dev 2 ka follow repository
-                        ElevatedButton.icon(
-                          onPressed: null,
-                          icon: const Icon(Icons.person_add_disabled),
-                          label: const Text('Follow (Coming Soon)'),
-                        ),
+                        Obx(() {
+                          final followed = controller.isFollowed(farmer.id);
+                          return SizedBox(
+                            height: 40,
+                            child: ElevatedButton.icon(
+                              onPressed: () => controller.toggleFollow(farmer.id),
+                              icon: Icon(followed ? Icons.person_remove : Icons.person_add),
+                              label: Text(followed ? 'Following' : 'Follow'),
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),

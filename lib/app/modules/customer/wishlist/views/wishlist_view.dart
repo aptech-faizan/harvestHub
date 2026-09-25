@@ -57,9 +57,12 @@ class WishlistView extends GetView<WishlistController> {
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => controller.remove(p.id),
                     ),
-                    ElevatedButton(
-                      onPressed: isOutOfStock ? null : () => controller.addToCart(p),
-                      child: const Text('Add to cart'),
+                    SizedBox(
+                      height: 40,
+                      child: ElevatedButton(
+                        onPressed: isOutOfStock ? null : () => controller.addToCart(p),
+                        child: const Text('Add to cart'),
+                      ),
                     ),
                   ],
                 ),

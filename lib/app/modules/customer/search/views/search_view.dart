@@ -137,9 +137,12 @@ class SearchView extends GetView<ProductSearchController> {
                             Text(distLabel, style: const TextStyle(color: Colors.blueGrey)),
                         ],
                       ),
-                      trailing: ElevatedButton(
-                        onPressed: isOutOfStock ? null : () => controller.addToCart(p),
-                        child: const Text('Add to cart'),
+                      trailing: SizedBox(
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: isOutOfStock ? null : () => controller.addToCart(p),
+                          child: const Text('Add to cart'),
+                        ),
                       ),
                     ),
                   );

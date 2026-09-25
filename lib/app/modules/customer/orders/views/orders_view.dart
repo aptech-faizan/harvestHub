@@ -103,15 +103,21 @@ class OrdersView extends GetView<OrdersController> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            OutlinedButton(
-                              onPressed: () => _openChangeSlotSheet(order),
-                              child: const Text('Change slot'),
+                            SizedBox(
+                              height: 40,
+                              child: OutlinedButton(
+                                onPressed: () => _openChangeSlotSheet(order),
+                                child: const Text('Change slot'),
+                              ),
                             ),
                             const SizedBox(width: 8),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
-                              onPressed: () => _showCancelDialog(order),
-                              child: const Text('Cancel'),
+                            SizedBox(
+                              height: 40,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
+                                onPressed: () => _showCancelDialog(order),
+                                child: const Text('Cancel'),
+                              ),
                             ),
                           ],
                         ),
