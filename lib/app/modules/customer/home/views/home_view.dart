@@ -1,12 +1,7 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../product_details/bindings/product_details_binding.dart';
-import '../../product_details/views/product_details_view.dart';
-import '../../wishlist/bindings/wishlist_binding.dart';
-import '../../wishlist/views/wishlist_view.dart';
-import '../../farmers/bindings/farmers_binding.dart';
-import '../../farmers/views/farmers_view.dart';
+import '../../../../routes/app_routes.dart';
 import '../controllers/home_controller.dart';
 
 // Ye Customer Home screen ki simple placeholder UI hai
@@ -21,17 +16,11 @@ class HomeView extends GetView<HomeController> {
         actions: [
           IconButton(
             icon: const Icon(Icons.people_outline),
-            onPressed: () => Get.to(
-              () => const FarmersView(),
-              binding: FarmersBinding(),
-            ),
+            onPressed: () => Get.toNamed(Routes.customerFarmers),
           ),
           IconButton(
             icon: const Icon(Icons.favorite_border),
-            onPressed: () => Get.to(
-              () => const WishlistView(),
-              binding: WishlistBinding(),
-            ),
+            onPressed: () => Get.toNamed(Routes.customerWishlist),
           ),
         ],
       ),
@@ -91,9 +80,8 @@ class HomeView extends GetView<HomeController> {
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     child: ListTile(
-                      onTap: () => Get.to(
-                        () => const ProductDetailsView(),
-                        binding: ProductDetailsBinding(),
+                      onTap: () => Get.toNamed(
+                        Routes.customerProductDetails,
                         arguments: p,
                       ),
                       title: Text(p.itemName),

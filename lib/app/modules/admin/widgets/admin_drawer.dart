@@ -44,7 +44,6 @@ class AdminDrawer extends StatelessWidget {
           onTap: () async {
             if (!await confirmDialog('Logout', 'Do you want to log out?')) return;
             await Get.find<AuthService>().logout();
-            Get.offAllNamed(Routes.adminLogin);
           },
         ),
       ]),

@@ -1,8 +1,7 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../product_details/bindings/product_details_binding.dart';
-import '../../product_details/views/product_details_view.dart';
+import '../../../../routes/app_routes.dart';
 import '../controllers/product_search_controller.dart';
 
 // Ye search aur filters ki placeholder UI screen hai
@@ -118,9 +117,8 @@ class SearchView extends GetView<ProductSearchController> {
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: ListTile(
-                      onTap: () => Get.to(
-                        () => const ProductDetailsView(),
-                        binding: ProductDetailsBinding(),
+                      onTap: () => Get.toNamed(
+                        Routes.customerProductDetails,
                         arguments: p,
                       ),
                       title: Text(p.itemName),

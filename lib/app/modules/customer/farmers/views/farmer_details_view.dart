@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/farmer_model.dart';
 import '../../../../data/models/product_model.dart';
-import '../../product_details/bindings/product_details_binding.dart';
-import '../../product_details/views/product_details_view.dart';
+import '../../../../routes/app_routes.dart';
 import '../controllers/farmers_controller.dart';
 
 // Ye ek farmer ka detail aur uske products dikhane ki placeholder screen hai
@@ -73,9 +72,8 @@ class FarmerDetailsView extends GetView<FarmersController> {
                         title: Text(product.itemName),
                         subtitle: Text('Rs. ${product.pricePerUnit} / ${product.unit}'),
                         trailing: Text('Stock: ${product.stockQty}'),
-                        onTap: () => Get.to(
-                          () => const ProductDetailsView(),
-                          binding: ProductDetailsBinding(),
+                        onTap: () => Get.toNamed(
+                          Routes.customerProductDetails,
                           arguments: product,
                         ),
                       )),

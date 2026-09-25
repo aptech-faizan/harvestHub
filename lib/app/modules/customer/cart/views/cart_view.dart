@@ -1,8 +1,7 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../checkout/bindings/checkout_binding.dart';
-import '../../checkout/views/checkout_view.dart';
+import '../../../../routes/app_routes.dart';
 import '../controllers/cart_controller.dart';
 
 // Ye cart ki simple placeholder UI screen hai
@@ -68,10 +67,7 @@ class CartView extends GetView<CartController> {
                       ElevatedButton(
                         onPressed: controller.items.isEmpty
                             ? null
-                            : () => Get.to(
-                                  () => const CheckoutView(),
-                                  binding: CheckoutBinding(),
-                                ),
+                            : () => Get.toNamed(Routes.customerCheckout),
                         child: const Text('Checkout'),
                       ),
                     ],

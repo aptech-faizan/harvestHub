@@ -1,5 +1,22 @@
 abstract class Routes {
-  static const adminLogin = '/admin/login';
+  // Splash & Common Authentication
+  static const splash = '/splash';
+  static const login = '/login';
+  static const register = '/register';
+  static const adminLogin = '/login'; // Backward compatibility alias
+
+  // Customer Module
+  static const customerShell = '/customer/shell';
+  static const customerCheckout = '/customer/checkout';
+  static const customerFarmers = '/customer/farmers';
+  static const customerFarmerDetails = '/customer/farmers/details';
+  static const customerProductDetails = '/customer/products/details';
+  static const customerWishlist = '/customer/wishlist';
+
+  // Farmer Module
+  static const farmerDashboard = '/farmer/dashboard';
+
+  // Admin Module
   static const adminDashboard = '/admin/dashboard';
   static const customers = '/admin/customers';
   static const customerDetails = '/admin/customers/details';
