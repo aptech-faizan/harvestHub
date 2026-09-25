@@ -5,9 +5,9 @@ import '../models/farmer_product_model.dart';
 import '../models/farmer_order_model.dart';
 import '../models/farmer_slot_model.dart';
 import '../models/farmer_profile_model.dart';
-import 'farmer_repository.dart';
+import 'farmer_account_repository.dart';
 
-/// Firestore-backed implementation of [FarmerRepository].
+/// Firestore-backed implementation of [FarmerAccountRepository].
 ///
 /// ── Fixed Firestore schema ────────────────────────────────────────────────
 /// products/{id}:
@@ -48,7 +48,7 @@ import 'farmer_repository.dart';
 ///
 /// Firestore will also print a direct link to create missing indexes
 /// in the debug console when a query first fails.
-class FarmerFirestoreRepository implements FarmerRepository {
+class FarmerFirestoreRepository implements FarmerAccountRepository {
   FarmerFirestoreRepository()
       : _db = FirebaseFirestore.instance,
         _auth = FirebaseAuth.instance;

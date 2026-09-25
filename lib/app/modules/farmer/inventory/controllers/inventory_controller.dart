@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../data/models/farmer_product_model.dart';
-import '../../../../data/repositories/farmer_repository.dart';
+import '../../../../data/repositories/farmer_account_repository.dart';
 import '../../farmer_theme.dart';
 
 /// Manages quick stock-quantity updates for inventory screen.
 class InventoryController extends GetxController {
-  final FarmerRepository _repo;
+  final FarmerAccountRepository _repo;
   InventoryController(this._repo);
 
   String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';

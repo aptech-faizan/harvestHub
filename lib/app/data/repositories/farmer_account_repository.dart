@@ -6,7 +6,7 @@ import '../models/farmer_profile_model.dart';
 /// Abstract contract for all farmer data operations.
 /// Controllers depend on this interface – swap to FirestoreRepository without
 /// touching any controller or view.
-abstract class FarmerRepository {
+abstract class FarmerAccountRepository {
   // ── Products ──────────────────────────────────────────────────────────────
 
   /// Fetches all products belonging to [farmerId].

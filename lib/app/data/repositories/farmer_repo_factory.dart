@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../repositories/farmer_firestore_repository.dart';
 import '../repositories/farmer_mock_repository.dart';
-import '../repositories/farmer_repository.dart';
+import '../repositories/farmer_account_repository.dart';
 
 /// Shared repository factory for all Farmer module bindings.
 ///
@@ -12,11 +12,11 @@ abstract class FarmerRepoFactory {
   /// If true, always return [FarmerMockRepository] regardless of build mode.
   static bool useMock = false;
 
-  /// Returns the appropriate [FarmerRepository] instance:
+  /// Returns the appropriate [FarmerAccountRepository] instance:
   ///   - Release mode → always Firestore
   ///   - Debug/Profile mode + useMock==false → Firestore
   ///   - Debug/Profile mode + useMock==true  → Mock
-  static FarmerRepository create() {
+  static FarmerAccountRepository create() {
     if (kReleaseMode || !useMock) {
       return FarmerFirestoreRepository();
     }

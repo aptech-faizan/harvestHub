@@ -6,12 +6,12 @@ import '../models/farmer_product_model.dart';
 import '../models/farmer_order_model.dart';
 import '../models/farmer_slot_model.dart';
 import '../models/farmer_profile_model.dart';
-import 'farmer_repository.dart';
+import 'farmer_account_repository.dart';
 
-/// In-memory mock implementation of [FarmerRepository].
+/// In-memory mock implementation of [FarmerAccountRepository].
 /// Replace this binding registration with FarmerFirestoreRepository when
 /// Firebase integration is ready – no controller/view changes required.
-class FarmerMockRepository implements FarmerRepository {
+class FarmerMockRepository implements FarmerAccountRepository {
   static const _uuid = Uuid();
 
   // ── In-memory stores ──────────────────────────────────────────────────────

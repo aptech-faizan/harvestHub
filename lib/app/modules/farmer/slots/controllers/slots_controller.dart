@@ -4,12 +4,12 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../data/models/farmer_slot_model.dart';
-import '../../../../data/repositories/farmer_repository.dart';
+import '../../../../data/repositories/farmer_account_repository.dart';
 
 /// Controller for the Pickup Slots screen.
-/// Drives the real-time slot list from [FarmerRepository.watchSlots].
+/// Drives the real-time slot list from [FarmerAccountRepository.watchSlots].
 class SlotsController extends GetxController {
-  final FarmerRepository _repo;
+  final FarmerAccountRepository _repo;
   SlotsController(this._repo);
 
   String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';

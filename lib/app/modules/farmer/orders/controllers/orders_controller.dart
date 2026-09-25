@@ -3,11 +3,11 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../data/models/farmer_order_model.dart';
-import '../../../../data/repositories/farmer_repository.dart';
+import '../../../../data/repositories/farmer_account_repository.dart';
 
 /// Manages the farmer's orders list with filter and status-update logic.
 class OrdersController extends GetxController {
-  final FarmerRepository _repo;
+  final FarmerAccountRepository _repo;
   OrdersController(this._repo);
 
   String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';

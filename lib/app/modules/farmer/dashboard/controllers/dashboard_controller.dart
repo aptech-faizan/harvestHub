@@ -2,11 +2,11 @@ import 'package:get/get.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../../data/repositories/farmer_repository.dart';
+import '../../../../data/repositories/farmer_account_repository.dart';
 
 /// Controls the dashboard overview cards and bottom-nav index.
 class DashboardController extends GetxController {
-  final FarmerRepository _repo;
+  final FarmerAccountRepository _repo;
   DashboardController(this._repo);
 
   String get currentFarmerId => FirebaseAuth.instance.currentUser?.uid ?? '';

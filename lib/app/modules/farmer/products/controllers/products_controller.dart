@@ -4,11 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../data/models/farmer_product_model.dart';
-import '../../../../data/repositories/farmer_repository.dart';
+import '../../../../data/repositories/farmer_account_repository.dart';
 
 /// Controls product list, add-product form, and edit-product form.
 class ProductsController extends GetxController {
-  final FarmerRepository _repo;
+  final FarmerAccountRepository _repo;
 
   ProductsController(this._repo);
 

@@ -1,14 +1,14 @@
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../../data/repositories/farmer_repository.dart';
+import '../../../../data/repositories/farmer_account_repository.dart';
 
 /// Controller for farmer profile.
 class ProfileController extends GetxController {
-  final FarmerRepository _repo;
+  final FarmerAccountRepository _repo;
   ProfileController(this._repo);
 
-  FarmerRepository get repository => _repo;
+  FarmerAccountRepository get repository => _repo;
 
   final RxString name = 'Ahmed Raza'.obs;
   final RxString email = 'ahmed.raza@farm.pk'.obs;
