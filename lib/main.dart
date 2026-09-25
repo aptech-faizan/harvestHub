@@ -1,24 +1,40 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // File created by FlutterFire CLI
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:harvest_hub/app/data/services/auth_service.dart';
+import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
+import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
+import 'package:harvest_hub/app/modules/splash/views/splash_view.dart';
+import 'package:harvest_hub/app/routes/app_pages.dart';
+import 'package:harvest_hub/firebase_options.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Firebase initialize karna
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
-  runApp(const MyApp());
+
+  // Global permanent controllers inject karna
+  Get.put(AuthService(), permanent: true);
+  Get.put(CartController(), permanent: true);
+  Get.put(WishlistController(), permanent: true);
+
+  runApp(const HarvestHubApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HarvestHubApp extends StatelessWidget {
+  const HarvestHubApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      
+    return GetMaterialApp(
+      title: 'HarvestHub',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
+      home: const SplashView(),
+      getPages: AppPages.pages,
     );
   }
 }
