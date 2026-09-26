@@ -7,6 +7,7 @@ class FarmerModel {
   final String id; // same as the user's uid
   final String userId;
   final String marketId;
+  final String marketName;
   final String businessName;
   final String description;
   final double rating;
@@ -20,6 +21,7 @@ class FarmerModel {
     required this.id,
     required this.userId,
     required this.marketId,
+    this.marketName = '',
     required this.businessName,
     required this.description,
     required this.rating,
@@ -37,6 +39,7 @@ class FarmerModel {
       id: doc.id,
       userId: (d['userId'] ?? doc.id).toString(),
       marketId: (d['marketId'] ?? '').toString(),
+      marketName: (d['marketName'] ?? '').toString(),
       businessName: (d['businessName'] ?? '').toString(),
       description: (d['description'] ?? '').toString(),
       rating: readDouble(d['rating']),

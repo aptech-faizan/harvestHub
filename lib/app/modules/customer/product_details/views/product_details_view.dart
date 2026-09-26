@@ -1,4 +1,3 @@
-// TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/product_details_controller.dart';
@@ -30,53 +29,12 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product image (loads p.imageUrl or displays fallback icon)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: p.imageUrl.isEmpty
-                  ? Container(
-                      height: 200,
-                      width: double.infinity,
-                      color: Colors.green.shade50,
-                      child: const Center(
-                        child: Icon(
-                          Icons.eco_outlined,
-                          size: 80,
-                          color: Colors.green,
-                        ),
-                      ),
-                    )
-                  : Image.network(
-                      p.imageUrl,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 200,
-                          width: double.infinity,
-                          color: Colors.green.shade50,
-                          child: const Center(
-                            child: Icon(
-                              Icons.broken_image_outlined,
-                              size: 80,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          height: 200,
-                          width: double.infinity,
-                          color: Colors.grey.shade100,
-                          child: const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        );
-                      },
-                    ),
+            // Image placeholder
+            Container(
+              height: 200,
+              width: double.infinity,
+              color: Colors.grey.shade300,
+              child: Image.network(p.imageUrl),
             ),
             const SizedBox(height: 16),
             Text(p.itemName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

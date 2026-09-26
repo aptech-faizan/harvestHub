@@ -86,6 +86,7 @@ class FarmersController extends GetxController {
           'businessName': r['businessName'],
           'description': r['description'],
           'marketId': r['marketId'] ?? '',
+          'marketName': marketNames[r['marketId'] ?? ''] ?? '',
           'userId': f.userId,
           'lowStockThreshold': f.lowStockThreshold,
         },

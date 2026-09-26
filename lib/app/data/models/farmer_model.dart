@@ -3,6 +3,7 @@ class FarmerModel {
   final String id;
   final String userId;
   final String marketId;
+  final String marketName;
   final String businessName;
   final String description;
   final double rating;
@@ -13,6 +14,7 @@ class FarmerModel {
     required this.id,
     this.userId = '',
     this.marketId = '',
+    this.marketName = '',
     required this.businessName,
     this.description = '',
     this.rating = 0.0,
@@ -25,6 +27,7 @@ class FarmerModel {
       id: id,
       userId: map['userId'] ?? '',
       marketId: map['marketId'] ?? '',
+      marketName: map['marketName'] ?? '',
       businessName: map['businessName'] ?? '',
       description: map['description'] ?? '',
       rating: (map['rating'] ?? 0).toDouble(),
@@ -37,6 +40,7 @@ class FarmerModel {
     return {
       'userId': userId,
       'marketId': marketId,
+      'marketName': marketName,
       'businessName': businessName,
       'description': description,
       'rating': rating,

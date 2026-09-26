@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../../core/utils/location_helper.dart';
 import '../../../../data/models/category_model.dart';
 import '../../../../data/models/market_model.dart';
 import '../../../../data/models/product_model.dart';
@@ -7,10 +8,8 @@ import '../../../../data/repositories/market_repository.dart';
 import '../../../../data/repositories/product_repository.dart';
 import '../../cart/controllers/cart_controller.dart';
 
-// NOTE: Location/Distance filter scope se exclude kiya gaya.
-// GPS-based distance calculation is out-of-scope for the current release.
-// Assumption/Limitation: Document in README — "Distance filter not implemented;
-// location_helper.dart is retained as a stub for future use."
+// Search results are shown either as a list or as a market map.
+enum SearchViewMode { list, map }
 
 // Ye search aur filter ki tamaam state aur logic handle karta hai
 class ProductSearchController extends GetxController {
@@ -28,7 +27,13 @@ class ProductSearchController extends GetxController {
 
   final RxBool isLoading = false.obs;
 
-  // Ek baar fetch, phir sab local filtering
+  // List <-> Map toggle
+  final viewMode = SearchViewMode.list.obs;
+
+  // Distance filter ke reactive variables
+  final RxDouble maxDistanceKm = 0.0.obs;
+  final Rxn<Position> userPos = Rxn<Position>();
+
   final List<ProductModel> allProducts = [];
   final RxList<ProductModel> results = <ProductModel>[].obs;
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
@@ -79,7 +84,82 @@ class ProductSearchController extends GetxController {
     }
   }
 
-  // Sab active filters AND logic se apply karo — pure Dart, no Firestore query
+  // Distance filter set karta hai; km > 0 hone par location fetch karta hai
+  Future<void> selectDistance(double km) async {
+    if (km > 0) {
+      final pos = await LocationHelper.getCurrentPosition();
+      if (pos == null) {
+        Get.snackbar('Location Error', 'Location nahi mil saki, distance filter reset ho gaya');
+        maxDistanceKm.value = 0;
+        applyFilters();
+        return;
+      }
+      userPos.value = pos;
+    }
+    maxDistanceKm.value = km;
+    applyFilters();
+  }
+
+  void setViewMode(SearchViewMode mode) {
+    viewMode.value = mode;
+    // Map view shows distances, so grab the position once the user asks for it.
+    if (mode == SearchViewMode.map) ensureUserLocation();
+  }
+
+  /// Fetches the position once and caches it, so the map and the distance
+  /// filter do not each prompt for permission.
+  Future<void> ensureUserLocation() async {
+    if (userPos.value != null) return;
+    final pos = await LocationHelper.getCurrentPosition();
+    if (pos != null) userPos.value = pos;
+  }
+
+  /// Markets that have coordinates, narrowed by the active distance range.
+  /// Without a range (or without a position) every located market is shown.
+  List<MarketModel> get visibleMarkets {
+    final located = markets.where((m) => m.hasCoordinates).toList();
+    final maxKm = maxDistanceKm.value;
+    final pos = userPos.value;
+    if (maxKm <= 0 || pos == null) return located;
+    return located
+        .where((m) =>
+            (LocationHelper.distanceKm(
+              fromLat: pos.latitude,
+              fromLng: pos.longitude,
+              toLat: m.lat,
+              toLng: m.lng,
+            ) ??
+                double.infinity) <=
+            maxKm)
+        .toList();
+  }
+
+  /// Distance from the customer to a market, or null when unknown.
+  double? distanceToMarket(MarketModel m) {
+    final pos = userPos.value;
+    if (pos == null) return null;
+    return LocationHelper.distanceKm(
+      fromLat: pos.latitude,
+      fromLng: pos.longitude,
+      toLat: m.lat,
+      toLng: m.lng,
+    );
+  }
+
+  String distanceLabelToMarket(MarketModel m) {
+    final km = distanceToMarket(m);
+    return km == null ? '' : '${km.toStringAsFixed(1)} km away';
+  }
+
+  /// "View Products" from the market bottom sheet: jump back to the list,
+  /// filtered to that market.
+  void filterByMarket(MarketModel m) {
+    selectedMarketId.value = m.id;
+    viewMode.value = SearchViewMode.list;
+    applyFilters();
+  }
+
+  // Sab active filters ek saath apply karne ka method
   void applyFilters() {
     final q = query.value.trim().toLowerCase();
     final cat = selectedCategoryId.value;
@@ -104,7 +184,7 @@ class ProductSearchController extends GetxController {
     return count;
   }
 
-  // Tamaam filters reset karo (search bhi)
+  // tamaam filters reset, market filter bhi
   void clearFilters() {
     query.value = '';
     selectedCategoryId.value = '';

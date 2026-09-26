@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/controllers/farmer_dashboard_controller.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
 
 /// Main navigation shell and overview for authenticated Farmer users.
 class FarmerDashboardView extends GetView<FarmerDashboardController> {
@@ -145,9 +146,17 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
                 ListTile(
                   leading: const Icon(Icons.inventory_2_outlined),
                   title: const Text('Manage Products'),
-                  subtitle: const Text('View and edit inventory'),
+                  subtitle: const Text('Add, update and remove products'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showSuccess('Products management module ready for UI'),
+                  onTap: () => Get.toNamed(Routes.farmerProducts),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.warehouse_outlined),
+                  title: const Text('Inventory'),
+                  subtitle: const Text('Stock levels and zero-stock handling'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Get.toNamed(Routes.farmerInventory),
                 ),
                 const Divider(),
                 ListTile(
@@ -155,7 +164,7 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
                   title: const Text('Orders'),
                   subtitle: const Text('Track and update order status'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showSuccess('Orders module ready for UI'),
+                  onTap: () => Get.toNamed(Routes.farmerOrders),
                 ),
                 const Divider(),
                 ListTile(
@@ -163,7 +172,7 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
                   title: const Text('Pickup Slots'),
                   subtitle: const Text('Manage pickup time slots'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showSuccess('Pickup slots module ready for UI'),
+                  onTap: () => Get.toNamed(Routes.farmerSlots),
                 ),
                 const Divider(),
                 ListTile(
@@ -171,15 +180,15 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
                   title: const Text('Reports & Analytics'),
                   subtitle: const Text('Sales summaries and performance'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showSuccess('Reports module ready for UI'),
+                  onTap: () => Get.toNamed(Routes.farmerReports),
                 ),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.person_outline),
                   title: const Text('Farmer Profile'),
-                  subtitle: const Text('Update farm details and contacts'),
+                  subtitle: const Text('Update farm details and market'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showSuccess('Profile module ready for UI'),
+                  onTap: () => Get.toNamed(Routes.farmerProfile),
                 ),
               ],
             ),

@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
-import 'package:harvest_hub/app/core/widgets/edit_dialog.dart';
 import 'package:harvest_hub/app/modules/admin/models/market_model.dart';
 import 'package:harvest_hub/app/modules/admin/repositories/admin_repository.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
 
 class MarketsController extends GetxController {
   final repo = AdminRepository();
@@ -38,42 +38,9 @@ class MarketsController extends GetxController {
     }
   }
 
-  // Add when [m] is null, edit otherwise.
-  Future<void> save([MarketModel? m]) async {
-    final r = await showEditDialog(m == null ? 'Add market' : 'Edit market', [
-      FieldDef('marketName', 'Market name', initial: m?.marketName ?? ''),
-      FieldDef('address', 'Address', initial: m?.address ?? '', lines: 2),
-      FieldDef('latitude', 'Latitude', initial: m == null ? '' : '${m.latitude}', numeric: true),
-      FieldDef('longitude', 'Longitude', initial: m == null ? '' : '${m.longitude}', numeric: true),
-      FieldDef('operatingHours', 'Operating hours (e.g. 8am - 6pm)',
-          initial: m?.operatingHours ?? ''),
-    ]);
-    if (r == null) return;
-
-    final lat = double.parse(r['latitude']!);
-    final lng = double.parse(r['longitude']!);
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      showError('Latitude must be -90 to 90 and longitude -180 to 180');
-      return;
-    }
-    final data = <String, dynamic>{
-      'marketName': r['marketName'],
-      'address': r['address'],
-      'lat': lat,
-      'lng': lng,
-      'operatingHours': r['operatingHours'],
-    };
-    try {
-      if (m == null) {
-        await repo.addMarket({...data, 'isActive': true});
-      } else {
-        await repo.updateMarket(m.id, data);
-      }
-      showSuccess(m == null ? 'Market added' : 'Market updated');
-      await load();
-    } catch (e) {
-      showError('Could not save market: ${errorText(e)}');
-    }
+  // Opens the dedicated add/edit form. Pass [m] to edit, omit to add.
+  void openForm([MarketModel? m]) {
+    Get.toNamed(Routes.marketForm, arguments: m);
   }
 
   // Toggles the active status of a market

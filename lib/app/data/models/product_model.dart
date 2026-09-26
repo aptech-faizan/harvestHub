@@ -1,3 +1,5 @@
+import 'package:harvest_hub/app/core/utils/helpers.dart';
+
 // Ye product ka data model hai
 class ProductModel {
   final String id;
@@ -41,6 +43,7 @@ class ProductModel {
 
   // Map se ProductModel banane ke liye
   factory ProductModel.fromMap(Map<String, dynamic> map, String docId) {
+    final coords = readLatLng(map);
     return ProductModel(
       id: docId,
       farmerId: map['farmerId'] ?? '',
@@ -49,14 +52,14 @@ class ProductModel {
       pricePerUnit: (map['pricePerUnit'] ?? 0).toDouble(),
       unit: map['unit'] ?? '',
       stockQty: (map['stockQty'] ?? 0).toInt(),
-      imageUrl: map['imageUrl'] ?? '',
+      imageUrl: (map['imageUrl'] ?? '').toString(),
       description: map['description'] ?? '',
       categoryId: map['categoryId'] ?? '',
       categoryName: map['categoryName'] ?? '',
       marketId: map['marketId'] ?? '',
       marketName: map['marketName'] ?? '',
-      lat: (map['lat'] ?? 0).toDouble(),
-      lng: (map['lng'] ?? 0).toDouble(),
+      lat: coords.lat,
+      lng: coords.lng,
       itemNameLower: map['itemNameLower'] ?? '',
       isActive: map['isActive'] ?? true,
     );

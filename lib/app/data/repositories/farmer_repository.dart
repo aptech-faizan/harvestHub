@@ -1,62 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import '../models/farmer_model.dart';
 
-// Ye farmers collection se data fetch karne ka repository hai
 class FarmerRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Users + farmers collection dono se merge karke farmers list banata hai
   Future<List<FarmerModel>> getFarmers() async {
-    // Step 1: users collection se role=farmer wale fetch karo
-    final userSnap = await _firestore
-        .collection('users')
-        .where('role', isEqualTo: 'farmer')
-        .get();
+    final snapshot = await _firestore.collection(Db.farmers).get();
+    return snapshot.docs
+        .map((doc) => FarmerModel.fromMap(doc.data(), doc.id))
+        .toList();
+  }
 
-    // isActive != false wale rakho (missing field bhi active maano)
-    final activeDocs =
-        userSnap.docs.where((d) => d.data()['isActive'] != false).toList();
+  Future<FarmerModel?> getFarmerById(String id) async {
+    final doc = await _firestore.collection(Db.farmers).doc(id).get();
+    if (!doc.exists || doc.data() == null) return null;
+    return FarmerModel.fromMap(doc.data()!, doc.id);
+  }
 
-    final result = <FarmerModel>[];
-    final seen = <String>{};
-
-    for (final userDoc in activeDocs) {
-      final uid = userDoc.id;
-      if (seen.contains(uid)) continue;
-      seen.add(uid);
-
-      final userData = userDoc.data();
-
-      // Step 2: farmers/{uid} doc padhne ki koshish karo
-      final farmerDoc =
-          await _firestore.collection('farmers').doc(uid).get();
-
-      if (farmerDoc.exists && farmerDoc.data() != null) {
-        // farmers doc mile to uski fields use karo, id = uid
-        final fd = farmerDoc.data()!;
-        result.add(FarmerModel(
-          id: uid,
-          userId: uid,
-          businessName: (fd['businessName'] ?? userData['name'] ?? '').toString(),
-          description: (fd['description'] ?? '').toString(),
-          rating: (fd['rating'] ?? 0).toDouble(),
-          marketId: (fd['marketId'] ?? '').toString(),
-          lowStockThreshold: (fd['lowStockThreshold'] ?? 0).toInt(),
-        ));
-      } else {
-        // farmers doc na mile to user doc se fallback banao
-        result.add(FarmerModel(
-          id: uid,
-          userId: uid,
-          businessName: (userData['name'] ?? '').toString(),
-          description: '',
-          rating: 0,
-          marketId: '',
-          lowStockThreshold: 0,
-        ));
-      }
-    }
-
-    return result;
+  Future<void> upsertFarmer(FarmerModel farmer) {
+    return _firestore.collection(Db.farmers).doc(farmer.id).set(
+          farmer.toMap(),
+          SetOptions(merge: true),
+        );
   }
 }

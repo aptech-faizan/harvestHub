@@ -1,18 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/data/models/market_model.dart';
 import '../../../../routes/app_routes.dart';
 import '../controllers/product_search_controller.dart';
+import '../widgets/market_map_view.dart';
 
-// Search & Filter screen
-// Layout:
-//   1. Search bar (debounced 300ms, auto-filter on keystroke)
-//   2. Category chips row (horizontal scroll) — home screen pattern
-//   3. Market & Farmer dropdowns row
-//   4. Active filter count badge + "Clear Filters" button
-//   5. Product results list with thumbnail image
-//   6. Friendly empty state when 0 results
+// Search + filters screen with a List / Map toggle for the results.
 class SearchView extends GetView<ProductSearchController> {
   const SearchView({super.key});
+
+  /// Marker tap -> market summary sheet with a jump-to-products action.
+  void _openMarketSheet(BuildContext context, MarketModel market) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                market.marketName,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              if (market.address.isNotEmpty)
+                _row(Icons.location_on_outlined, market.address),
+              if (market.operatingHours.isNotEmpty)
+                _row(Icons.schedule, market.operatingHours),
+              Obx(() {
+                final label = controller.distanceLabelToMarket(market);
+                if (label.isEmpty) return const SizedBox.shrink();
+                return _row(Icons.near_me, label);
+              }),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    controller.filterByMarket(market);
+                  },
+                  child: const Text('View Products'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _row(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: Colors.black54),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text)),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,179 +83,81 @@ class SearchView extends GetView<ProductSearchController> {
       ),
       body: Column(
         children: [
-          // ── Category chips (same pattern as Home screen) ──────────────────
-          _CategoryChipsRow(controller: controller),
-          const Divider(height: 1),
-
-          // ── Market & Farmer dropdowns ─────────────────────────────────────
-          _DropdownFiltersRow(controller: controller, theme: theme),
-          const Divider(height: 1),
-
-          // ── Active filter count + Clear button ────────────────────────────
-          _FilterStatusBar(controller: controller, theme: theme),
-
-          // ── Results list ──────────────────────────────────────────────────
-          Expanded(child: _ResultsList(controller: controller)),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Search Bar widget
-// ─────────────────────────────────────────────────────────────────────────────
-class _SearchBar extends StatefulWidget {
-  const _SearchBar({required this.controller});
-  final ProductSearchController controller;
-
-  @override
-  State<_SearchBar> createState() => _SearchBarState();
-}
-
-class _SearchBarState extends State<_SearchBar> {
-  late final TextEditingController _textCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _textCtrl = TextEditingController(text: widget.controller.query.value);
-  }
-
-  @override
-  void dispose() {
-    _textCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      // Agar clearFilters() call ho to text field bhi reset ho
-      final ctrlVal = widget.controller.query.value;
-      if (_textCtrl.text != ctrlVal && ctrlVal.isEmpty) {
-        _textCtrl.clear();
-      }
-      return TextField(
-        controller: _textCtrl,
-        decoration: InputDecoration(
-          hintText: 'Product name se search karo...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: ctrlVal.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _textCtrl.clear();
-                    widget.controller.query.value = '';
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-          filled: true,
-        ),
-        onChanged: (val) => widget.controller.query.value = val,
-      );
-    });
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Category chips — same horizontal-scroll pattern as Home screen
-// ─────────────────────────────────────────────────────────────────────────────
-class _CategoryChipsRow extends StatelessWidget {
-  const _CategoryChipsRow({required this.controller});
-  final ProductSearchController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: Obx(() => ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            children: [
-              // "All" chip
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: ChoiceChip(
-                  label: const Text('All'),
-                  selected: controller.selectedCategoryId.value.isEmpty,
-                  onSelected: (_) {
-                    controller.selectedCategoryId.value = '';
-                    controller.applyFilters();
-                  },
-                ),
-              ),
-              // Dynamic category chips
-              ...controller.categories.map((cat) => Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: ChoiceChip(
-                      label: Text(cat.name),
-                      selected: controller.selectedCategoryId.value == cat.id,
-                      onSelected: (_) {
-                        controller.selectedCategoryId.value = cat.id;
-                        controller.applyFilters();
-                      },
-                    ),
+          // List / Map toggle
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            child: SizedBox(
+              width: double.infinity,
+              child: Obx(() => SegmentedButton<SearchViewMode>(
+                    segments: const [
+                      ButtonSegment<SearchViewMode>(
+                        value: SearchViewMode.list,
+                        label: Text('List'),
+                        icon: Icon(Icons.view_list),
+                      ),
+                      ButtonSegment<SearchViewMode>(
+                        value: SearchViewMode.map,
+                        label: Text('Map'),
+                        icon: Icon(Icons.map_outlined),
+                      ),
+                    ],
+                    selected: {controller.viewMode.value},
+                    onSelectionChanged: (s) {
+                      if (s.isNotEmpty) controller.setViewMode(s.first);
+                    },
                   )),
-            ],
-          )),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Market & Farmer dropdown row
-// ─────────────────────────────────────────────────────────────────────────────
-class _DropdownFiltersRow extends StatelessWidget {
-  const _DropdownFiltersRow({required this.controller, required this.theme});
-  final ProductSearchController controller;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Obx(() => Row(
-            children: [
-              // Market dropdown
-              Expanded(
-                child: _StyledDropdown<String>(
-                  hint: 'Market',
-                  icon: Icons.store_outlined,
-                  value: controller.selectedMarketId.value.isEmpty
-                      ? null
-                      : controller.selectedMarketId.value,
-                  items: [
-                    const DropdownMenuItem(value: '', child: Text('All Markets')),
-                    ...controller.markets.map((m) => DropdownMenuItem(
-                          value: m.id,
-                          child: Text(m.marketName, overflow: TextOverflow.ellipsis),
-                        )),
-                  ],
-                  onChanged: (val) {
-                    controller.selectedMarketId.value = val ?? '';
-                    controller.applyFilters();
-                  },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Column(
+              children: [
+                // Product name search field
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Search Product',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (val) => controller.query.value = val,
                 ),
-              ),
-              const SizedBox(width: 10),
-              // Farmer dropdown
-              Expanded(
-                child: _StyledDropdown<String>(
-                  hint: 'Farmer',
-                  icon: Icons.agriculture_outlined,
-                  value: controller.selectedFarmerId.value.isEmpty
-                      ? null
-                      : controller.selectedFarmerId.value,
-                  items: [
-                    const DropdownMenuItem(value: '', child: Text('All Farmers')),
-                    ...controller.farmers.map((f) => DropdownMenuItem(
-                          value: f.id,
-                          child: Text(f.name, overflow: TextOverflow.ellipsis),
-                        )),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    // Category dropdown
+                    Expanded(
+                      child: Obx(() => DropdownButton<String>(
+                        isExpanded: true,
+                        value: controller.selectedCategoryId.value,
+                        items: [
+                          const DropdownMenuItem(value: '', child: Text('All Categories')),
+                          ...controller.categories.map((c) =>
+                            DropdownMenuItem(value: c.id, child: Text(c.name)),
+                          ),
+                        ],
+                        onChanged: (val) {
+                          controller.selectedCategoryId.value = val ?? '';
+                          controller.applyFilters();
+                        },
+                      )),
+                    ),
+                    const SizedBox(width: 8),
+                    // Market dropdown
+                    Expanded(
+                      child: Obx(() => DropdownButton<String>(
+                        isExpanded: true,
+                        value: controller.selectedMarketId.value,
+                        items: [
+                          const DropdownMenuItem(value: '', child: Text('All Markets')),
+                          ...controller.markets.map((m) =>
+                            DropdownMenuItem(value: m.id, child: Text(m.marketName)),
+                          ),
+                        ],
+                        onChanged: (val) {
+                          controller.selectedMarketId.value = val ?? '';
+                          controller.applyFilters();
+                        },
+                      )),
+                    ),
                   ],
                   onChanged: (val) {
                     controller.selectedFarmerId.value = val ?? '';
@@ -275,101 +230,54 @@ class _FilterStatusBar extends StatelessWidget {
                     Icon(Icons.filter_list, size: 16, color: theme.colorScheme.primary),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: Text(
-                        _filterLabel(count, hasQuery),
-                        style: theme.textTheme.bodySmall,
-                        overflow: TextOverflow.ellipsis,
+                      child: TextField(
+                        decoration: const InputDecoration(labelText: 'Farmer Name'),
+                        onChanged: (val) => controller.farmerQuery.value = val,
                       ),
                     ),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      icon: const Icon(Icons.clear_all, size: 16),
-                      label: const Text('Clear Filters'),
+                    const SizedBox(width: 8),
+                    // Distance dropdown
+                    Obx(() => DropdownButton<double>(
+                      value: controller.maxDistanceKm.value,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('Any dist')),
+                        DropdownMenuItem(value: 2, child: Text('2 km')),
+                        DropdownMenuItem(value: 5, child: Text('5 km')),
+                        DropdownMenuItem(value: 10, child: Text('10 km')),
+                        DropdownMenuItem(value: 25, child: Text('25 km')),
+                      ],
+                      onChanged: (val) => controller.selectDistance(val ?? 0),
+                    )),
+                    TextButton(
                       onPressed: controller.clearFilters,
+                      child: const Text('Clear'),
                     ),
                   ],
                 ),
-              )
-            : const SizedBox.shrink(),
-      );
-    });
-  }
-
-  String _filterLabel(int count, bool hasQuery) {
-    final parts = <String>[];
-    if (hasQuery) parts.add('search');
-    if (count > 0) parts.add('$count filter${count > 1 ? 's' : ''}');
-    return '${parts.join(' + ')} active';
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Results list
-// ─────────────────────────────────────────────────────────────────────────────
-class _ResultsList extends StatelessWidget {
-  const _ResultsList({required this.controller});
-  final ProductSearchController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      final products = controller.results;
-
-      if (products.isEmpty) {
-        return _EmptyState(
-          hasFilters: controller.activeFilterCount > 0 ||
-              controller.query.value.isNotEmpty,
-          onClear: controller.clearFilters,
-        );
-      }
-
-      return ListView.builder(
-        padding: const EdgeInsets.only(bottom: 16),
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final p = products[index];
-          final isOutOfStock = p.stockQty <= 0;
-
-          // Product thumbnail — URL ho to load karo, warna placeholder
-          final Widget thumbnail = ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: p.imageUrl.isEmpty
-                ? Container(
-                    width: 56,
-                    height: 56,
-                    color: Colors.green.shade50,
-                    child: const Icon(Icons.eco_outlined, size: 30, color: Colors.green),
-                  )
-                : Image.network(
-                    p.imageUrl,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 56,
-                      height: 56,
-                      color: Colors.green.shade50,
-                      child: const Icon(Icons.broken_image_outlined,
-                          size: 30, color: Colors.grey),
-                    ),
-                    loadingBuilder: (_, child, progress) => progress == null
-                        ? child
-                        : Container(
-                            width: 56,
-                            height: 56,
-                            color: Colors.grey.shade100,
-                            child: const Center(
-                                child: CircularProgressIndicator(strokeWidth: 2)),
-                          ),
-                  ),
-          );
+              ],
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.viewMode.value == SearchViewMode.map) {
+                return MarketMapView(
+                  markets: controller.visibleMarkets,
+                  onMarkerTap: (m) => _openMarketSheet(context, m),
+                );
+              }
+              if (controller.results.isEmpty) {
+                return const Center(child: Text('No products found'));
+              }
+              return ListView.builder(
+                itemCount: controller.results.length,
+                itemBuilder: (context, index) {
+                  final p = controller.results[index];
+                  final isOutOfStock = p.stockQty <= 0;
+                  final distLabel = controller.distanceKmOf(p);
 
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

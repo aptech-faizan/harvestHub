@@ -131,6 +131,9 @@ class AuthService extends GetxService {
 
   /// Common registration method for Customer and Farmer.
   /// Public registration for Admin is strictly prevented.
+  ///
+  /// [marketId] is required for Farmers and stored in `farmers/{uid}` alongside
+  /// the denormalised [marketName] so lists never need a second lookup.
   Future<String> register({
     required String name,
     required String email,
@@ -138,6 +141,8 @@ class AuthService extends GetxService {
     required String password,
     required String address,
     required String role,
+    String marketId = '',
+    String marketName = '',
   }) async {
     final normalizedRole = role.trim().toLowerCase();
     if (normalizedRole != Roles.customer && normalizedRole != Roles.farmer) {
@@ -148,6 +153,9 @@ class AuthService extends GetxService {
     if (email.trim().isEmpty || !email.contains('@')) throw Exception('Enter a valid email.');
     if (phone.trim().isEmpty) throw Exception('Phone number cannot be empty.');
     if (password.length < 6) throw Exception('Password must be at least 6 characters.');
+    if (normalizedRole == Roles.farmer && marketId.trim().isEmpty) {
+      throw Exception('Please select the market where you sell your produce.');
+    }
 
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -168,7 +176,7 @@ class AuthService extends GetxService {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    // If farmer, also create base farmer entry
+    // If farmer, also create base farmer entry linked to the chosen market
     if (normalizedRole == Roles.farmer) {
       await _db.collection(Db.farmers).doc(uid).set({
         'userId': uid,
@@ -176,7 +184,8 @@ class AuthService extends GetxService {
         'description': '',
         'rating': 0.0,
         'lowStockThreshold': 5,
-        'marketId': '',
+        'marketId': marketId.trim(),
+        'marketName': marketName.trim(),
       });
     }
 

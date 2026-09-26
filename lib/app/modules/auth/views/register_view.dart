@@ -118,6 +118,58 @@ class RegisterView extends GetView<RegisterController> {
                     },
                   ),
                   const SizedBox(height: 14),
+                  // Farmer-only: link the account to a market so products,
+                  // inventory and orders always have a market to resolve.
+                  Obx(() {
+                    if (!controller.isFarmer) return const SizedBox.shrink();
+                    if (controller.isLoadingMarkets.value) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: LinearProgressIndicator(),
+                      );
+                    }
+                    if (controller.markets.isEmpty) {
+                      return const InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Market',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.store),
+                        ),
+                        child: Text(
+                          'No active markets yet. Ask an admin to add one.',
+                          style: TextStyle(color: Colors.red, fontSize: 13),
+                        ),
+                      );
+                    }
+                    final ids = controller.markets.map((m) => m.id).toList();
+                    final value = ids.contains(controller.selectedMarketId.value)
+                        ? controller.selectedMarketId.value
+                        : null;
+                    return DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: value,
+                      decoration: const InputDecoration(
+                        labelText: 'Market *',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.store),
+                      ),
+                      hint: const Text('Select your market'),
+                      items: controller.markets
+                          .map((m) => DropdownMenuItem(
+                                value: m.id,
+                                child: Text(
+                                  m.marketName,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: controller.setMarket,
+                      validator: (_) => controller.selectedMarketId.value.isEmpty
+                          ? 'Market is required'
+                          : null,
+                    );
+                  }),
+                  const SizedBox(height: 14),
                   Obx(() => TextFormField(
                         controller: controller.passwordController,
                         obscureText: controller.hidePassword.value,
