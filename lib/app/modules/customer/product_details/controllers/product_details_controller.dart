@@ -25,6 +25,7 @@ class ProductDetailsController extends GetxController {
     }
     product = args;
     _checkWishlistStatus();
+    ever(_wishlistController.items, (_) => _checkWishlistStatus());
   }
 
   // CartController ko safe tareeqe se dhoondna ya inject karna

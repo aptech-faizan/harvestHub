@@ -12,6 +12,9 @@ abstract class Routes {
   static const customerFarmerDetails = '/customer/farmers/details';
   static const customerProductDetails = '/customer/products/details';
   static const customerWishlist = '/customer/wishlist';
+  static const assistantScreen = '/customer/assistant';
+  static const aboutUs = '/customer/about';
+  static const contactUs = '/customer/contact';
 
   // Farmer Module
   static const farmerDashboard = '/farmer/dashboard';

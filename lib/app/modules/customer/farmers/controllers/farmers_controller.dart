@@ -59,17 +59,28 @@ class FarmersController extends GetxController {
   // Kisi farmer ko follow hai ya nahi check karta hai
   bool isFollowed(String farmerId) => followedIds.contains(farmerId);
 
-  // Follow ya unfollow toggle karta hai; fail par snackbar dikhata hai
+  // Follow ya unfollow toggle karta hai optimistically; fail par rollback karta hai
   Future<void> toggleFollow(String farmerId) async {
     final uid = _uid;
     if (uid == null) return;
+    final currentlyFollowed = isFollowed(farmerId);
+    if (currentlyFollowed) {
+      followedIds.remove(farmerId);
+    } else {
+      followedIds.add(farmerId);
+    }
     try {
-      if (isFollowed(farmerId)) {
+      if (currentlyFollowed) {
         await FollowRepository().unfollow(uid, farmerId);
       } else {
         await FollowRepository().follow(uid, farmerId);
       }
     } catch (e) {
+      if (currentlyFollowed) {
+        followedIds.add(farmerId);
+      } else {
+        followedIds.remove(farmerId);
+      }
       Get.snackbar('Error', 'Follow nahi ho saka: $e');
     }
   }

@@ -1,4 +1,3 @@
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/category_model.dart';
 import '../../../../data/models/market_model.dart';
@@ -7,7 +6,11 @@ import '../../../../data/repositories/category_repository.dart';
 import '../../../../data/repositories/market_repository.dart';
 import '../../../../data/repositories/product_repository.dart';
 import '../../cart/controllers/cart_controller.dart';
-import '../location_helper.dart';
+
+// NOTE: Location/Distance filter scope se exclude kiya gaya.
+// GPS-based distance calculation is out-of-scope for the current release.
+// Assumption/Limitation: Document in README — "Distance filter not implemented;
+// location_helper.dart is retained as a stub for future use."
 
 // Ye search aur filter ki tamaam state aur logic handle karta hai
 class ProductSearchController extends GetxController {
@@ -15,40 +18,59 @@ class ProductSearchController extends GetxController {
   final CategoryRepository _categoryRepo = CategoryRepository();
   final MarketRepository _marketRepo = MarketRepository();
 
+  // Filter state — sab reactive
   final RxString query = ''.obs;
   final RxString selectedCategoryId = ''.obs;
   final RxString selectedMarketId = ''.obs;
-  final RxString farmerQuery = ''.obs;
+
+  // Farmer filter: ID se match karo (farmerName nahi, farmerId se — reliable match)
+  final RxString selectedFarmerId = ''.obs;
+
   final RxBool isLoading = false.obs;
 
-  // Distance filter ke reactive variables
-  final RxDouble maxDistanceKm = 0.0.obs;
-  final Rxn<Position> userPos = Rxn<Position>();
-
+  // Ek baar fetch, phir sab local filtering
   final List<ProductModel> allProducts = [];
   final RxList<ProductModel> results = <ProductModel>[].obs;
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxList<MarketModel> markets = <MarketModel>[].obs;
 
+  // Unique farmers list — products se derive karo (id -> name)
+  final RxList<FarmerEntry> farmers = <FarmerEntry>[].obs;
+
   @override
   void onInit() {
     super.onInit();
     loadData();
+    // Search query par 300ms debounce
     debounce(query, (_) => applyFilters(), time: const Duration(milliseconds: 300));
-    debounce(farmerQuery, (_) => applyFilters(), time: const Duration(milliseconds: 300));
   }
 
-  // Firestore se products, categories aur markets load karne ka method
+  // Firestore se products, categories aur markets ek baar load karo
   Future<void> loadData() async {
     isLoading.value = true;
     try {
       final productList = await _productRepo.getActiveProducts();
       final categoryList = await _categoryRepo.getActiveCategories();
       final marketList = await _marketRepo.getActiveMarkets();
-      allProducts.clear();
-      allProducts.addAll(productList);
+
+      allProducts
+        ..clear()
+        ..addAll(productList);
+
       categories.assignAll(categoryList);
       markets.assignAll(marketList);
+
+      // Products se unique farmer entries derive karo
+      final seen = <String>{};
+      final farmerList = <FarmerEntry>[];
+      for (final p in productList) {
+        if (p.farmerId.isNotEmpty && seen.add(p.farmerId)) {
+          farmerList.add(FarmerEntry(id: p.farmerId, name: p.farmerName));
+        }
+      }
+      farmerList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      farmers.assignAll(farmerList);
+
       applyFilters();
     } catch (e) {
       Get.snackbar('Error', 'Data load nahi hua: $e');
@@ -57,68 +79,37 @@ class ProductSearchController extends GetxController {
     }
   }
 
-  // Distance filter set karta hai; km > 0 hone par location fetch karta hai
-  Future<void> selectDistance(double km) async {
-    if (km > 0) {
-      final pos = await LocationHelper.getCurrentPosition();
-      if (pos == null) {
-        Get.snackbar('Location Error', 'Location nahi mil saki, distance filter reset ho gaya');
-        maxDistanceKm.value = 0;
-        applyFilters();
-        return;
-      }
-      userPos.value = pos;
-    }
-    maxDistanceKm.value = km;
-    applyFilters();
-  }
-
-  // Sab active filters ek saath apply karne ka method
+  // Sab active filters AND logic se apply karo — pure Dart, no Firestore query
   void applyFilters() {
     final q = query.value.trim().toLowerCase();
-    final fq = farmerQuery.value.trim().toLowerCase();
     final cat = selectedCategoryId.value;
     final mkt = selectedMarketId.value;
-    final maxDist = maxDistanceKm.value;
-    final pos = userPos.value;
+    final farmer = selectedFarmerId.value;
 
     results.value = allProducts.where((p) {
       final matchesQuery = q.isEmpty || p.itemName.toLowerCase().contains(q);
-      final matchesFarmer = fq.isEmpty || p.farmerName.toLowerCase().contains(fq);
       final matchesCat = cat.isEmpty || p.categoryId == cat;
       final matchesMkt = mkt.isEmpty || p.marketId == mkt;
-
-      // Distance filter: lat/lng dono 0 wale products skip karo
-      bool matchesDist = true;
-      if (maxDist > 0 && pos != null) {
-        if (p.lat == 0.0 && p.lng == 0.0) {
-          matchesDist = false;
-        } else {
-          final distM = Geolocator.distanceBetween(pos.latitude, pos.longitude, p.lat, p.lng);
-          matchesDist = (distM / 1000) <= maxDist;
-        }
-      }
-
-      return matchesQuery && matchesFarmer && matchesCat && matchesMkt && matchesDist;
+      final matchesFarmer = farmer.isEmpty || p.farmerId == farmer;
+      return matchesQuery && matchesCat && matchesMkt && matchesFarmer;
     }).toList();
   }
 
-  // Product se user ki distance km mein string format mein deta hai
-  String distanceKmOf(ProductModel p) {
-    final pos = userPos.value;
-    if (pos == null || (p.lat == 0.0 && p.lng == 0.0)) return '';
-    final distM = Geolocator.distanceBetween(pos.latitude, pos.longitude, p.lat, p.lng);
-    return '${(distM / 1000).toStringAsFixed(1)} km';
+  // Kitne filters active hain — badge dikhane ke liye
+  int get activeFilterCount {
+    int count = 0;
+    if (selectedCategoryId.value.isNotEmpty) count++;
+    if (selectedMarketId.value.isNotEmpty) count++;
+    if (selectedFarmerId.value.isNotEmpty) count++;
+    return count;
   }
 
-  // Tamaam filters (distance samait) reset karne ka method
+  // Tamaam filters reset karo (search bhi)
   void clearFilters() {
     query.value = '';
-    farmerQuery.value = '';
     selectedCategoryId.value = '';
     selectedMarketId.value = '';
-    maxDistanceKm.value = 0;
-    userPos.value = null;
+    selectedFarmerId.value = '';
     applyFilters();
   }
 
@@ -134,4 +125,11 @@ class ProductSearchController extends GetxController {
       Get.put(CartController()).add(product);
     }
   }
+}
+
+// Farmers dropdown ke liye id+name pair
+class FarmerEntry {
+  final String id;
+  final String name;
+  const FarmerEntry({required this.id, required this.name});
 }

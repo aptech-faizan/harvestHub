@@ -1,24 +1,16 @@
-import 'package:geolocator/geolocator.dart';
+// location_helper.dart — STUB
+//
+// NOTE (Scope Limitation): GPS-based Location/Distance filter is excluded from
+// the current release scope. This file is retained as a stub so the dependency
+// graph stays intact and the feature can be wired in a future sprint.
+//
+// To re-enable: add `geolocator` back to active imports, implement
+// getCurrentPosition() using the Geolocator package, and wire selectDistance()
+// back into ProductSearchController.
 
-// Ye device ki current GPS position safely fetch karne ka helper hai
+// Ye file abhi sirf placeholder hai — geolocator dependency hata di gayi hai.
 class LocationHelper {
-  // Location permission check karke current position return karta hai (null on fail)
-  static Future<Position?> getCurrentPosition() async {
-    // Service on hai ya nahi check karo
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return null;
-
-    // Permission status check karo
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return null;
-    }
-    if (permission == LocationPermission.deniedForever) return null;
-
-    // Position fetch karo
-    return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
-    );
-  }
+  // Future sprint mein GPS distance filter yahan implement hoga.
+  // Abhi sirf null return karta hai.
+  static Future<Object?> getCurrentPosition() async => null;
 }

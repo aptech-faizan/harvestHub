@@ -27,6 +27,8 @@ import 'package:harvest_hub/app/modules/auth/bindings/login_binding.dart';
 import 'package:harvest_hub/app/modules/auth/bindings/register_binding.dart';
 import 'package:harvest_hub/app/modules/auth/views/login_view.dart';
 import 'package:harvest_hub/app/modules/auth/views/register_view.dart';
+import 'package:harvest_hub/app/modules/customer/assistant/bindings/assistant_binding.dart';
+import 'package:harvest_hub/app/modules/customer/assistant/views/assistant_view.dart';
 import 'package:harvest_hub/app/modules/customer/checkout/bindings/checkout_binding.dart';
 import 'package:harvest_hub/app/modules/customer/checkout/views/checkout_view.dart';
 import 'package:harvest_hub/app/modules/customer/farmers/bindings/farmers_binding.dart'
@@ -42,6 +44,10 @@ import 'package:harvest_hub/app/modules/customer/shell/bindings/customer_shell_b
 import 'package:harvest_hub/app/modules/customer/shell/views/customer_shell_view.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/bindings/wishlist_binding.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/views/wishlist_view.dart';
+import 'package:harvest_hub/app/modules/customer/about/bindings/about_binding.dart';
+import 'package:harvest_hub/app/modules/customer/about/views/about_view.dart';
+import 'package:harvest_hub/app/modules/customer/contact/bindings/contact_binding.dart';
+import 'package:harvest_hub/app/modules/customer/contact/views/contact_view.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/bindings/farmer_dashboard_binding.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/views/farmer_dashboard_view.dart';
 import 'package:harvest_hub/app/modules/splash/bindings/splash_binding.dart';
@@ -108,6 +114,24 @@ class AppPages {
       name: Routes.customerWishlist,
       page: () => const WishlistView(),
       binding: WishlistBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.assistantScreen,
+      page: () => const AssistantView(),
+      binding: AssistantBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.aboutUs,
+      page: () => const AboutView(),
+      binding: AboutBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.contactUs,
+      page: () => const ContactView(),
+      binding: ContactBinding(),
       middlewares: [CustomerMiddleware()],
     ),
 
