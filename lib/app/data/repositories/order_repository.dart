@@ -30,7 +30,8 @@ class OrderRepository {
     final orders = snapshot.docs
         .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
         .toList();
-    orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final defaultDate = DateTime(0);
+    orders.sort((a, b) => (b.createdAt ?? defaultDate).compareTo(a.createdAt ?? defaultDate));
     return orders;
   }
 

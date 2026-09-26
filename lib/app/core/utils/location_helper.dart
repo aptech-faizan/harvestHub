@@ -5,22 +5,31 @@ import 'package:geolocator/geolocator.dart';
 class LocationHelper {
   // Location permission check karke current position return karta hai (null on fail)
   static Future<Position?> getCurrentPosition() async {
-    // Service on hai ya nahi check karo
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return null;
+    try {
+      // fix: Pehle permission check/request karo, taake GPS off hone par bhi
+      // permission popup aaye — pehle service-check turant return kar deta tha
+      // isliye requestPermission() kabhi chalta hi nahi tha.
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return null;
+      }
+      if (permission == LocationPermission.deniedForever) return null;
 
-    // Permission status check karo
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return null;
+      // fix: Permission mil jaye tab GPS/location service on hai ya nahi check karo
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      // Position fetch karo
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 5),
+        ),
+      );
+    } catch (_) {
+      return null;
     }
-    if (permission == LocationPermission.deniedForever) return null;
-
-    // Position fetch karo
-    return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
-    );
   }
 
   /// Straight line distance in kilometres, or null when either point is unset.

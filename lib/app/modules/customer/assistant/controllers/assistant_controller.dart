@@ -13,6 +13,9 @@ class AssistantController extends GetxController {
   final RxList<ChatMessage> messages = <ChatMessage>[].obs;
   final RxBool isLoading = false.obs;
 
+  // Suggestion chips sirf welcome state mein dikhti hain
+  final RxBool showSuggestions = true.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -26,21 +29,35 @@ class AssistantController extends GetxController {
     super.onClose();
   }
 
-  // Initial welcome message chat mein add karta hai
+  // Harvey ka initial welcome message chat mein add karta hai
   void _loadWelcomeMessage() {
     messages.add(
       ChatMessage(
         text:
-            "Hello! I am your HarvestHub Farm Assistant. Ask me anything about fresh produce, storage tips, health benefits, or how to use the marketplace!",
+            "Hi, I'm Harvey — your HarvestHub farm assistant. Ask me about fresh produce, storage tips, health benefits, or how to use the marketplace!",
         isUser: false,
       ),
     );
+  }
+
+  // GroqErrorType ke hisaab se situation-specific fallback message return karta hai
+  String _fallbackFor(GroqErrorType errorType) {
+    switch (errorType) {
+      case GroqErrorType.network:
+        return "I'm having trouble connecting right now. Please check your internet and try again.";
+      case GroqErrorType.rateLimit:
+        return "I'm a bit overloaded at the moment — please try again in a few seconds.";
+      case GroqErrorType.unknown:
+      case GroqErrorType.none:
+        return "I don't have a good answer for that yet. Try asking about fruits, vegetables, storage, nutrition, or how to use the app.";
+    }
   }
 
   // Predefined knowledge base mein se 0.4 se zyada score wala best match dhoondta hai
   String? findKnowledgeMatch(String query) {
     double highestScore = 0.0;
     String? bestAnswer;
+    String? bestQuestion;
 
     for (final entry in farmKnowledge) {
       final question = entry['question'] ?? '';
@@ -51,16 +68,31 @@ class AssistantController extends GetxController {
       if (score > highestScore) {
         highestScore = score;
         bestAnswer = entry['answer'];
+        bestQuestion = question;
       }
     }
 
-    return highestScore > 0.4 ? bestAnswer : null;
+    final isKbMatch = highestScore > 0.4;
+    debugPrint(
+      '[KB DEBUG] Query: "$query" | Best Question: "$bestQuestion" | Match score: ${highestScore.toStringAsFixed(3)}, threshold: 0.4, going to [${isKbMatch ? "KB" : "Groq"}]',
+    );
+
+    return isKbMatch ? bestAnswer : null;
+  }
+
+  // Chip tap hone par seedha text pass karke sendMessage() call karta hai
+  void sendFromChip(String chipText) {
+    inputController.text = chipText;
+    sendMessage();
   }
 
   // User ka sawal process karta hai aur knowledge base ya Groq se jawab lata hai
   Future<void> sendMessage() async {
     final text = inputController.text.trim();
     if (text.isEmpty || isLoading.value) return;
+
+    // Pehla user message aane par chips hide kar do
+    if (showSuggestions.value) showSuggestions.value = false;
 
     inputController.clear();
     messages.add(ChatMessage(text: text, isUser: true));
@@ -70,10 +102,16 @@ class AssistantController extends GetxController {
     try {
       final kbAnswer = findKnowledgeMatch(text);
       if (kbAnswer != null) {
+        // Knowledge base match mila — directly use karo
         messages.add(ChatMessage(text: kbAnswer, isUser: false));
       } else {
-        final aiAnswer = await GroqService.askGroq(text);
-        messages.add(ChatMessage(text: aiAnswer, isUser: false));
+        // Groq se jawab lo aur error type check karo
+        final result = await GroqService.askGroq(text);
+        if (result.errorType == GroqErrorType.none && result.answer.isNotEmpty) {
+          messages.add(ChatMessage(text: result.answer, isUser: false));
+        } else {
+          messages.add(ChatMessage(text: _fallbackFor(result.errorType), isUser: false));
+        }
       }
     } finally {
       isLoading.value = false;

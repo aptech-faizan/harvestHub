@@ -20,4 +20,14 @@ abstract class AppColors {
   static const Color darkTextPrimary = Color(0xFFEDF2EE);
   static const Color darkTextSecondary = Color(0xFFA0B3A8);
   static const Color darkBorder = Color(0xFF283A30);
+
+  // Common aliases used by existing widgets
+  static const Color primary = lightPrimary;
+  static const Color secondary = lightSecondary;
+  static const Color background = lightScaffoldBg;
+  static const Color surface = lightSurface;
+  static const Color border = lightBorder;
+  static const Color textPrimary = lightTextPrimary;
+  static const Color textMuted = lightTextSecondary;
+  static const Color error = Color(0xFFD62828);
 }

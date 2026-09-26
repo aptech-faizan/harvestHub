@@ -52,7 +52,6 @@ dependencies:
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
   google_fonts: ^8.2.1
-  http: ^1.2.0
   string_similarity: ^2.0.0
 
 dev_dependencies:

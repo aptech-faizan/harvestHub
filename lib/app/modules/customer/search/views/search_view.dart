@@ -69,18 +69,8 @@ class SearchView extends GetView<ProductSearchController> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search & Filter'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: _SearchBar(controller: controller),
-          ),
-        ),
-      ),
+      appBar: AppBar(title: const Text('Search Products')),
       body: Column(
         children: [
           // List / Map toggle
@@ -159,76 +149,10 @@ class SearchView extends GetView<ProductSearchController> {
                       )),
                     ),
                   ],
-                  onChanged: (val) {
-                    controller.selectedFarmerId.value = val ?? '';
-                    controller.applyFilters();
-                  },
                 ),
-              ),
-            ],
-          )),
-    );
-  }
-}
-
-// Reusable styled dropdown wrapper
-class _StyledDropdown<T> extends StatelessWidget {
-  const _StyledDropdown({
-    required this.hint,
-    required this.icon,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final String hint;
-  final IconData icon;
-  final T? value;
-  final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
-      decoration: InputDecoration(
-        labelText: hint,
-        prefixIcon: Icon(icon, size: 18),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      ),
-      isExpanded: true,
-      items: items,
-      onChanged: onChanged,
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Filter status bar — active count + Clear Filters
-// ─────────────────────────────────────────────────────────────────────────────
-class _FilterStatusBar extends StatelessWidget {
-  const _FilterStatusBar({required this.controller, required this.theme});
-  final ProductSearchController controller;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final count = controller.activeFilterCount;
-      final hasQuery = controller.query.value.isNotEmpty;
-      final hasAny = count > 0 || hasQuery;
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: hasAny ? 36 : 0,
-        child: hasAny
-            ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
+                Row(
                   children: [
-                    Icon(Icons.filter_list, size: 16, color: theme.colorScheme.primary),
-                    const SizedBox(width: 6),
+                    // Farmer name search field
                     Expanded(
                       child: TextField(
                         decoration: const InputDecoration(labelText: 'Farmer Name'),
@@ -279,87 +203,38 @@ class _FilterStatusBar extends StatelessWidget {
                   final isOutOfStock = p.stockQty <= 0;
                   final distLabel = controller.distanceKmOf(p);
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            child: ListTile(
-              leading: thumbnail,
-              onTap: () =>
-                  Get.toNamed(Routes.customerProductDetails, arguments: p),
-              title: Text(p.itemName,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${p.farmerName}  ·  ${p.marketName}',
-                      style: const TextStyle(fontSize: 12)),
-                  Text('Rs. ${p.pricePerUnit} / ${p.unit}'),
-                  Text(
-                    isOutOfStock ? 'Out of stock' : 'Stock: ${p.stockQty}',
-                    style: TextStyle(
-                        color: isOutOfStock ? Colors.red : Colors.green,
-                        fontSize: 12),
-                  ),
-                ],
-              ),
-              trailing: SizedBox(
-                height: 36,
-                width: 105,
-                child: ElevatedButton(
-                  onPressed:
-                      isOutOfStock ? null : () => controller.addToCart(p),
-                  style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      textStyle: const TextStyle(fontSize: 13)),
-                  child: const Text('Add to cart'),
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    });
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Empty state widget
-// ─────────────────────────────────────────────────────────────────────────────
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.hasFilters, required this.onClear});
-  final bool hasFilters;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.search_off_rounded,
-                size: 72, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            const Text('Koi product nahi mila',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text(
-              hasFilters
-                  ? 'Applied filters ke sath koi match nahi hua.\nFilters clear karke dobara try karo.'
-                  : 'Kuch aur search karo ya filters change karo.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            if (hasFilters) ...[
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: onClear,
-                icon: const Icon(Icons.clear_all),
-                label: const Text('Clear Filters'),
-              ),
-            ],
-          ],
-        ),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: ListTile(
+                      onTap: () => Get.toNamed(
+                        Routes.customerProductDetails,
+                        arguments: p,
+                      ),
+                      title: Text(p.itemName),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Farmer: ${p.farmerName} | Market: ${p.marketName}'),
+                          Text('Price: Rs. ${p.pricePerUnit} / ${p.unit}'),
+                          Text(
+                            isOutOfStock ? 'Out of stock' : 'Stock: ${p.stockQty}',
+                            style: TextStyle(color: isOutOfStock ? Colors.red : Colors.green),
+                          ),
+                          if (distLabel.isNotEmpty)
+                            Text(distLabel, style: const TextStyle(color: Colors.blueGrey)),
+                        ],
+                      ),
+                      trailing: ElevatedButton(
+                        onPressed: isOutOfStock ? null : () => controller.addToCart(p),
+                        child: const Text('Add to cart'),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
+          ),
+        ],
       ),
     );
   }

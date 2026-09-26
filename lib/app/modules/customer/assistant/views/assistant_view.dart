@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/assistant_controller.dart';
 import '../data/chat_message.dart';
+import '../../../../core/theme/app_colors.dart';
 
-// View rendering chat screen for Farm Products Assistant
+// View rendering Harvey chat screen for HarvestHub farm assistant
 class AssistantView extends GetView<AssistantController> {
   const AssistantView({super.key});
 
@@ -11,7 +12,7 @@ class AssistantView extends GetView<AssistantController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Farm Products Assistant'),
+        title: const Text('Harvey'),
       ),
       body: Column(
         children: [
@@ -28,6 +29,7 @@ class AssistantView extends GetView<AssistantController> {
               ),
             ),
           ),
+          _buildSuggestionChips(),
           Obx(() {
             if (controller.isLoading.value) {
               return const Padding(
@@ -41,7 +43,7 @@ class AssistantView extends GetView<AssistantController> {
                     ),
                     SizedBox(width: 8),
                     Text(
-                      'Assistant is thinking...',
+                      'Harvey is thinking...',
                       style: TextStyle(color: Colors.grey, fontSize: 13),
                     ),
                   ],
@@ -124,4 +126,62 @@ class AssistantView extends GetView<AssistantController> {
       ),
     );
   }
+
+  // Farm-related quick suggestion chips list — farm_knowledge.dart ke questions ke short versions
+  static const List<_ChipData> _suggestions = [
+    _ChipData('Vitamin C fruits?', 'Which fruits are rich in Vitamin C?'),
+    _ChipData('Tomato storage tips', 'How should I store fresh tomatoes?'),
+    _ChipData('Seasonal vegetables', 'What are the common seasonal vegetables?'),
+    _ChipData('Healthy salad ideas', 'Which vegetables are best for fresh salads?'),
+    _ChipData('Book a pickup slot', 'How do I book a pickup slot?'),
+    _ChipData('Check fresh veggies', 'How can I check if vegetables are fresh?'),
+  ];
+
+  // Horizontally scrollable suggestion chip row — welcome state mein dikhta hai
+  Widget _buildSuggestionChips() {
+    return SizedBox(
+      height: 46,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        itemCount: _suggestions.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final chip = _suggestions[index];
+          return _buildSingleChip(chip);
+        },
+      ),
+    );
+  }
+
+  // Ek individual chip widget jisme tap se controller.sendFromChip() call hota hai
+  Widget _buildSingleChip(_ChipData chip) {
+    return GestureDetector(
+      onTap: () => controller.sendFromChip(chip.fullQuestion),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.secondary,
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: 1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          chip.label,
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+// Chip ka display label aur full question store karne ka simple data class
+class _ChipData {
+  final String label;
+  final String fullQuestion;
+  const _ChipData(this.label, this.fullQuestion);
+}
+

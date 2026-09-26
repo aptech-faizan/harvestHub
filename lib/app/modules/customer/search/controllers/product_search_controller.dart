@@ -1,3 +1,4 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../../../../core/utils/location_helper.dart';
 import '../../../../data/models/category_model.dart';
@@ -24,6 +25,7 @@ class ProductSearchController extends GetxController {
 
   // Farmer filter: ID se match karo (farmerName nahi, farmerId se — reliable match)
   final RxString selectedFarmerId = ''.obs;
+  final RxString farmerQuery = ''.obs;
 
   final RxBool isLoading = false.obs;
 
@@ -48,6 +50,7 @@ class ProductSearchController extends GetxController {
     loadData();
     // Search query par 300ms debounce
     debounce(query, (_) => applyFilters(), time: const Duration(milliseconds: 300));
+    debounce(farmerQuery, (_) => applyFilters(), time: const Duration(milliseconds: 300));
   }
 
   // Firestore se products, categories aur markets ek baar load karo
@@ -162,17 +165,50 @@ class ProductSearchController extends GetxController {
   // Sab active filters ek saath apply karne ka method
   void applyFilters() {
     final q = query.value.trim().toLowerCase();
+    final fq = farmerQuery.value.trim().toLowerCase();
     final cat = selectedCategoryId.value;
     final mkt = selectedMarketId.value;
     final farmer = selectedFarmerId.value;
+    final maxDist = maxDistanceKm.value;
+    final pos = userPos.value;
 
     results.value = allProducts.where((p) {
       final matchesQuery = q.isEmpty || p.itemName.toLowerCase().contains(q);
+      final matchesFarmerQuery = fq.isEmpty || p.farmerName.toLowerCase().contains(fq);
       final matchesCat = cat.isEmpty || p.categoryId == cat;
       final matchesMkt = mkt.isEmpty || p.marketId == mkt;
       final matchesFarmer = farmer.isEmpty || p.farmerId == farmer;
-      return matchesQuery && matchesCat && matchesMkt && matchesFarmer;
+
+      bool matchesDist = true;
+      if (maxDist > 0 && pos != null) {
+        if (p.lat != 0.0 && p.lng != 0.0) {
+          final distKm = LocationHelper.distanceKm(
+            fromLat: pos.latitude,
+            fromLng: pos.longitude,
+            toLat: p.lat,
+            toLng: p.lng,
+          );
+          matchesDist = distKm != null && distKm <= maxDist;
+        } else {
+          matchesDist = false;
+        }
+      }
+
+      return matchesQuery && matchesFarmerQuery && matchesCat && matchesMkt && matchesFarmer && matchesDist;
     }).toList();
+  }
+
+  // Product se user ki distance km mein string format mein deta hai
+  String distanceKmOf(ProductModel p) {
+    final pos = userPos.value;
+    if (pos == null || (p.lat == 0.0 && p.lng == 0.0)) return '';
+    final distKm = LocationHelper.distanceKm(
+      fromLat: pos.latitude,
+      fromLng: pos.longitude,
+      toLat: p.lat,
+      toLng: p.lng,
+    );
+    return distKm == null ? '' : '${distKm.toStringAsFixed(1)} km';
   }
 
   // Kitne filters active hain — badge dikhane ke liye
@@ -181,15 +217,20 @@ class ProductSearchController extends GetxController {
     if (selectedCategoryId.value.isNotEmpty) count++;
     if (selectedMarketId.value.isNotEmpty) count++;
     if (selectedFarmerId.value.isNotEmpty) count++;
+    if (farmerQuery.value.isNotEmpty) count++;
+    if (maxDistanceKm.value > 0) count++;
     return count;
   }
 
   // tamaam filters reset, market filter bhi
   void clearFilters() {
     query.value = '';
+    farmerQuery.value = '';
     selectedCategoryId.value = '';
     selectedMarketId.value = '';
     selectedFarmerId.value = '';
+    maxDistanceKm.value = 0;
+    userPos.value = null;
     applyFilters();
   }
 
