@@ -17,7 +17,7 @@ class MarketsView extends GetView<MarketsController> {
       ),
       drawer: const AdminDrawer(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => controller.save(),
+        onPressed: () => controller.openForm(),
         child: const Icon(Icons.add),
       ),
       body: Column(children: [
@@ -36,14 +36,18 @@ class MarketsView extends GetView<MarketsController> {
                 itemBuilder: (_, i) {
                   final m = list[i];
                   return ListTile(
-                    leading: const Icon(Icons.store),
+                    leading: Icon(
+                      m.activeStatus ? Icons.store : Icons.storefront_outlined,
+                      color: m.activeStatus ? null : Colors.grey,
+                    ),
                     title: Text(m.marketName),
                     subtitle: Text(
-                        '${m.address}\n${m.operatingHours}  •  GPS: ${m.latitude}, ${m.longitude}'),
+                      '${m.address}\n${m.operatingHours}  •  ${m.hasCoordinates ? 'GPS: ${m.latitude.toStringAsFixed(4)}, ${m.longitude.toStringAsFixed(4)}' : 'No location set'}',
+                    ),
                     isThreeLine: true,
                     trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                       Switch(value: m.activeStatus, onChanged: (v) => controller.setActive(m, v)),
-                      IconButton(icon: const Icon(Icons.edit), onPressed: () => controller.save(m)),
+                      IconButton(icon: const Icon(Icons.edit), onPressed: () => controller.openForm(m)),
                       IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () => controller.delete(m)),

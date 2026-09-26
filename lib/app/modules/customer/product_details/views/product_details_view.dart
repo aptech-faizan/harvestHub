@@ -1,4 +1,3 @@
-// TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/product_details_controller.dart';
@@ -35,7 +34,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
               height: 200,
               width: double.infinity,
               color: Colors.grey.shade300,
-              child: const Icon(Icons.image, size: 80, color: Colors.grey),
+              child: Image.network(p.imageUrl),
             ),
             const SizedBox(height: 16),
             Text(p.itemName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

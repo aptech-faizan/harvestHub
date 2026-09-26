@@ -32,7 +32,7 @@ class ProductModel {
       description: (d['description'] ?? '').toString(),
       pricePerUnit: readDouble(d['pricePerUnit']),
       stockQty: readInt(d['stockQty']),
-      imageUrl: (d['imageUrl'] ?? '').toString(),
+      imageUrl: (d['imageUrl'] ?? d['Image_Url'] ?? '').toString(),
     );
   }
 }

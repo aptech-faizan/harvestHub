@@ -16,4 +16,11 @@ class MarketRepository {
         .map((doc) => MarketModel.fromMap(doc.data(), doc.id))
         .toList();
   }
+
+  Future<MarketModel?> getMarketById(String id) async {
+    if (id.isEmpty) return null;
+    final doc = await _firestore.collection('markets').doc(id).get();
+    if (!doc.exists || doc.data() == null) return null;
+    return MarketModel.fromMap(doc.data()!, doc.id);
+  }
 }

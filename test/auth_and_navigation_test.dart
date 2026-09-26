@@ -70,10 +70,15 @@ class MockAuthService extends AuthService {
     required String password,
     required String address,
     required String role,
+    String marketId = '',
+    String marketName = '',
   }) async {
     final normalized = role.trim().toLowerCase();
     if (normalized != Roles.customer && normalized != Roles.farmer) {
       throw Exception('Public registration is only allowed for Customer or Farmer.');
+    }
+    if (normalized == Roles.farmer && marketId.isEmpty) {
+      throw Exception('Please select the market where you sell your produce.');
     }
     mockRole = normalized;
     this.role.value = normalized;
@@ -120,7 +125,7 @@ void main() {
       expect(mockAuth.isFarmer, isFalse);
       expect(mockAuth.isAdmin, isFalse);
 
-      // Farmer registration
+      // Farmer registration (a market is now mandatory for farmers)
       final farmerRole = await mockAuth.register(
         name: 'Jane Farmer',
         email: 'farmer@test.com',
@@ -128,11 +133,26 @@ void main() {
         password: 'password123',
         address: '456 Farm Rd',
         role: Roles.farmer,
+        marketId: 'market_central',
+        marketName: 'Central Mandi',
       );
       expect(farmerRole, equals(Roles.farmer));
       expect(mockAuth.isFarmer, isTrue);
       expect(mockAuth.isCustomer, isFalse);
       expect(mockAuth.isAdmin, isFalse);
+
+      // A farmer without a market must be rejected
+      expect(
+        () => mockAuth.register(
+          name: 'No Market Farmer',
+          email: 'nomarket@test.com',
+          phone: '0987654321',
+          password: 'password123',
+          address: '456 Farm Rd',
+          role: Roles.farmer,
+        ),
+        throwsA(isA<Exception>()),
+      );
 
       // Public Admin registration MUST be rejected
       expect(

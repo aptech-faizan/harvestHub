@@ -15,6 +15,14 @@ abstract class Routes {
 
   // Farmer Module
   static const farmerDashboard = '/farmer/dashboard';
+  static const farmerProfile = '/farmer/profile';
+  static const farmerProducts = '/farmer/products';
+  static const farmerProductForm = '/farmer/products/form';
+  static const farmerInventory = '/farmer/inventory';
+  static const farmerSlots = '/farmer/slots';
+  static const farmerOrders = '/farmer/orders';
+  static const farmerOrderDetails = '/farmer/orders/details';
+  static const farmerReports = '/farmer/reports';
 
   // Admin Module
   static const adminDashboard = '/admin/dashboard';
@@ -24,6 +32,7 @@ abstract class Routes {
   static const farmerDetails = '/admin/farmers/details';
   static const categories = '/admin/categories';
   static const markets = '/admin/markets';
+  static const marketForm = '/admin/markets/form';
   static const products = '/admin/products';
   static const productDetails = '/admin/products/details';
   static const orders = '/admin/orders';

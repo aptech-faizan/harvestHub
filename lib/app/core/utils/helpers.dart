@@ -8,6 +8,43 @@ double readDouble(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v') 
 
 int readInt(dynamic v) => v is num ? v.toInt() : int.tryParse('$v') ?? 0;
 
+bool readBool(dynamic v, {bool fallback = true}) {
+  if (v is bool) return v;
+  if (v is num) return v != 0;
+  final s = '$v'.toLowerCase();
+  if (s == 'true' || s == '1') return true;
+  if (s == 'false' || s == '0') return false;
+  return fallback;
+}
+
+String readString(Map<String, dynamic> map, List<String> keys) {
+  for (final key in keys) {
+    final value = map[key];
+    if (value == null) continue;
+    final text = value.toString().trim();
+    if (text.isNotEmpty) return text;
+  }
+  return '';
+}
+
+/// Reads lat/lng from camelCase, SRS aliases, or a GeoPoint.
+({double lat, double lng}) readLatLng(Map<String, dynamic> map) {
+  GeoPoint? geo;
+  for (final key in ['gpsCoordinates', 'GPS_Coordinates', 'gps_coordinates']) {
+    final value = map[key];
+    if (value is GeoPoint) {
+      geo = value;
+      break;
+    }
+  }
+  if (geo != null) {
+    return (lat: geo.latitude, lng: geo.longitude);
+  }
+  final lat = readDouble(map['lat'] ?? map['latitude'] ?? map['Latitude']);
+  final lng = readDouble(map['lng'] ?? map['longitude'] ?? map['Longitude']);
+  return (lat: lat, lng: lng);
+}
+
 String formatDate(DateTime? d) {
   if (d == null) return '-';
   String two(int n) => n.toString().padLeft(2, '0');

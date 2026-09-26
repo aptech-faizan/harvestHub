@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/theme/app_theme.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
 import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
@@ -31,7 +32,9 @@ class HarvestHubApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'HarvestHub',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       initialRoute: AppPages.initial,
       getPages: AppPages.pages,
     );

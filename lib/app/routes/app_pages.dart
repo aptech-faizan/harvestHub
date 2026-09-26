@@ -13,7 +13,9 @@ import 'package:harvest_hub/app/modules/admin/dashboard/views/dashboard_view.dar
 import 'package:harvest_hub/app/modules/admin/farmers/bindings/farmers_binding.dart';
 import 'package:harvest_hub/app/modules/admin/farmers/views/farmer_details_view.dart';
 import 'package:harvest_hub/app/modules/admin/farmers/views/farmers_view.dart';
+import 'package:harvest_hub/app/modules/admin/markets/bindings/market_form_binding.dart';
 import 'package:harvest_hub/app/modules/admin/markets/bindings/markets_binding.dart';
+import 'package:harvest_hub/app/modules/admin/markets/views/market_form_view.dart';
 import 'package:harvest_hub/app/modules/admin/markets/views/markets_view.dart';
 import 'package:harvest_hub/app/modules/admin/orders/bindings/orders_binding.dart';
 import 'package:harvest_hub/app/modules/admin/orders/views/order_details_view.dart';
@@ -44,6 +46,21 @@ import 'package:harvest_hub/app/modules/customer/wishlist/bindings/wishlist_bind
 import 'package:harvest_hub/app/modules/customer/wishlist/views/wishlist_view.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/bindings/farmer_dashboard_binding.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/views/farmer_dashboard_view.dart';
+import 'package:harvest_hub/app/modules/farmer/inventory/bindings/farmer_inventory_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/inventory/views/farmer_inventory_view.dart';
+import 'package:harvest_hub/app/modules/farmer/orders/bindings/farmer_orders_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/orders/views/farmer_order_details_view.dart';
+import 'package:harvest_hub/app/modules/farmer/orders/views/farmer_orders_view.dart';
+import 'package:harvest_hub/app/modules/farmer/pickup_slots/bindings/farmer_slots_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/pickup_slots/views/farmer_slots_view.dart';
+import 'package:harvest_hub/app/modules/farmer/products/bindings/farmer_product_form_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/products/bindings/farmer_products_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/products/views/farmer_product_form_view.dart';
+import 'package:harvest_hub/app/modules/farmer/products/views/farmer_products_view.dart';
+import 'package:harvest_hub/app/modules/farmer/profile/bindings/farmer_profile_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/profile/views/farmer_profile_view.dart';
+import 'package:harvest_hub/app/modules/farmer/reports/bindings/farmer_reports_binding.dart';
+import 'package:harvest_hub/app/modules/farmer/reports/views/farmer_reports_view.dart';
 import 'package:harvest_hub/app/modules/splash/bindings/splash_binding.dart';
 import 'package:harvest_hub/app/modules/splash/views/splash_view.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
@@ -118,6 +135,54 @@ class AppPages {
       binding: FarmerDashboardBinding(),
       middlewares: [FarmerMiddleware()],
     ),
+    GetPage(
+      name: Routes.farmerProfile,
+      page: () => const FarmerProfileView(),
+      binding: FarmerProfileBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerProducts,
+      page: () => const FarmerProductsView(),
+      binding: FarmerProductsBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerProductForm,
+      page: () => const FarmerProductFormView(),
+      binding: FarmerProductFormBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerInventory,
+      page: () => const FarmerInventoryView(),
+      binding: FarmerInventoryBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerSlots,
+      page: () => const FarmerSlotsView(),
+      binding: FarmerSlotsBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerOrders,
+      page: () => const FarmerOrdersView(),
+      binding: FarmerOrdersBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerOrderDetails,
+      page: () => const FarmerOrderDetailsView(),
+      binding: FarmerOrdersBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerReports,
+      page: () => const FarmerReportsView(),
+      binding: FarmerReportsBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
 
     // ----- Admin Module -----
     GetPage(
@@ -160,6 +225,12 @@ class AppPages {
       name: Routes.markets,
       page: () => const MarketsView(),
       binding: MarketsBinding(),
+      middlewares: [AdminMiddleware()],
+    ),
+    GetPage(
+      name: Routes.marketForm,
+      page: () => const MarketFormView(),
+      binding: MarketFormBinding(),
       middlewares: [AdminMiddleware()],
     ),
     GetPage(

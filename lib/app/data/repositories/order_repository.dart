@@ -20,6 +20,28 @@ class OrderRepository {
     return orders;
   }
 
+  Future<List<OrderModel>> getOrdersByFarmer(String farmerId) async {
+    final snapshot = await _firestore
+        .collection('orders')
+        .where('farmerId', isEqualTo: farmerId)
+        .get();
+
+    final orders = snapshot.docs
+        .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+        .toList();
+    orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return orders;
+  }
+
+  Future<void> updateStatus(OrderModel order, String status) async {
+    if (status == 'cancelled') {
+      await cancelOrder(order);
+      return;
+    }
+    await _firestore.collection('orders').doc(order.id).update({'status': status});
+    // Placeholder: skip FCM / push notification triggers for order status.
+  }
+
   // Multiple orders ko atomic transaction ke zariye place karta hai
   Future<void> placeOrders(List<OrderModel> orders) async {
     final orderRefs = orders.map((_) => _firestore.collection('orders').doc()).toList();

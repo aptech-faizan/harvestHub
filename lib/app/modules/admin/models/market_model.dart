@@ -20,16 +20,31 @@ class MarketModel {
     required this.activeStatus,
   });
 
+  bool get hasCoordinates => latitude != 0.0 || longitude != 0.0;
+
   factory MarketModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final d = doc.data() ?? {};
+    final coords = readLatLng(d);
     return MarketModel(
       id: doc.id,
-      marketName: (d['marketName'] ?? '').toString(),
-      address: (d['address'] ?? '').toString(),
-      latitude: readDouble(d['lat'] ?? d['latitude']),
-      longitude: readDouble(d['lng'] ?? d['longitude']),
-      operatingHours: (d['operatingHours'] ?? '').toString(),
-      activeStatus: (d['isActive'] ?? d['activeStatus'] ?? true) as bool,
+      marketName: readString(d, ['marketName', 'Market_Name']),
+      address: readString(d, ['address', 'Address']),
+      latitude: coords.lat,
+      longitude: coords.lng,
+      operatingHours: readString(d, ['operatingHours', 'Operating_Hours']),
+      activeStatus: readBool(d['isActive'] ?? d['activeStatus'] ?? d['Active_Status']),
     );
+  }
+
+  Map<String, dynamic> toWriteMap() {
+    return {
+      'marketName': marketName,
+      'address': address,
+      'lat': latitude,
+      'lng': longitude,
+      'gpsCoordinates': GeoPoint(latitude, longitude),
+      'operatingHours': operatingHours,
+      'isActive': activeStatus,
+    };
   }
 }

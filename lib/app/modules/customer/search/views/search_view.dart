@@ -1,12 +1,71 @@
-// TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/data/models/market_model.dart';
 import '../../../../routes/app_routes.dart';
 import '../controllers/product_search_controller.dart';
+import '../widgets/market_map_view.dart';
 
-// Ye search aur filters ki placeholder UI screen hai
+// Search + filters screen with a List / Map toggle for the results.
 class SearchView extends GetView<ProductSearchController> {
   const SearchView({super.key});
+
+  /// Marker tap -> market summary sheet with a jump-to-products action.
+  void _openMarketSheet(BuildContext context, MarketModel market) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                market.marketName,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              if (market.address.isNotEmpty)
+                _row(Icons.location_on_outlined, market.address),
+              if (market.operatingHours.isNotEmpty)
+                _row(Icons.schedule, market.operatingHours),
+              Obx(() {
+                final label = controller.distanceLabelToMarket(market);
+                if (label.isEmpty) return const SizedBox.shrink();
+                return _row(Icons.near_me, label);
+              }),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    controller.filterByMarket(market);
+                  },
+                  child: const Text('View Products'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _row(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: Colors.black54),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text)),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +73,33 @@ class SearchView extends GetView<ProductSearchController> {
       appBar: AppBar(title: const Text('Search Products')),
       body: Column(
         children: [
+          // List / Map toggle
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            child: SizedBox(
+              width: double.infinity,
+              child: Obx(() => SegmentedButton<SearchViewMode>(
+                    segments: const [
+                      ButtonSegment<SearchViewMode>(
+                        value: SearchViewMode.list,
+                        label: Text('List'),
+                        icon: Icon(Icons.view_list),
+                      ),
+                      ButtonSegment<SearchViewMode>(
+                        value: SearchViewMode.map,
+                        label: Text('Map'),
+                        icon: Icon(Icons.map_outlined),
+                      ),
+                    ],
+                    selected: {controller.viewMode.value},
+                    onSelectionChanged: (s) {
+                      if (s.isNotEmpty) controller.setViewMode(s.first);
+                    },
+                  )),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Column(
               children: [
                 // Product name search field
@@ -89,7 +173,7 @@ class SearchView extends GetView<ProductSearchController> {
                       onChanged: (val) => controller.selectDistance(val ?? 0),
                     )),
                     TextButton(
-                      onPressed: () => controller.clearFilters(),
+                      onPressed: controller.clearFilters,
                       child: const Text('Clear'),
                     ),
                   ],
@@ -98,11 +182,16 @@ class SearchView extends GetView<ProductSearchController> {
             ),
           ),
           const Divider(),
-          // Filtered results list
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.viewMode.value == SearchViewMode.map) {
+                return MarketMapView(
+                  markets: controller.visibleMarkets,
+                  onMarkerTap: (m) => _openMarketSheet(context, m),
+                );
               }
               if (controller.results.isEmpty) {
                 return const Center(child: Text('No products found'));

@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>HarvestHub needs photo access to upload product images.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>HarvestHub needs camera access to take product photos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>HarvestHub uses your location to show nearby farmers markets and distance to products.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
