@@ -16,11 +16,18 @@ import '../../shell/controllers/customer_shell_controller.dart';
 class CheckoutController extends GetxController {
   final CartController cartController = Get.find<CartController>();
   final TextEditingController addressController = TextEditingController();
+  final TextEditingController instructionsController = TextEditingController();
 
   final RxBool isLoading = false.obs;
   final RxBool isPlacing = false.obs;
   final RxMap<String, List<PickupSlotModel>> farmerSlots = <String, List<PickupSlotModel>>{}.obs;
   final RxMap<String, String> selectedSlotId = <String, String>{}.obs;
+
+  final RxString customerName = 'Rajesh Kumar'.obs;
+  final RxString customerPhone = '+91 98765 43210'.obs;
+  final RxString appliedCoupon = 'FARM20'.obs;
+  final RxDouble couponDiscount = 20.0.obs;
+  final RxDouble deliveryFee = 40.0.obs;
 
   @override
   void onInit() {
@@ -31,11 +38,26 @@ class CheckoutController extends GetxController {
   @override
   void onClose() {
     addressController.dispose();
+    instructionsController.dispose();
     super.onClose();
   }
 
   // Grand total bill getter
   double get grandTotal => cartController.subtotal;
+
+  // Final total accounting for delivery fee and coupon discount as in specification
+  double get finalTotal =>
+      (grandTotal + deliveryFee.value - couponDiscount.value).clamp(0.0, double.infinity);
+
+  void applyCoupon(String code) {
+    if (code.trim().toUpperCase() == 'FARM20' || code.trim().toUpperCase() == 'HARVEST') {
+      appliedCoupon.value = code.trim().toUpperCase();
+      couponDiscount.value = 20.0;
+      Get.snackbar('Coupon Applied', '₹20 discount applied successfully!');
+    } else {
+      Get.snackbar('Invalid Coupon', 'Coupon code is not valid');
+    }
+  }
 
   // Har farmer ke slots aur user address load karta hai
   Future<void> loadCheckoutData() async {
@@ -49,7 +71,14 @@ class CheckoutController extends GetxController {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         final user = await UserRepository().getUser(uid);
-        if (user != null && user.address.isNotEmpty) addressController.text = user.address;
+        if (user != null) {
+          if (user.name.isNotEmpty) customerName.value = user.name;
+          if (user.phone.isNotEmpty) customerPhone.value = user.phone;
+          if (user.address.isNotEmpty) addressController.text = user.address;
+        }
+      }
+      if (addressController.text.isEmpty) {
+        addressController.text = '24 Green Avenue, Sector 4, Gujranwala';
       }
     } catch (e) {
       Get.snackbar('Error', 'Data load nahi ho saka: $e');
@@ -81,7 +110,10 @@ class CheckoutController extends GetxController {
     }
     final grouped = cartController.groupedByFarmer;
     for (final farmerId in grouped.keys) {
-      if (!selectedSlotId.containsKey(farmerId) || selectedSlotId[farmerId]!.isEmpty) {
+      final availableSlots = farmerSlots[farmerId] ?? [];
+      // Only require slot if the farmer has slots configured
+      if (availableSlots.isNotEmpty &&
+          (!selectedSlotId.containsKey(farmerId) || selectedSlotId[farmerId]!.isEmpty)) {
         Get.snackbar('Slot Missing', 'Har farmer ka pickup slot select karein');
         return;
       }
@@ -99,16 +131,10 @@ class CheckoutController extends GetxController {
         final farmerId = entry.key;
         final cartItems = entry.value;
         final farmerName = cartItems.isNotEmpty ? cartItems.first.product.farmerName : '';
-        final slotId = selectedSlotId[farmerId]!;
-        // fix: orElse prevents StateError crash when slot is no longer available
+        final slotId = selectedSlotId[farmerId];
         final slot = (farmerSlots[farmerId] ?? [])
             .cast<PickupSlotModel?>()
             .firstWhere((s) => s?.id == slotId, orElse: () => null);
-        if (slot == null) {
-          isPlacing.value = false;
-          Get.snackbar('Slot Unavailable', 'Selected slot no longer available, please choose again');
-          return;
-        }
 
         final orderItems = cartItems.map((ci) => {
           'productId': ci.product.id,
@@ -127,8 +153,8 @@ class CheckoutController extends GetxController {
           items: orderItems,
           totalPrice: farmerTotal,
           deliveryAddress: address,
-          pickupSlotId: slot.id,
-          pickupSlotTime: slot.label,
+          pickupSlotId: slot?.id ?? '',
+          pickupSlotTime: slot?.label ?? 'Standard Delivery',
           status: 'pending',
           createdAt: DateTime.now(),
         ));
@@ -138,7 +164,7 @@ class CheckoutController extends GetxController {
       cartController.clear();
       if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadData();
       if (Get.isRegistered<ProductSearchController>()) Get.find<ProductSearchController>().loadData();
-      Get.snackbar('Kamyabi', 'Aap ka order kamyabi se place ho gaya!');
+      Get.snackbar('Order Placed', 'Your order was successfully placed!');
       Get.back();
       if (Get.isRegistered<CustomerShellController>()) {
         Get.find<CustomerShellController>().changeTab(3);

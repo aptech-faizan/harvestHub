@@ -20,7 +20,8 @@ class AssistantView extends GetView<AssistantController> {
             child: Obx(
               () => ListView.builder(
                 controller: controller.scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 itemCount: controller.messages.length,
                 itemBuilder: (context, index) {
                   final msg = controller.messages[index];
@@ -113,7 +114,8 @@ class AssistantView extends GetView<AssistantController> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(24)),
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
             ),
           ),
@@ -131,10 +133,13 @@ class AssistantView extends GetView<AssistantController> {
   static const List<_ChipData> _suggestions = [
     _ChipData('Vitamin C fruits?', 'Which fruits are rich in Vitamin C?'),
     _ChipData('Tomato storage tips', 'How should I store fresh tomatoes?'),
-    _ChipData('Seasonal vegetables', 'What are the common seasonal vegetables?'),
-    _ChipData('Healthy salad ideas', 'Which vegetables are best for fresh salads?'),
+    _ChipData(
+        'Seasonal vegetables', 'What are the common seasonal vegetables?'),
+    _ChipData(
+        'Healthy salad ideas', 'Which vegetables are best for fresh salads?'),
     _ChipData('Book a pickup slot', 'How do I book a pickup slot?'),
-    _ChipData('Check fresh veggies', 'How can I check if vegetables are fresh?'),
+    _ChipData(
+        'Check fresh veggies', 'How can I check if vegetables are fresh?'),
   ];
 
   // Horizontally scrollable suggestion chip row — welcome state mein dikhta hai
@@ -161,8 +166,9 @@ class AssistantView extends GetView<AssistantController> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.secondary,
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: 1),
+          color: AppColors.lightSecondary,
+          border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.35), width: 1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -184,4 +190,3 @@ class _ChipData {
   final String fullQuestion;
   const _ChipData(this.label, this.fullQuestion);
 }
-

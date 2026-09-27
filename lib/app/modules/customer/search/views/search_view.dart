@@ -1,21 +1,138 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/theme/app_colors.dart';
+import 'package:harvest_hub/app/core/theme/app_radius.dart';
+import 'package:harvest_hub/app/core/theme/app_spacing.dart';
+import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/data/models/market_model.dart';
-import '../../../../routes/app_routes.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
+import '../../cart/controllers/cart_controller.dart';
 import '../../follow/widgets/follow_farmer_button.dart';
 import '../../../shared/chat/widgets/chat_farmer_button.dart';
+import '../../wishlist/controllers/wishlist_controller.dart';
 import '../controllers/product_search_controller.dart';
 import '../widgets/market_map_view.dart';
 
-// Search + filters screen with a List / Map toggle for the results.
+/// Explore / Product Listing screen conforming to the Farmers App UI Design Specification (Section 7):
+/// Screen title + wishlist/filter icons → Category chips → Discount banner → Product grid with Add-to-Cart buttons
 class SearchView extends GetView<ProductSearchController> {
   const SearchView({super.key});
 
-  /// Marker tap -> market summary sheet with a jump-to-products action.
+  void _openFilterSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: AppSpacing.l,
+            right: AppSpacing.l,
+            top: AppSpacing.l,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.l,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Filters', style: AppTextStyles.sectionHeading),
+                  TextButton(
+                    onPressed: () {
+                      controller.clearFilters();
+                      Navigator.of(sheetContext).pop();
+                    },
+                    child: Text('Reset', style: AppTextStyles.linkText),
+                  ),
+                ],
+              ),
+              const Divider(color: AppColors.divider),
+              const SizedBox(height: AppSpacing.s),
+
+              // Farmer Search
+              Text('Search by Farmer', style: AppTextStyles.cardTitle),
+              const SizedBox(height: AppSpacing.xs),
+              AppTextField(
+                hintText: 'e.g. Faizan Farm, Green Valley...',
+                onChanged: (val) => controller.farmerQuery.value = val,
+              ),
+              const SizedBox(height: AppSpacing.m),
+
+              // Market selection
+              Text('Market', style: AppTextStyles.cardTitle),
+              const SizedBox(height: AppSpacing.xs),
+              Obx(() => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceMuted,
+                      borderRadius: AppRadius.inputRadius,
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: controller.selectedMarketId.value,
+                        style: AppTextStyles.bodyText.copyWith(color: AppColors.textPrimary),
+                        items: [
+                          const DropdownMenuItem(value: '', child: Text('All Markets')),
+                          ...controller.markets.map((m) =>
+                              DropdownMenuItem(value: m.id, child: Text(m.marketName))),
+                        ],
+                        onChanged: (val) {
+                          controller.selectedMarketId.value = val ?? '';
+                          controller.applyFilters();
+                        },
+                      ),
+                    ),
+                  )),
+              const SizedBox(height: AppSpacing.m),
+
+              // Distance Filter
+              Text('Max Distance', style: AppTextStyles.cardTitle),
+              const SizedBox(height: AppSpacing.xs),
+              Obx(() => Wrap(
+                    spacing: AppSpacing.s,
+                    children: [0.0, 2.0, 5.0, 10.0, 25.0].map((dist) {
+                      final isSelected = controller.maxDistanceKm.value == dist;
+                      final label = dist == 0 ? 'Any distance' : '${dist.toInt()} km';
+                      return ChoiceChip(
+                        label: Text(label),
+                        selected: isSelected,
+                        selectedColor: AppColors.chipHerbsBg,
+                        onSelected: (_) => controller.selectDistance(dist),
+                      );
+                    }).toList(),
+                  )),
+              const SizedBox(height: AppSpacing.xl),
+
+              // Apply button
+              AppButton.primary(
+                label: 'Apply Filters',
+                onPressed: () {
+                  controller.applyFilters();
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _openMarketSheet(BuildContext context, MarketModel market) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      backgroundColor: AppColors.surfaceWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -25,37 +142,34 @@ class SearchView extends GetView<ProductSearchController> {
             children: [
               Text(
                 market.marketName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: AppTextStyles.sectionHeading.copyWith(fontSize: 18),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.s),
               if (market.address.isNotEmpty)
-                _row(Icons.location_on_outlined, market.address),
+                _infoRow(Icons.location_on_outlined, market.address),
               if (market.operatingHours.isNotEmpty)
-                _row(Icons.schedule, market.operatingHours),
+                _infoRow(Icons.schedule, market.operatingHours),
               Obx(() {
                 final label = controller.distanceLabelToMarket(market);
                 if (label.isEmpty) return const SizedBox.shrink();
-                return _row(Icons.near_me, label);
+                return _infoRow(Icons.near_me, label);
               }),
-              // Markets themselves are not followable; the farmers trading there
-              // are, so restock alerts can reach this customer.
               Obx(() {
                 final farmers = controller.farmersAtMarket(market.id);
                 if (farmers.isEmpty) return const SizedBox.shrink();
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
-                    const Text('Farmers at this market',
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: AppSpacing.s),
+                    Text('Farmers at this market', style: AppTextStyles.cardTitle),
                     const SizedBox(height: 4),
                     for (final f in farmers)
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         dense: true,
-                        leading: const Icon(Icons.agriculture, size: 20),
+                        leading: const Icon(Icons.agriculture, size: 20, color: AppColors.primary),
                         title: Text(f.farmerName.isEmpty ? 'Farmer' : f.farmerName,
-                            style: const TextStyle(fontSize: 14)),
+                            style: AppTextStyles.bodyText),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -75,16 +189,13 @@ class SearchView extends GetView<ProductSearchController> {
                   ],
                 );
               }),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(sheetContext).pop();
-                    controller.filterByMarket(market);
-                  },
-                  child: const Text('View Products'),
-                ),
+              const SizedBox(height: AppSpacing.l),
+              AppButton.primary(
+                label: 'View Products from this Market',
+                onPressed: () {
+                  Navigator.of(sheetContext).pop();
+                  controller.filterByMarket(market);
+                },
               ),
             ],
           ),
@@ -93,15 +204,15 @@ class SearchView extends GetView<ProductSearchController> {
     );
   }
 
-  Widget _row(IconData icon, String text) {
+  Widget _infoRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: Colors.black54),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text)),
+          Icon(icon, size: 18, color: AppColors.textSecondary),
+          const SizedBox(width: AppSpacing.s),
+          Expanded(child: Text(text, style: AppTextStyles.bodyText)),
         ],
       ),
     );
@@ -109,172 +220,232 @@ class SearchView extends GetView<ProductSearchController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Search Products')),
-      body: Column(
-        children: [
-          // List / Map toggle
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-            child: SizedBox(
-              width: double.infinity,
-              child: Obx(() => SegmentedButton<SearchViewMode>(
-                    segments: const [
-                      ButtonSegment<SearchViewMode>(
-                        value: SearchViewMode.list,
-                        label: Text('List'),
-                        icon: Icon(Icons.view_list),
-                      ),
-                      ButtonSegment<SearchViewMode>(
-                        value: SearchViewMode.map,
-                        label: Text('Map'),
-                        icon: Icon(Icons.map_outlined),
-                      ),
-                    ],
-                    selected: {controller.viewMode.value},
-                    onSelectionChanged: (s) {
-                      if (s.isNotEmpty) controller.setViewMode(s.first);
-                    },
-                  )),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Column(
-              children: [
-                // Product name search field
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Search Product',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                  onChanged: (val) => controller.query.value = val,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    // Category dropdown
-                    Expanded(
-                      child: Obx(() => DropdownButton<String>(
-                        isExpanded: true,
-                        value: controller.selectedCategoryId.value,
-                        items: [
-                          const DropdownMenuItem(value: '', child: Text('All Categories')),
-                          ...controller.categories.map((c) =>
-                            DropdownMenuItem(value: c.id, child: Text(c.name)),
-                          ),
-                        ],
-                        onChanged: (val) {
-                          controller.selectedCategoryId.value = val ?? '';
-                          controller.applyFilters();
-                        },
-                      )),
-                    ),
-                    const SizedBox(width: 8),
-                    // Market dropdown
-                    Expanded(
-                      child: Obx(() => DropdownButton<String>(
-                        isExpanded: true,
-                        value: controller.selectedMarketId.value,
-                        items: [
-                          const DropdownMenuItem(value: '', child: Text('All Markets')),
-                          ...controller.markets.map((m) =>
-                            DropdownMenuItem(value: m.id, child: Text(m.marketName)),
-                          ),
-                        ],
-                        onChanged: (val) {
-                          controller.selectedMarketId.value = val ?? '';
-                          controller.applyFilters();
-                        },
-                      )),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    // Farmer name search field
-                    Expanded(
-                      child: TextField(
-                        decoration: const InputDecoration(labelText: 'Farmer Name'),
-                        onChanged: (val) => controller.farmerQuery.value = val,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Distance dropdown
-                    Obx(() => DropdownButton<double>(
-                      value: controller.maxDistanceKm.value,
-                      items: const [
-                        DropdownMenuItem(value: 0, child: Text('Any dist')),
-                        DropdownMenuItem(value: 2, child: Text('2 km')),
-                        DropdownMenuItem(value: 5, child: Text('5 km')),
-                        DropdownMenuItem(value: 10, child: Text('10 km')),
-                        DropdownMenuItem(value: 25, child: Text('25 km')),
-                      ],
-                      onChanged: (val) => controller.selectDistance(val ?? 0),
-                    )),
-                    TextButton(
-                      onPressed: controller.clearFilters,
-                      child: const Text('Clear'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (controller.viewMode.value == SearchViewMode.map) {
-                return MarketMapView(
-                  markets: controller.visibleMarkets,
-                  onMarkerTap: (m) => _openMarketSheet(context, m),
-                );
-              }
-              if (controller.results.isEmpty) {
-                return const Center(child: Text('No products found'));
-              }
-              return ListView.builder(
-                itemCount: controller.results.length,
-                itemBuilder: (context, index) {
-                  final p = controller.results[index];
-                  final isOutOfStock = p.stockQty <= 0;
-                  final distLabel = controller.distanceKmOf(p);
+    final wishlistController = Get.isRegistered<WishlistController>()
+        ? Get.find<WishlistController>()
+        : Get.put(WishlistController());
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: ListTile(
-                      onTap: () => Get.toNamed(
-                        Routes.customerProductDetails,
-                        arguments: p,
+    return Scaffold(
+      backgroundColor: AppColors.surfaceWhite,
+      // 1. Screen Title + wishlist & filter icons (App bar slot)
+      appBar: AppAppBar(
+        automaticallyImplyLeading: false,
+        titleText: 'Explore',
+        actions: [
+          // List / Map toggle button
+          Obx(() {
+            final isMap = controller.viewMode.value == SearchViewMode.map;
+            return AppIconButton(
+              icon: isMap ? Icons.view_list_rounded : Icons.map_outlined,
+              tooltip: isMap ? 'List View' : 'Map View',
+              onTap: () {
+                controller.setViewMode(
+                  isMap ? SearchViewMode.list : SearchViewMode.map,
+                );
+              },
+            );
+          }),
+          // Wishlist icon
+          AppIconButton(
+            icon: AppIcon.heartOutlined,
+            tooltip: 'Wishlist',
+            onTap: () => Get.toNamed(Routes.customerWishlist),
+          ),
+          // Filter icon
+          Obx(() {
+            final hasFilter = controller.activeFilterCount > 0;
+            return AppIconButton.filter(
+              isActive: hasFilter,
+              onTap: () => _openFilterSheet(context),
+            );
+          }),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        child: Obx(() {
+          // If in Map View, show MarketMapView
+          if (controller.viewMode.value == SearchViewMode.map) {
+            return MarketMapView(
+              markets: controller.visibleMarkets,
+              onMarkerTap: (m) => _openMarketSheet(context, m),
+            );
+          }
+
+          // Otherwise show Explore layout:
+          // Category chips → Discount banner → Product grid with Add-to-Cart buttons
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenHorizontalPadding,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: AppSpacing.m),
+
+                      // Search text field
+                      AppTextField(
+                        hintText: 'Search fresh items, veggies, grains...',
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                        onChanged: (val) => controller.query.value = val,
                       ),
-                      title: Text(p.itemName),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                      const SizedBox(height: AppSpacing.l),
+
+                      // 2. Category Chips (Section 6.5 & Section 7)
+                      SizedBox(
+                        height: 36,
+                        child: Obx(() {
+                          final cats = controller.categories;
+                          final selectedId = controller.selectedCategoryId.value;
+
+                          return ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: cats.length + 1,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: AppSpacing.m), // 12px gap
+                            itemBuilder: (context, index) {
+                              if (index == 0) {
+                                final isSelected = selectedId.isEmpty;
+                                return AppChip.pill(
+                                  label: 'All',
+                                  isSelected: isSelected,
+                                  onTap: () {
+                                    controller.selectedCategoryId.value = '';
+                                    controller.applyFilters();
+                                  },
+                                );
+                              }
+
+                              final cat = cats[index - 1];
+                              final isSelected = selectedId == cat.id;
+                              final bgColor =
+                                  AppChip.getCategoryBgColor(cat.name);
+
+                              return AppChip.pill(
+                                label: cat.name,
+                                backgroundColor: isSelected
+                                    ? AppColors.primaryDark
+                                    : bgColor,
+                                isSelected: isSelected,
+                                onTap: () {
+                                  controller.selectedCategoryId.value = cat.id;
+                                  controller.applyFilters();
+                                },
+                              );
+                            },
+                          );
+                        }),
+                      ),
+
+                      const SizedBox(height: AppSpacing.xl),
+
+                      // 3. Discount Banner ("50% Off") (Section 6.3 & Section 7)
+                      AppBanner.discount(
+                        badgeText: '50% Off',
+                        title: 'Seasonal Harvest Flash Sale',
+                        subtitle: 'Exclusive discounts on organic farm picks',
+                        ctaText: 'Grab Now',
+                        onTap: () {},
+                      ),
+
+                      const SizedBox(height: AppSpacing.xxl),
+
+                      // Section Header for Products
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Farmer: ${p.farmerName} | Market: ${p.marketName}'),
-                          Text('Price: Rs. ${p.pricePerUnit} / ${p.unit}'),
-                          Text(
-                            isOutOfStock ? 'Out of stock' : 'Stock: ${p.stockQty}',
-                            style: TextStyle(color: isOutOfStock ? Colors.red : Colors.green),
-                          ),
-                          if (distLabel.isNotEmpty)
-                            Text(distLabel, style: const TextStyle(color: Colors.blueGrey)),
+                          Text('All Products', style: AppTextStyles.sectionHeading),
+                          Obx(() => Text(
+                                '${controller.results.length} items',
+                                style: AppTextStyles.caption,
+                              )),
                         ],
                       ),
-                      trailing: ElevatedButton(
-                        onPressed: isOutOfStock ? null : () => controller.addToCart(p),
-                        child: const Text('Add to cart'),
+                      const SizedBox(height: AppSpacing.m),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 4. Product grid with Add-to-Cart buttons (2 columns, 12px horizontal, 16px vertical gutter)
+              Obx(() {
+                if (controller.isLoading.value) {
+                  return const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.xxl),
+                      child: Center(
+                        child: CircularProgressIndicator(color: AppColors.primary),
                       ),
                     ),
                   );
-                },
-              );
-            }),
-          ),
-        ],
+                }
+
+                final products = controller.results;
+                if (products.isEmpty) {
+                  return const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.xxl),
+                      child: Center(
+                        child: AppText.body(
+                          'No products found matching your search',
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                return SliverPadding(
+                  padding: const EdgeInsets.only(
+                    left: AppSpacing.screenHorizontalPadding,
+                    right: AppSpacing.screenHorizontalPadding,
+                    bottom: AppSpacing.xxl,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px
+                      mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px
+                      childAspectRatio: 0.64,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final product = products[index];
+
+                        return Obx(() {
+                          final isWishlisted =
+                              wishlistController.isWishlisted(product.id);
+
+                          return ProductCard(
+                            product: product,
+                            isWishlisted: isWishlisted,
+                            showFullButton: true, // Add-to-Cart buttons in Explore
+                            onWishlistTap: () =>
+                                wishlistController.toggle(product),
+                            onTap: () => Get.toNamed(
+                              Routes.customerProductDetails,
+                              arguments: product,
+                            ),
+                            onAddToCart: () => controller.addToCart(product),
+                          );
+                        });
+                      },
+                      childCount: products.length,
+                    ),
+                  ),
+                );
+              }),
+            ],
+          );
+        }),
       ),
     );
   }

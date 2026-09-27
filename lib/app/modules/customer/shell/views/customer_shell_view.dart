@@ -1,6 +1,7 @@
-// TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/theme/app_colors.dart';
+import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import '../../cart/controllers/cart_controller.dart';
 import '../../cart/views/cart_view.dart';
 import '../../home/views/home_view.dart';
@@ -9,7 +10,7 @@ import '../../profile/views/profile_view.dart';
 import '../../search/views/search_view.dart';
 import '../controllers/customer_shell_controller.dart';
 
-// Ye customer module ka main container aur bottom navigation bar view hai
+/// Customer shell containing the 5 main tabs with the standardized AppBottomNavBar
 class CustomerShellView extends GetView<CustomerShellController> {
   const CustomerShellView({super.key});
 
@@ -20,37 +21,48 @@ class CustomerShellView extends GetView<CustomerShellController> {
       final cartCount = cart?.itemCount ?? 0;
 
       return Scaffold(
+        backgroundColor: AppColors.surfaceWhite,
         body: IndexedStack(
           index: controller.currentIndex.value,
-          children: [
-            const HomeView(),
-            const SearchView(),
-            const CartView(),
-            const OrdersView(),
-            const ProfileView(),
+          children: const [
+            HomeView(),
+            SearchView(), // Explore
+            CartView(),
+            OrdersView(),
+            ProfileView(),
           ],
         ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: controller.currentIndex.value,
-          onDestinationSelected: controller.changeTab,
-          destinations: [
-            const NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-            const NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search), label: 'Search'),
-            NavigationDestination(
-              icon: Badge.count(
-                count: cartCount,
-                isLabelVisible: cartCount > 0,
-                child: const Icon(Icons.shopping_cart_outlined),
-              ),
-              selectedIcon: Badge.count(
-                count: cartCount,
-                isLabelVisible: cartCount > 0,
-                child: const Icon(Icons.shopping_cart),
-              ),
-              label: 'Cart',
+        // Standardized AppBottomNavBar matching Section 6.8 and Section 5
+        bottomNavigationBar: AppBottomNavBar(
+          currentIndex: controller.currentIndex.value,
+          onTap: controller.changeTab,
+          items: [
+            const AppNavItem(
+              outlineIcon: AppIcon.home,
+              filledIcon: AppIcon.homeFilled,
+              label: 'Home',
             ),
-            const NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Orders'),
-            const NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+            const AppNavItem(
+              outlineIcon: AppIcon.explore,
+              filledIcon: AppIcon.exploreFilled,
+              label: 'Explore',
+            ),
+            AppNavItem(
+              outlineIcon: AppIcon.cart,
+              filledIcon: AppIcon.cartFilled,
+              label: 'Cart',
+              badgeCount: cartCount,
+            ),
+            const AppNavItem(
+              outlineIcon: Icons.receipt_long_outlined,
+              filledIcon: Icons.receipt_long,
+              label: 'Orders',
+            ),
+            const AppNavItem(
+              outlineIcon: AppIcon.profile,
+              filledIcon: AppIcon.profileFilled,
+              label: 'Profile',
+            ),
           ],
         ),
       );
