@@ -38,9 +38,11 @@ class FarmersController extends GetxController {
   void _listenFollows() {
     final uid = _uid;
     if (uid == null) return;
-    _followSub = FollowRepository().followedFarmerIds(uid).listen(
-          (ids) => followedIds.assignAll(ids),
-        );
+    _followSub = FollowRepository().getFollowedFarmerIds(uid)
+        .asStream()
+        .listen((ids) {
+      followedIds.assignAll(ids);
+    });
   }
 
   // Firestore se farmers load karta hai (users + farmers join)
@@ -71,9 +73,9 @@ class FarmersController extends GetxController {
     }
     try {
       if (currentlyFollowed) {
-        await FollowRepository().unfollow(uid, farmerId);
+        await FollowRepository().unfollow(uid: uid, farmerId: farmerId);
       } else {
-        await FollowRepository().follow(uid, farmerId);
+        await FollowRepository().follow(uid: uid, farmerId: farmerId);
       }
     } catch (e) {
       if (currentlyFollowed) {

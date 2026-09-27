@@ -125,7 +125,7 @@ class SalesReportPdf {
         for (final o in orders)
           [
             PdfKit.shortId(o.id),
-            _date.format(o.createdAt),
+            _date.format(o.canModify ? o.createdAt ?? DateTime.now() : o.createdAt ?? DateTime.now()  ),
             '${o.items.length}',
             'Rs ${o.totalPrice.toStringAsFixed(2)}',
             OrderStatus.label(o.status),
