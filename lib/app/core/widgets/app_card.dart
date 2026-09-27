@@ -22,6 +22,45 @@ class AppCard extends StatelessWidget {
     this.border,
   });
 
+  /// List / panel card variant matching Section 6.6
+  factory AppCard.list({
+    Key? key,
+    String? title,
+    Widget? trailingTitle,
+    required List<Widget> children,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(AppSpacing.l),
+    Color backgroundColor = AppColors.surfaceWhite,
+    Border? border,
+    VoidCallback? onTap,
+  }) {
+    return AppCard(
+      key: key,
+      padding: padding,
+      backgroundColor: backgroundColor,
+      border: border,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (title != null) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(title, style: AppTextStyles.sectionHeading),
+                if (trailingTitle != null) trailingTitle,
+              ],
+            ),
+            const SizedBox(height: AppSpacing.m),
+            const Divider(color: AppColors.divider, height: 1),
+            const SizedBox(height: AppSpacing.m),
+          ],
+          ...children,
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(

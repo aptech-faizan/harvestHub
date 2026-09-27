@@ -7,7 +7,6 @@ import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/data/models/market_model.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
-import '../../cart/controllers/cart_controller.dart';
 import '../../follow/widgets/follow_farmer_button.dart';
 import '../../../shared/chat/widgets/chat_farmer_button.dart';
 import '../../wishlist/controllers/wishlist_controller.dart';

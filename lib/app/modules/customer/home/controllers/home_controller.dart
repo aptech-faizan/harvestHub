@@ -19,6 +19,9 @@ class HomeController extends GetxController {
   // Selected category ki ID (khali string ka matlab 'All' hai)
   final RxString selectedCategoryId = ''.obs;
 
+  // Real-time search query
+  final RxString searchQuery = ''.obs;
+
   // Loading state track karne ke liye
   final RxBool isLoading = false.obs;
 
@@ -48,14 +51,26 @@ class HomeController extends GetxController {
     selectedCategoryId.value = id;
   }
 
-  // Selected category ID ke mutabiq filtered products nikalne ka getter
+  // Selected category ID aur search query ke mutabiq filtered products nikalne ka getter
   List<ProductModel> get filteredProducts {
-    if (selectedCategoryId.value.isEmpty) {
-      return products;
+    var list = products.toList();
+
+    // Category filter
+    if (selectedCategoryId.value.isNotEmpty) {
+      list = list.where((p) => p.categoryId == selectedCategoryId.value).toList();
     }
-    return products
-        .where((p) => p.categoryId == selectedCategoryId.value)
-        .toList();
+
+    // Search query filter
+    final query = searchQuery.value.trim().toLowerCase();
+    if (query.isNotEmpty) {
+      list = list.where((p) {
+        final matchesName = p.itemName.toLowerCase().contains(query);
+        final matchesFarmer = p.farmerName.toLowerCase().contains(query);
+        return matchesName || matchesFarmer;
+      }).toList();
+    }
+
+    return list;
   }
 
   // Product ko cart mein add karne ka method
