@@ -212,7 +212,13 @@ class AdminRepository {
     return list;
   }
 
-  Future<void> updateOrderStatus(String id, String status) {
+  /// Raw status write. NOT for status changes.
+  ///
+  /// This bypasses the order state machine and the stock/slot compensation in
+  /// OrderRepository, so it must never be used to move an order between states
+  /// (use `OrderRepository.changeOrderStatus`). Kept only for one-off data
+  /// repair; the admin UI does not call it.
+  Future<void> setOrderStatusUnchecked(String id, String status) {
     return _db.collection(Db.orders).doc(id).update({'status': status});
   }
 

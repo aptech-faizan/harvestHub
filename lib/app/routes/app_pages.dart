@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/middleware/admin_middleware.dart';
+import 'package:harvest_hub/app/middleware/auth_middleware.dart';
 import 'package:harvest_hub/app/middleware/customer_middleware.dart';
 import 'package:harvest_hub/app/middleware/farmer_middleware.dart';
 import 'package:harvest_hub/app/middleware/guest_middleware.dart';
@@ -43,6 +44,10 @@ import 'package:harvest_hub/app/modules/customer/product_details/views/product_d
 import 'package:harvest_hub/app/modules/customer/shell/bindings/customer_shell_binding.dart';
 import 'package:harvest_hub/app/modules/customer/shell/views/customer_shell_view.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/bindings/wishlist_binding.dart';
+import 'package:harvest_hub/app/modules/customer/follow/views/followed_farmers_view.dart';
+import 'package:harvest_hub/app/modules/shared/chat/bindings/chat_binding.dart';
+import 'package:harvest_hub/app/modules/shared/chat/views/chat_inbox_view.dart';
+import 'package:harvest_hub/app/modules/shared/chat/views/chat_room_view.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/views/wishlist_view.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/bindings/farmer_dashboard_binding.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/views/farmer_dashboard_view.dart';
@@ -126,6 +131,25 @@ class AppPages {
       page: () => const WishlistView(),
       binding: WishlistBinding(),
       middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerFollowedFarmers,
+      page: () => const FollowedFarmersView(),
+      middlewares: [CustomerMiddleware()],
+    ),
+
+    // ----- Shared Module (customer + farmer) -----
+    GetPage(
+      name: Routes.chatInbox,
+      page: () => const ChatInboxView(),
+      binding: ChatBinding(),
+      middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
+      name: Routes.chatRoom,
+      page: () => const ChatRoomView(),
+      binding: ChatBinding(),
+      middlewares: [AuthMiddleware()],
     ),
 
     // ----- Farmer Module -----

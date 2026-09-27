@@ -32,6 +32,25 @@ class ReportsView extends GetView<ReportsController> {
       const SizedBox(height: 4),
       const Text('Daily = today, Weekly = last 7 days, Monthly = last 30 days',
           style: TextStyle(fontSize: 12, color: Colors.grey)),
+      Obx(() => Text('Showing: ${c.rangeLabel}',
+          style: const TextStyle(fontSize: 12, color: Colors.grey))),
+      const SizedBox(height: 10),
+      Obx(() => SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: c.isExporting.value ? null : c.exportPdf,
+              icon: c.isExporting.value
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.picture_as_pdf_outlined),
+              label: Text(c.isExporting.value
+                  ? 'Preparing PDF...'
+                  : 'Export this report as PDF'),
+            ),
+          )),
       _title('Summary'),
       Card(child: ListTile(title: const Text('Total orders'), trailing: Text('${c.validOrdersCount(orders)}'))),
       Card(
@@ -65,7 +84,20 @@ class ReportsView extends GetView<ReportsController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports'),
-        actions: [IconButton(onPressed: controller.load, icon: const Icon(Icons.refresh))],
+        actions: [
+          Obx(() => IconButton(
+                tooltip: 'Export report as PDF',
+                onPressed: controller.isExporting.value ? null : controller.exportPdf,
+                icon: controller.isExporting.value
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.picture_as_pdf_outlined),
+              )),
+          IconButton(onPressed: controller.load, icon: const Icon(Icons.refresh)),
+        ],
       ),
       drawer: const AdminDrawer(),
       body: Obx(() => StateView(

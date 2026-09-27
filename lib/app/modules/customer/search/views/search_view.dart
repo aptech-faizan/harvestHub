@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/data/models/market_model.dart';
 import '../../../../routes/app_routes.dart';
+import '../../follow/widgets/follow_farmer_button.dart';
+import '../../../shared/chat/widgets/chat_farmer_button.dart';
 import '../controllers/product_search_controller.dart';
 import '../widgets/market_map_view.dart';
 
@@ -34,6 +36,44 @@ class SearchView extends GetView<ProductSearchController> {
                 final label = controller.distanceLabelToMarket(market);
                 if (label.isEmpty) return const SizedBox.shrink();
                 return _row(Icons.near_me, label);
+              }),
+              // Markets themselves are not followable; the farmers trading there
+              // are, so restock alerts can reach this customer.
+              Obx(() {
+                final farmers = controller.farmersAtMarket(market.id);
+                if (farmers.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    const Text('Farmers at this market',
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 4),
+                    for (final f in farmers)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                        leading: const Icon(Icons.agriculture, size: 20),
+                        title: Text(f.farmerName.isEmpty ? 'Farmer' : f.farmerName,
+                            style: const TextStyle(fontSize: 14)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ChatFarmerButton(
+                              farmerId: f.farmerId,
+                              farmerName: f.farmerName,
+                              compact: true,
+                            ),
+                            FollowFarmerButton(
+                              farmerId: f.farmerId,
+                              farmerName: f.farmerName,
+                              compact: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
               }),
               const SizedBox(height: 20),
               SizedBox(

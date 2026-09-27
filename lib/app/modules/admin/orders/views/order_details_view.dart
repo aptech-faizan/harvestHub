@@ -26,14 +26,36 @@ class OrderDetailsView extends GetView<OrdersController> {
           const SizedBox(height: 8),
           Row(children: [
             const Text('Status:  ', style: TextStyle(fontWeight: FontWeight.bold)),
-            DropdownButton<String>(
-              value: OrderStatus.all.contains(o.status) ? o.status : null,
-              hint: Text(o.status),
-              items: OrderStatus.all.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-              onChanged: (v) {
-                if (v != null) controller.updateStatus(o, v);
-              },
-            ),
+            // Only legal next states are offered. Completed and cancelled are
+            // terminal, so this renders as a plain label for them.
+            Builder(builder: (context) {
+              final next = controller.nextStatuses(o);
+              if (next.isEmpty) {
+                return Chip(
+                  label: Text(OrderStatus.label(o.status)),
+                  avatar: const Icon(Icons.lock_outline, size: 16),
+                );
+              }
+              return DropdownButton<String>(
+                value: o.status,
+                hint: Text(o.status),
+                items: [
+                  DropdownMenuItem(
+                    value: o.status,
+                    child: Text('${OrderStatus.label(o.status)} (current)'),
+                  ),
+                  ...next.map(
+                    (s) => DropdownMenuItem(
+                      value: s,
+                      child: Text(OrderStatus.label(s)),
+                    ),
+                  ),
+                ],
+                onChanged: (v) {
+                  if (v != null && v != o.status) controller.updateStatus(o, v);
+                },
+              );
+            }),
           ]),
           const Divider(height: 32),
           const Text('Items', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

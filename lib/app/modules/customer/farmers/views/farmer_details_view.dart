@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import '../../../../data/models/farmer_model.dart';
 import '../../../../data/models/product_model.dart';
 import '../../../../routes/app_routes.dart';
+import '../../follow/widgets/follow_farmer_button.dart';
+import '../../../shared/chat/widgets/chat_farmer_button.dart';
 import '../controllers/farmers_controller.dart';
 
 // Ye ek farmer ka detail aur uske products dikhane ki placeholder screen hai
@@ -52,11 +54,24 @@ class FarmerDetailsView extends GetView<FarmersController> {
                           ),
                         ],
                         const SizedBox(height: 8),
-                        // TODO: Dev 2 ka follow repository
-                        ElevatedButton.icon(
-                          onPressed: null,
-                          icon: const Icon(Icons.person_add_disabled),
-                          label: const Text('Follow (Coming Soon)'),
+                        // Follow + chat, both driven by shared controllers so
+                        // they stay in sync with every other surface.
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FollowFarmerButton(
+                                farmerId:
+                                    farmer.id.isEmpty ? farmer.userId : farmer.id,
+                                farmerName: farmer.businessName,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ChatFarmerButton(
+                              farmerId:
+                                  farmer.id.isEmpty ? farmer.userId : farmer.id,
+                              farmerName: farmer.businessName,
+                            ),
+                          ],
                         ),
                       ],
                     ),

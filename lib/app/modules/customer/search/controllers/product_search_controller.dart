@@ -138,6 +138,24 @@ class ProductSearchController extends GetxController {
     applyFilters();
   }
 
+  /// Distinct farmers selling at [marketId], with their names.
+  ///
+  /// Markets are not followable entities - farmers are - so the market sheet
+  /// offers follow toggles for the farmers trading there. Derived from the
+  /// already-loaded product list, so opening the sheet costs no extra query.
+  List<({String farmerId, String farmerName})> farmersAtMarket(String marketId) {
+    if (marketId.isEmpty) return const [];
+    final names = <String, String>{};
+    for (final p in allProducts) {
+      if (p.marketId == marketId && p.farmerId.isNotEmpty) {
+        names.putIfAbsent(p.farmerId, () => p.farmerName);
+      }
+    }
+    return [
+      for (final e in names.entries) (farmerId: e.key, farmerName: e.value),
+    ];
+  }
+
   // Sab active filters ek saath apply karne ka method
   void applyFilters() {
     final q = query.value.trim().toLowerCase();

@@ -67,4 +67,42 @@ class OrderStatus {
   static const completed = 'completed';
   static const cancelled = 'cancelled';
   static const all = [pending, confirmed, ready, completed, cancelled];
+
+  /// The single source of truth for legal order transitions.
+  ///
+  /// Lives here (not in a module) so the data layer and every UI surface apply
+  /// the same state machine. `completed` and `cancelled` are terminal: nothing
+  /// may follow them, which is what stops a cancelled order from being revived.
+  static List<String> next(String status) {
+    switch (status) {
+      case pending:
+        return [confirmed, cancelled];
+      case confirmed:
+        return [ready, cancelled];
+      case ready:
+        return [completed];
+      default:
+        return const [];
+    }
+  }
+
+  static bool canTransition(String from, String to) => next(from).contains(to);
+
+  /// Human readable label for a stored status value.
+  static String label(String status) {
+    switch (status) {
+      case pending:
+        return 'Pending';
+      case confirmed:
+        return 'Confirmed';
+      case ready:
+        return 'Ready for Pickup';
+      case completed:
+        return 'Completed';
+      case cancelled:
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
 }
