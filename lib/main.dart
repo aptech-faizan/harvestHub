@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_theme.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
@@ -13,6 +14,7 @@ import 'package:harvest_hub/firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
 
   // Firebase initialize karna
   await Firebase.initializeApp(

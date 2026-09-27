@@ -18,10 +18,15 @@ class ProductSearchController extends GetxController {
   final CategoryRepository _categoryRepo = CategoryRepository();
   final MarketRepository _marketRepo = MarketRepository();
 
+  // Filter state — sab reactive
   final RxString query = ''.obs;
   final RxString selectedCategoryId = ''.obs;
   final RxString selectedMarketId = ''.obs;
+
+  // Farmer filter: ID se match karo (farmerName nahi, farmerId se — reliable match)
+  final RxString selectedFarmerId = ''.obs;
   final RxString farmerQuery = ''.obs;
+
   final RxBool isLoading = false.obs;
 
   // List <-> Map toggle
@@ -36,25 +41,44 @@ class ProductSearchController extends GetxController {
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxList<MarketModel> markets = <MarketModel>[].obs;
 
+  // Unique farmers list — products se derive karo (id -> name)
+  final RxList<FarmerEntry> farmers = <FarmerEntry>[].obs;
+
   @override
   void onInit() {
     super.onInit();
     loadData();
+    // Search query par 300ms debounce
     debounce(query, (_) => applyFilters(), time: const Duration(milliseconds: 300));
     debounce(farmerQuery, (_) => applyFilters(), time: const Duration(milliseconds: 300));
   }
 
-  // Firestore se products, categories aur markets load karne ka method
+  // Firestore se products, categories aur markets ek baar load karo
   Future<void> loadData() async {
     isLoading.value = true;
     try {
       final productList = await _productRepo.getActiveProducts();
       final categoryList = await _categoryRepo.getActiveCategories();
       final marketList = await _marketRepo.getActiveMarkets();
-      allProducts.clear();
-      allProducts.addAll(productList);
+
+      allProducts
+        ..clear()
+        ..addAll(productList);
+
       categories.assignAll(categoryList);
       markets.assignAll(marketList);
+
+      // Products se unique farmer entries derive karo
+      final seen = <String>{};
+      final farmerList = <FarmerEntry>[];
+      for (final p in productList) {
+        if (p.farmerId.isNotEmpty && seen.add(p.farmerId)) {
+          farmerList.add(FarmerEntry(id: p.farmerId, name: p.farmerName));
+        }
+      }
+      farmerList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      farmers.assignAll(farmerList);
+
       applyFilters();
     } catch (e) {
       Get.snackbar('Error', 'Data load nahi hua: $e');
@@ -162,27 +186,33 @@ class ProductSearchController extends GetxController {
     final fq = farmerQuery.value.trim().toLowerCase();
     final cat = selectedCategoryId.value;
     final mkt = selectedMarketId.value;
+    final farmer = selectedFarmerId.value;
     final maxDist = maxDistanceKm.value;
     final pos = userPos.value;
 
     results.value = allProducts.where((p) {
       final matchesQuery = q.isEmpty || p.itemName.toLowerCase().contains(q);
-      final matchesFarmer = fq.isEmpty || p.farmerName.toLowerCase().contains(fq);
+      final matchesFarmerQuery = fq.isEmpty || p.farmerName.toLowerCase().contains(fq);
       final matchesCat = cat.isEmpty || p.categoryId == cat;
       final matchesMkt = mkt.isEmpty || p.marketId == mkt;
+      final matchesFarmer = farmer.isEmpty || p.farmerId == farmer;
 
-      // Distance filter: lat/lng dono 0 wale products skip karo
       bool matchesDist = true;
       if (maxDist > 0 && pos != null) {
-        if (p.lat == 0.0 && p.lng == 0.0) {
-          matchesDist = false;
+        if (p.lat != 0.0 && p.lng != 0.0) {
+          final distKm = LocationHelper.distanceKm(
+            fromLat: pos.latitude,
+            fromLng: pos.longitude,
+            toLat: p.lat,
+            toLng: p.lng,
+          );
+          matchesDist = distKm != null && distKm <= maxDist;
         } else {
-          final distM = Geolocator.distanceBetween(pos.latitude, pos.longitude, p.lat, p.lng);
-          matchesDist = (distM / 1000) <= maxDist;
+          matchesDist = false;
         }
       }
 
-      return matchesQuery && matchesFarmer && matchesCat && matchesMkt && matchesDist;
+      return matchesQuery && matchesFarmerQuery && matchesCat && matchesMkt && matchesFarmer && matchesDist;
     }).toList();
   }
 
@@ -190,8 +220,24 @@ class ProductSearchController extends GetxController {
   String distanceKmOf(ProductModel p) {
     final pos = userPos.value;
     if (pos == null || (p.lat == 0.0 && p.lng == 0.0)) return '';
-    final distM = Geolocator.distanceBetween(pos.latitude, pos.longitude, p.lat, p.lng);
-    return '${(distM / 1000).toStringAsFixed(1)} km';
+    final distKm = LocationHelper.distanceKm(
+      fromLat: pos.latitude,
+      fromLng: pos.longitude,
+      toLat: p.lat,
+      toLng: p.lng,
+    );
+    return distKm == null ? '' : '${distKm.toStringAsFixed(1)} km';
+  }
+
+  // Kitne filters active hain — badge dikhane ke liye
+  int get activeFilterCount {
+    int count = 0;
+    if (selectedCategoryId.value.isNotEmpty) count++;
+    if (selectedMarketId.value.isNotEmpty) count++;
+    if (selectedFarmerId.value.isNotEmpty) count++;
+    if (farmerQuery.value.isNotEmpty) count++;
+    if (maxDistanceKm.value > 0) count++;
+    return count;
   }
 
   // tamaam filters reset, market filter bhi
@@ -200,6 +246,7 @@ class ProductSearchController extends GetxController {
     farmerQuery.value = '';
     selectedCategoryId.value = '';
     selectedMarketId.value = '';
+    selectedFarmerId.value = '';
     maxDistanceKm.value = 0;
     userPos.value = null;
     applyFilters();
@@ -217,4 +264,11 @@ class ProductSearchController extends GetxController {
       Get.put(CartController()).add(product);
     }
   }
+}
+
+// Farmers dropdown ke liye id+name pair
+class FarmerEntry {
+  final String id;
+  final String name;
+  const FarmerEntry({required this.id, required this.name});
 }

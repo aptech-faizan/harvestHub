@@ -15,6 +15,11 @@ class HomeView extends GetView<HomeController> {
         title: const Text('HarvestHub Home'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.smart_toy_outlined),
+            tooltip: 'Farm Assistant',
+            onPressed: () => Get.toNamed(Routes.assistantScreen),
+          ),
+          IconButton(
             icon: const Icon(Icons.people_outline),
             onPressed: () => Get.toNamed(Routes.customerFarmers),
           ),
@@ -77,9 +82,56 @@ class HomeView extends GetView<HomeController> {
                   final p = products[index];
                   final isOutOfStock = p.stockQty <= 0;
 
+                  // Product thumbnail — URL ho to load karo, warna placeholder
+                  final Widget productImage = ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: p.imageUrl.isEmpty
+                        ? Container(
+                            width: 60,
+                            height: 60,
+                            color: Colors.green.shade50,
+                            child: const Icon(
+                              Icons.eco_outlined,
+                              size: 36,
+                              color: Colors.green,
+                            ),
+                          )
+                        : Image.network(
+                            p.imageUrl,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            // Crash na ho agar image load na ho
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.green.shade50,
+                                child: const Icon(
+                                  Icons.broken_image_outlined,
+                                  size: 36,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.grey.shade100,
+                                child: const Center(
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              );
+                            },
+                          ),
+                  );
+
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     child: ListTile(
+                      leading: productImage,
                       onTap: () => Get.toNamed(
                         Routes.customerProductDetails,
                         arguments: p,
@@ -98,9 +150,14 @@ class HomeView extends GetView<HomeController> {
                           ),
                         ],
                       ),
-                      trailing: ElevatedButton(
-                        onPressed: isOutOfStock ? null : () => controller.addToCart(p),
-                        child: const Text('Add to cart'),
+                      // fix: ElevatedButton in ListTile trailing needs bounded height/width to avoid overflow
+                      trailing: SizedBox(
+                        height: 40,
+                        width: 110,
+                        child: ElevatedButton(
+                          onPressed: isOutOfStock ? null : () => controller.addToCart(p),
+                          child: const Text('Add to cart'),
+                        ),
                       ),
                     ),
                   );

@@ -107,6 +107,22 @@ class ProfileView extends GetView<ProfileController> {
                 onPressed: () => controller.logout(),
                 child: const Text('Logout'),
               ),
+              const SizedBox(height: 16),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.info_outline, color: Colors.green),
+                title: const Text('About Us'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => Get.toNamed(Routes.aboutUs),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.contact_support_outlined, color: Colors.green),
+                title: const Text('Contact Us & Feedback'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => Get.toNamed(Routes.contactUs),
+              ),
             ],
           ),
         );

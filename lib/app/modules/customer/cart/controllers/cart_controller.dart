@@ -50,11 +50,15 @@ class CartController extends GetxController {
       if (items[index].qty < p.stockQty) {
         items[index].qty++;
         items.refresh();
+        Get.snackbar('Cart', '${p.itemName} quantity updated',
+            duration: const Duration(seconds: 1), snackPosition: SnackPosition.BOTTOM);
       } else {
         Get.snackbar('Limit reach', 'Available stock se zyada add nahi ho sakta');
       }
     } else {
       items.add(CartItem(product: p, qty: 1));
+      Get.snackbar('Cart', '${p.itemName} cart mein add ho gaya',
+          duration: const Duration(seconds: 1), snackPosition: SnackPosition.BOTTOM);
     }
   }
 

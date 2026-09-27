@@ -24,20 +24,14 @@ class MarketMapView extends StatefulWidget {
 }
 
 class _MarketMapViewState extends State<MarketMapView> {
+  // fix: Map ready state track karne ke liye variable
+  bool _isMapReady = false;
+
   final MapController _map = MapController();
 
   /// Markets that have real coordinates, in map order.
   List<MarketModel> get _located =>
       widget.markets.where((m) => m.hasCoordinates).toList();
-
-  @override
-  void initState() {
-    super.initState();
-    // The camera only exists once the map has been laid out.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _fitCamera();
-    });
-  }
 
   @override
   void didUpdateWidget(covariant MarketMapView oldWidget) {
@@ -47,7 +41,12 @@ class _MarketMapViewState extends State<MarketMapView> {
     final before = oldWidget.markets.map((m) => m.id).toSet();
     final after = widget.markets.map((m) => m.id).toSet();
     if (before.length != after.length || !before.containsAll(after)) {
-      _fitCamera();
+      // fix: Map ready na hone par camera move skip karo taake uninitialized controller crash na kare
+      if (_isMapReady) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _isMapReady) _fitCamera();
+        });
+      }
     }
   }
 
@@ -57,20 +56,26 @@ class _MarketMapViewState extends State<MarketMapView> {
     super.dispose();
   }
 
+  // fix: Controller.move aur fitCamera ko try-catch mein wrap kiya taake uninitialized controller exception catch ho sake
   void _fitCamera() {
+    if (!_isMapReady || !mounted) return;
     final located = _located;
     if (located.isEmpty) return;
-    if (located.length == 1) {
-      _map.move(_pointOf(located.first), MapsDefaults.zoom + 1);
-      return;
+    try {
+      if (located.length == 1) {
+        _map.move(_pointOf(located.first), MapsDefaults.zoom + 1);
+        return;
+      }
+      _map.fitCamera(
+        CameraFit.coordinates(
+          coordinates: located.map(_pointOf).toList(),
+          padding: const EdgeInsets.all(48),
+          maxZoom: 15,
+        ),
+      );
+    } catch (_) {
+      // Controller not ready exception handled safely
     }
-    _map.fitCamera(
-      CameraFit.coordinates(
-        coordinates: located.map(_pointOf).toList(),
-        padding: const EdgeInsets.all(48),
-        maxZoom: 15,
-      ),
-    );
   }
 
   LatLng _pointOf(MarketModel m) => LatLng(m.lat, m.lng);
@@ -117,6 +122,10 @@ class _MarketMapViewState extends State<MarketMapView> {
         initialZoom: MapsDefaults.zoom,
         minZoom: 3,
         maxZoom: MapTiles.maxNativeZoom.toDouble(),
+        onMapReady: () {
+    _isMapReady = true;
+    _fitCamera();
+  },
       ),
       children: [
         TileLayer(

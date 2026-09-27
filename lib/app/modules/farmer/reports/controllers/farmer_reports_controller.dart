@@ -55,7 +55,7 @@ class FarmerReportsController extends GetxController {
   List<OrderModel> get periodOrders {
     final from = _from;
     if (from == null) return orders.toList();
-    return orders.where((o) => !o.createdAt.isBefore(from)).toList();
+    return orders.where((o) => o.createdAt == null || !o.createdAt!.isBefore(from)).toList();
   }
 
   List<OrderModel> get valid =>

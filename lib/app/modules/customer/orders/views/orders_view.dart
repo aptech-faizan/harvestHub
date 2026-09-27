@@ -75,7 +75,9 @@ class OrdersView extends GetView<OrdersController> {
             itemBuilder: (context, index) {
               final order = controller.orders[index];
               final orderShortId = order.id.length >= 6 ? order.id.substring(0, 6) : order.id;
-              final orderDate = '${order.createdAt.day}/${order.createdAt.month}/${order.createdAt.year}';
+              final orderDate = order.createdAt != null
+                  ? '${order.createdAt!.day}/${order.createdAt!.month}/${order.createdAt!.year}'
+                  : 'Date not available';
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 12.0),
@@ -103,15 +105,21 @@ class OrdersView extends GetView<OrdersController> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            OutlinedButton(
-                              onPressed: () => _openChangeSlotSheet(order),
-                              child: const Text('Change slot'),
+                            SizedBox(
+                              height: 40,
+                              child: OutlinedButton(
+                                onPressed: () => _openChangeSlotSheet(order),
+                                child: const Text('Change slot'),
+                              ),
                             ),
                             const SizedBox(width: 8),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
-                              onPressed: () => _showCancelDialog(order),
-                              child: const Text('Cancel'),
+                            SizedBox(
+                              height: 40,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
+                                onPressed: () => _showCancelDialog(order),
+                                child: const Text('Cancel'),
+                              ),
                             ),
                           ],
                         ),

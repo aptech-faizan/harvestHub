@@ -17,6 +17,9 @@ abstract class Routes {
   // Shared Module (all signed-in roles)
   static const chatInbox = '/chat/inbox';
   static const chatRoom = '/chat/room';
+  static const assistantScreen = '/customer/assistant';
+  static const aboutUs = '/customer/about';
+  static const contactUs = '/customer/contact';
 
   // Farmer Module
   static const farmerDashboard = '/farmer/dashboard';

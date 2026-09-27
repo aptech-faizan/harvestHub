@@ -55,7 +55,7 @@ class OrdersView extends GetView<OrdersController> {
                   final o = list[i];
                   return ListTile(
                     title: Text('${controller.customerName(o.customerId)}  →  ${controller.farmerName(o.farmerId)}'),
-                    subtitle: Text('#${o.id.length > 8 ? o.id.substring(0, 8) : o.id}  •  ${formatDate(o.createdAt)}\n${o.status}'),
+                    subtitle: Text('#${o.id.length > 8 ? o.id.substring(0, 8) : o.id}  •  ${o.createdAt != null ? formatDate(o.createdAt) : 'Date not available'}\n${o.status}'),
                     isThreeLine: true,
                     trailing: Text(money(o.totalPrice)),
                     onTap: () => controller.openDetails(o),
