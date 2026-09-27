@@ -61,22 +61,32 @@ class FollowRepository {
 
   /// Resolves the followed ids into full farmer profiles, dropping any farmer
   /// document that has since been deleted.
+  ///
+  /// Firestore caps an `in` query at [_inQueryLimit] values, so the ids are sent
+  /// in chunks rather than as one oversized query.
   Future<List<FarmerModel>> getFollowedFarmers(String uid) async {
     final ids = await getFollowedFarmerIds(uid);
     if (ids.isEmpty) return <FarmerModel>[];
 
-    final snap = await _firestore
-        .collection(Db.farmers)
-        .where(FieldPath.documentId, isEqualTo: ids.toList())
-        .get();
-    final list = snap.docs
-        .map((d) => FarmerModel.fromMap(d.data(), d.id))
-        .toList();
-    list.sort(
+    final idList = ids.toList();
+    final all = <FarmerModel>[];
+
+    for (var i = 0; i < idList.length; i += _inQueryLimit) {
+      final end = (i + _inQueryLimit) > idList.length
+          ? idList.length
+          : i + _inQueryLimit;
+      final snap = await _firestore
+          .collection(Db.farmers)
+          .where(FieldPath.documentId, whereIn: idList.sublist(i, end))
+          .get();
+      all.addAll(snap.docs.map((d) => FarmerModel.fromMap(d.data(), d.id)));
+    }
+
+    all.sort(
       (a, b) =>
           a.businessName.toLowerCase().compareTo(b.businessName.toLowerCase()),
     );
-    return list;
+    return all;
   }
 
   /// Live stream of the resolved farmer profiles, for the followed-farms list.
@@ -84,6 +94,9 @@ class FollowRepository {
     return watchFollowedFarmerIds(uid)
         .asyncMap((ids) => getFollowedFarmers(uid));
   }
+
+  /// Firestore's documented maximum number of values in an `in` query.
+  static const _inQueryLimit = 30;
 
   /// Every customer uid that follows [farmerId].
   ///

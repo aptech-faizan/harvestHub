@@ -25,13 +25,6 @@
       ]
     },
     {
-      "collectionGroup": "followed_farmers",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "farmerId", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "chats",
       "queryScope": "COLLECTION",
       "fields": [
