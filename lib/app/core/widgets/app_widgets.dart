@@ -4,6 +4,7 @@ export 'app_banner.dart';
 export 'app_bottom_nav_bar.dart';
 export 'app_button.dart';
 export 'app_card.dart';
+export 'app_chat_bubble.dart';
 export 'app_chip.dart';
 export 'app_icon.dart';
 export 'app_section_header.dart';
