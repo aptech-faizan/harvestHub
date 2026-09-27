@@ -168,6 +168,14 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
                 ),
                 const Divider(),
                 ListTile(
+                  leading: const Icon(Icons.chat_bubble_outline),
+                  title: const Text('Chats'),
+                  subtitle: const Text('Messages from your customers'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Get.toNamed(Routes.chatInbox),
+                ),
+                const Divider(),
+                ListTile(
                   leading: const Icon(Icons.schedule_outlined),
                   title: const Text('Pickup Slots'),
                   subtitle: const Text('Manage pickup time slots'),

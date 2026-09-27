@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/constants/app_constants.dart';
+import 'package:harvest_hub/app/core/services/admin_report_pdf.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
 import 'package:harvest_hub/app/modules/admin/models/order_model.dart';
 import 'package:harvest_hub/app/modules/admin/repositories/admin_repository.dart';
+import 'package:intl/intl.dart';
 
 class ReportsController extends GetxController {
   final repo = AdminRepository();
@@ -11,6 +13,7 @@ class ReportsController extends GetxController {
 
   final isLoading = false.obs;
   final error = ''.obs;
+  final isExporting = false.obs;
   final period = 'All'.obs;
   final allOrders = <OrderModel>[].obs;
   final farmerNames = <String, String>{}.obs;
@@ -41,14 +44,36 @@ class ReportsController extends GetxController {
   }
 
   // Daily = today, Weekly = last 7 days, Monthly = last 30 days.
-  List<OrderModel> get periodOrders {
+  /// Start of the selected window, or null for "All".
+  ///
+  /// One definition shared by the on-screen figures and the exported PDF, so
+  /// the two can never describe different ranges.
+  DateTime? get _from {
     final now = DateTime.now();
-    DateTime? from;
-    if (period.value == 'Daily') from = DateTime(now.year, now.month, now.day);
-    if (period.value == 'Weekly') from = now.subtract(const Duration(days: 7));
-    if (period.value == 'Monthly') from = now.subtract(const Duration(days: 30));
+    switch (period.value) {
+      case 'Daily':
+        return DateTime(now.year, now.month, now.day);
+      case 'Weekly':
+        return now.subtract(const Duration(days: 7));
+      case 'Monthly':
+        return now.subtract(const Duration(days: 30));
+      default:
+        return null;
+    }
+  }
+
+  /// Human readable range for the report header and the screen.
+  String get rangeLabel {
+    final from = _from;
+    if (from == null) return 'All time';
+    final fmt = DateFormat('dd MMM yyyy');
+    return '${fmt.format(from)} to ${fmt.format(DateTime.now())}';
+  }
+
+  List<OrderModel> get periodOrders {
+    final from = _from;
     if (from == null) return allOrders.toList();
-    return allOrders.where((o) => o.createdAt != null && o.createdAt!.isAfter(from!)).toList();
+    return allOrders.where((o) => o.createdAt != null && o.createdAt!.isAfter(from)).toList();
   }
 
   // Total valid orders count excluding cancelled orders
@@ -81,5 +106,33 @@ class ReportsController extends GetxController {
         .mostActiveFarmers(orders)
         .map((e) => MapEntry(farmerNames[e.key] ?? e.key, e.value))
         .toList();
+  }
+
+  /// Exports the selected period as a shareable platform report.
+  ///
+  /// Reuses the same getters the screen renders, so the document always matches
+  /// what the administrator is looking at.
+  Future<void> exportPdf() async {
+    if (isExporting.value) return;
+    isExporting.value = true;
+    try {
+      final orders = periodOrders;
+      final shared = await AdminReportPdf.share(
+        periodLabel: period.value,
+        rangeLabel: rangeLabel,
+        orders: orders,
+        byStatus: ordersByStatus(orders),
+        revenueByMarket: revenueByMarket(orders),
+        topFarmers: topFarmers(orders),
+        revenue: revenueOf(orders),
+      );
+      if (!shared) {
+        showError('PDF sharing is not supported on this device.');
+      }
+    } catch (e) {
+      showError('Could not create the report: ${errorText(e)}');
+    } finally {
+      isExporting.value = false;
+    }
   }
 }

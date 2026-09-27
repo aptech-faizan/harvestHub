@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import 'package:harvest_hub/app/data/models/user_model.dart';
 import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
+import 'package:harvest_hub/app/modules/customer/follow/controllers/follow_controller.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 
@@ -207,6 +208,10 @@ class AuthService extends GetxService {
     if (Get.isRegistered<WishlistController>()) {
       Get.find<WishlistController>().clearAll();
     }
+    // Follow state is per-account, so drop the previous user's follows.
+    if (Get.isRegistered<FollowController>()) {
+      Get.find<FollowController>().refreshForCurrentUser();
+    }
 
     Get.offAllNamed(Routes.login);
   }
@@ -217,6 +222,10 @@ class AuthService extends GetxService {
       case Roles.customer:
         if (Get.isRegistered<WishlistController>()) {
           Get.find<WishlistController>().loadWishlist();
+        }
+        // Follow state is per-account, so re-point its stream at the new user.
+        if (Get.isRegistered<FollowController>()) {
+          Get.find<FollowController>().refreshForCurrentUser();
         }
         Get.offAllNamed(Routes.customerShell);
         break;

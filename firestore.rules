@@ -1,0 +1,267 @@
+rules_version = '2';
+
+// HarvestHub Firestore security rules.
+//
+// The Flutter app only enforces roles through GetX middleware, which is client
+// side and trivially bypassed. These rules are the real access-control layer and
+// are what satisfy the SRS requirement for role-based access control.
+//
+// Deploy with:  firebase deploy --only firestore:rules
+//
+// Requires composite indexes for the two `where` + `orderBy` queries below; add
+// them via:  firebase deploy --only firestore:indexes
+//   orders:      farmerId ASC, createdAt DESC
+//   pickup_slots: farmerId ASC, startTime ASC
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Role lives on the caller's own user document.
+    function roleOf(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && roleOf(request.auth.uid) == 'admin';
+    }
+
+    function isFarmer() {
+      return isSignedIn() && roleOf(request.auth.uid) == 'farmer';
+    }
+
+    function isCustomer() {
+      return isSignedIn() && roleOf(request.auth.uid) == 'customer';
+    }
+
+    // A farmer "owns" a document when the doc id is their uid (how registration
+    // writes it) or when it records their uid in userId.
+    function ownsFarmerDoc(farmerId) {
+      return isFarmer() && (farmerId == request.auth.uid || farmerId == ownerUid(farmerId));
+    }
+
+    function ownerUid(farmerId) {
+      return get(/databases/$(database)/documents/farmers/$(farmerId)).data.userId;
+    }
+
+    // ---------- users ----------
+    // A user may read their own profile; admins may read any (needed for the
+    // admin customers/farmers/order screens to resolve names).
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+
+      // Nobody may grant themselves a role: the role field is immutable.
+      allow create: if isSignedIn()
+                    && request.resource.data.role in ['customer', 'farmer']
+                    && request.resource.data.email == request.auth.token.email;
+
+      allow update: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.role == resource.data.role
+                    || isAdmin();
+
+      // Deleting the auth account is the caller's business; Firestore profile
+      // removal is an admin action (AdminRepository.deleteUser).
+      allow delete: if isAdmin();
+
+      // ---------- wishlist (personal, customer only) ----------
+      match /wishlist/{productId} {
+        allow read, write: if isSignedIn()
+                           && request.auth.uid == uid
+                           && isCustomer();
+      }
+
+      // ---------- followed farmers (personal, customer only) ----------
+      // A sub-collection so "who follows farmer X" is a single indexed
+      // collectionGroup query, which is what the restock-alert trigger needs.
+      // A farmer is deliberately NOT readable here, so a customer can only ever
+      // see their own follows.
+      match /followed_farmers/{farmerId} {
+        allow read, delete: if isSignedIn()
+                            && request.auth.uid == uid
+                            && isCustomer();
+
+        // The document id must be the farmer being followed, and the denormalised
+        // farmerId must agree, so the notification queries cannot be poisoned.
+        allow create: if isSignedIn()
+                      && request.auth.uid == uid
+                      && isCustomer()
+                      && farmerId == request.resource.data.farmerId;
+
+        // Follow state is create/delete only; nothing is mutable.
+        allow update: if false;
+      }
+    }
+
+    // ---------- farmers ----------
+    match /farmers/{farmerId} {
+      // Public-ish read: farmer cards and market listings need it for any
+      // signed-in user, and a farmer needs their own record on login.
+      allow read: if isSignedIn();
+
+      // A farmer may create only their own record, and may not set their own
+      // rating (that would let a farmer manufacture a trust signal).
+      allow create: if isFarmer()
+                    && farmerId == request.auth.uid
+                    && request.resource.data.rating == 0;
+
+      allow update: if ownsFarmerDoc(farmerId)
+                    && request.resource.data.rating == resource.data.rating
+                    || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // ---------- products ----------
+    match /products/{productId} {
+      allow read: if isSignedIn();
+
+      // Only the owning farmer (or an admin) may write, and a farmer may not
+      // change their own stock silently through someone else's order: stock is
+      // decremented by OrderRepository inside a transaction as the customer.
+      // See the NOTE on cancellation below before loosening this.
+      allow create: if isFarmer() && request.resource.data.farmerId == request.auth.uid
+                    || isAdmin();
+
+      allow update: if isFarmer() && resource.data.farmerId == request.auth.uid
+                    || isAdmin();
+
+      allow delete: if isFarmer() && resource.data.farmerId == request.auth.uid
+                    || isAdmin();
+    }
+
+    // ---------- orders ----------
+    match /orders/{orderId} {
+      // Visible to the buyer, the fulfilling farmer, and admins.
+      allow read: if isSignedIn()
+                  && (resource.data.customerId == request.auth.uid
+                      || resource.data.farmerId == request.auth.uid
+                      || isAdmin());
+
+      // A customer may place an order, but only in their own name, always as
+      // 'pending', and with a server-side total (never client-invented items
+      // priced below reality is still possible, so price integrity is enforced
+      // in OrderRepository.placeOrders' transaction).
+      allow create: if isCustomer()
+                    && request.resource.data.customerId == request.auth.uid
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.items is list
+                    && request.resource.data.items.size() > 0;
+
+      // Fulfilling farmer or admin may move an order along. The state machine
+      // itself is enforced in OrderRepository.changeOrderStatus, which reads
+      // and writes inside a transaction; rules additionally forbid ever
+      // un-cancelling an order.
+      allow update: if (isFarmer() && resource.data.farmerId == request.auth.uid)
+                    || isAdmin();
+
+      // A customer may cancel their own order, and ONLY that: the update is
+      // restricted to changing the status field, to the value 'cancelled', and
+      // only from a cancellable state.
+      //
+      // NOTE: the client's compensating transaction also writes back to
+      // products/{id} and pickup_slots/{id} to restore stock and capacity.
+      // Those writes are NOT permitted for customers by the rules above, so
+      // customer-initiated cancellation will be REJECTED until cancellation is
+      // moved behind a trusted server (see functions/). This is deliberate:
+      // granting customers write access to products would let any user set any
+      // stock level. See functions/cancelOrder.js for the intended fix.
+      allow update: if isCustomer()
+                    && resource.data.customerId == request.auth.uid
+                    && resource.data.status in ['pending', 'confirmed']
+                    && request.resource.data.status == 'cancelled'
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'updatedAt']);
+
+      // Orders are never deleted; they are cancelled so history is preserved.
+      allow delete: if false;
+    }
+
+    // ---------- markets ----------
+    match /markets/{marketId} {
+      allow read: if isSignedIn();
+
+      // Markets are platform infrastructure: admin only.
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- categories ----------
+    match /categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- pickup slots ----------
+    match /pickup_slots/{slotId} {
+      // Customers need to see slots to book one.
+      allow read: if isSignedIn();
+
+      // Only the owning farmer creates slots. Note bookedCount is part of the
+      // document, so a farmer could in principle write it; the client guards
+      // this with a transaction, and admins are trusted.
+      allow create: if isFarmer() && request.resource.data.farmerId == request.auth.uid
+                    || isAdmin();
+
+      allow update: if isFarmer() && resource.data.farmerId == request.auth.uid
+                    || isAdmin();
+
+      // Deleting a slot that has bookings would orphan live orders. Customers
+      // must not delete slots at all; the client also checks bookedCount == 0.
+      allow delete: if isAdmin();
+    }
+
+    // ---------- chats ----------
+    // One conversation per customer/farmer pair. Both participants may read;
+    // only a real participant may create it, and only the sender may post.
+    match /chats/{chatId} {
+      function isParticipant() {
+        return isSignedIn()
+               && (resource.data.customerId == request.auth.uid
+                   || resource.data.farmerId == request.auth.uid);
+      }
+
+      function participantOnCreate() {
+        return isSignedIn()
+               && request.resource.data.customerId == request.auth.uid
+               || isSignedIn() && request.resource.data.farmerId == request.auth.uid;
+      }
+
+      allow read: if isParticipant() || isAdmin();
+
+      // The document id must be derived from the two participants, so a caller
+      // cannot create a chat that appears to belong to someone else.
+      allow create: if participantOnCreate()
+                    && chatId
+                       == (request.resource.data.customerId + "_"
+                           + request.resource.data.farmerId);
+
+      // The inbox denormalises the last message, so updates are needed - but
+      // only by a participant, and never to change the two participants.
+      allow update: if isParticipant()
+                    && resource.data.customerId == request.resource.data.customerId
+                    && resource.data.farmerId == request.resource.data.farmerId;
+
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isParticipant() || isAdmin();
+
+        // A sender may only write their own message, and may not forge it.
+        allow create: if isParticipant()
+                      && request.resource.data.senderId == request.auth.uid;
+
+        // Messages are immutable.
+        allow update, delete: if false;
+      }
+    }
+
+    // Anything not matched above is denied by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

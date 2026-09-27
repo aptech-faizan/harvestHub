@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/modules/customer/follow/widgets/follow_farmer_button.dart';
+import 'package:harvest_hub/app/modules/shared/chat/widgets/chat_farmer_button.dart';
 import '../controllers/product_details_controller.dart';
 
 // Ye Product Details screen ki simple placeholder UI hai
-class ProductDetailsView extends GetView<ProductDetailsController> {
-  const ProductDetailsView({super.key});
+class ProductDetailsView extends GetView<ProductDetailsController> {  const ProductDetailsView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +30,11 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image placeholder
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Colors.grey.shade300,
-              child: Image.network(p.imageUrl),
-            ),
+            // Product image. Cloudinary URLs can be empty (image is optional
+            // when an admin creates a product) or dead, so both the empty case
+            // and a load failure fall back to a placeholder instead of
+            // rendering a broken image widget.
+            _ProductImage(url: p.imageUrl),
             const SizedBox(height: 16),
             Text(p.itemName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
@@ -57,8 +56,54 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Farmer: ${p.farmerName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    // TODO: farmer profile/rating baad mein
-                    const Text('Rating: 4.8 / 5.0 (Verified Farmer)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    // Real rating from farmers/{id}.rating - never a hardcoded
+                    // value, and hidden entirely until the farmer has one.
+                    Obx(() {
+                      final rating = controller.farmerRating;
+                      if (rating == null) {
+                        return controller.isLoadingFarmer.value
+                            ? const SizedBox.shrink()
+                            : const Text(
+                                'No rating yet',
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              );
+                      }
+                      return Row(
+                        children: [
+                          const Icon(Icons.star, size: 16, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${rating.toStringAsFixed(1)} / 5.0',
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      );
+                    }),
+                    if (p.marketName.isNotEmpty)
+                      Text('Market: ${p.marketName}',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    // Follow the farmer so restock alerts can reach this customer.
+                    Obx(() {
+                      final resolvedId = controller.farmer.value?.id.isNotEmpty == true
+                          ? controller.farmer.value!.id
+                          : p.farmerId;
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: FollowFarmerButton(
+                              farmerId: resolvedId,
+                              farmerName: p.farmerName,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ChatFarmerButton(
+                            farmerId: resolvedId,
+                            farmerName: p.farmerName,
+                          ),
+                        ],
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -84,6 +129,48 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Product image with an explicit placeholder for the empty-URL and load-failure
+/// cases. `imageUrl` is optional in the data model, so an empty string is an
+/// expected value rather than an error.
+class _ProductImage extends StatelessWidget {
+  final String url;
+  const _ProductImage({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final placeholder = Container(
+      height: 200,
+      width: double.infinity,
+      color: Colors.grey.shade300,
+      alignment: Alignment.center,
+      child: const Icon(Icons.image_not_supported, size: 56, color: Colors.grey),
+    );
+
+    if (url.trim().isEmpty) return placeholder;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.network(
+        url,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            height: 200,
+            width: double.infinity,
+            color: Colors.grey.shade300,
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(strokeWidth: 2),
+          );
+        },
+        errorBuilder: (context, error, stack) => placeholder,
       ),
     );
   }

@@ -13,7 +13,20 @@ class FarmerReportsView extends GetView<FarmerReportsController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sales report'),
-        actions: [IconButton(onPressed: controller.load, icon: const Icon(Icons.refresh))],
+        actions: [
+          Obx(() => IconButton(
+                tooltip: 'Export as PDF',
+                onPressed: controller.isExporting.value ? null : controller.exportPdf,
+                icon: controller.isExporting.value
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.picture_as_pdf_outlined),
+              )),
+          IconButton(onPressed: controller.load, icon: const Icon(Icons.refresh)),
+        ],
       ),
       body: Obx(() => StateView(
             isLoading: controller.isLoading.value,
@@ -39,6 +52,30 @@ class FarmerReportsView extends GetView<FarmerReportsController> {
                   'Daily = today, Weekly = last 7 days, Monthly = last 30 days',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
+                const SizedBox(height: 8),
+                Obx(() => Text(
+                      'Showing: ${controller.rangeLabel}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    )),
+                const SizedBox(height: 12),
+                Obx(() => SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: controller.isExporting.value
+                            ? null
+                            : controller.exportPdf,
+                        icon: controller.isExporting.value
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.picture_as_pdf_outlined),
+                        label: Text(controller.isExporting.value
+                            ? 'Preparing PDF...'
+                            : 'Export this report as PDF'),
+                      ),
+                    )),
                 const SizedBox(height: 16),
                 const Text('Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 Card(

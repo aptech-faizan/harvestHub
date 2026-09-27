@@ -1,7 +1,7 @@
 // TODO(ui): design baad mein
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../routes/app_routes.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
 import '../controllers/profile_controller.dart';
 
 // Ye customer profile ki simple placeholder UI screen hai
@@ -76,6 +76,29 @@ class ProfileView extends GetView<ProfileController> {
                 child: const Text('Change Password'),
               ),
               const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 4),
+              // Personal lists
+              ListTile(
+                leading: const Icon(Icons.favorite_border),
+                title: const Text('Wishlist'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Get.toNamed(Routes.customerWishlist),
+              ),
+              ListTile(
+                leading: const Icon(Icons.chat_bubble_outline),
+                title: const Text('Chats'),
+                subtitle: const Text('Messages with your farmers'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Get.toNamed(Routes.chatInbox),
+              ),
+              ListTile(
+                leading: const Icon(Icons.people_alt_outlined),
+                title: const Text('Followed Farmers'),
+                subtitle: const Text('Get restock alerts from your favourite farmers'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Get.toNamed(Routes.customerFollowedFarmers),
+              ),
               const Divider(),
               const SizedBox(height: 12),
               // Logout button
