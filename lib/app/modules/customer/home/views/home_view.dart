@@ -28,18 +28,7 @@ class HomeView extends GetView<HomeController> {
       backgroundColor: AppColors.surfaceWhite,
       // 1. App Bar: Left-aligned logo image with fallback, Notification bell, and Profile button
       appBar: AppAppBar(
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 32,
-          fit: BoxFit.contain,
-          alignment: Alignment.centerLeft,
-          errorBuilder: (context, error, stackTrace) {
-            return const AppText.displayLogo(
-              'HarvestHub',
-              color: AppColors.primaryDark,
-            );
-          },
-        ),
+        title: const AppLogo(),
         actions: [
           // Notification bell with circular muted background touch target 40px (Section 5 & 6.1)
           AppIconButton(

@@ -4,14 +4,7 @@ import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
-import 'package:harvest_hub/app/core/widgets/app_app_bar.dart';
-import 'package:harvest_hub/app/core/widgets/app_button.dart';
-import 'package:harvest_hub/app/core/widgets/app_card.dart';
-import 'package:harvest_hub/app/core/widgets/app_chip.dart';
-import 'package:harvest_hub/app/core/widgets/app_icon.dart';
-import 'package:harvest_hub/app/core/widgets/app_section_header.dart';
-import 'package:harvest_hub/app/core/widgets/app_stat_card.dart';
-import 'package:harvest_hub/app/core/widgets/app_text.dart';
+import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/data/models/order_model.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/controllers/farmer_dashboard_controller.dart';
 import 'package:harvest_hub/app/modules/farmer/orders/controllers/farmer_orders_controller.dart';
@@ -25,83 +18,50 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceMuted,
-      appBar: AppAppBar(
-        // ── Leading: profile avatar ──────────────────────────────────────
-        leading: Padding(
-          padding: const EdgeInsets.only(left: AppSpacing.l),
-          child: Obx(() {
-            final url = controller.photoUrl.value;
-            return GestureDetector(
-              onTap: () => Get.toNamed(Routes.farmerProfile),
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.chipHerbsBg,
-                backgroundImage: url.isNotEmpty ? NetworkImage(url) : null,
-                onBackgroundImageError: url.isNotEmpty ? (_, __) {} : null,
-                child: url.isEmpty
-                    ? Text(
-                        controller.farmerInitial,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryDark,
-                        ),
-                      )
-                    : null,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: Material(
+          color: AppColors.surfaceWhite,
+          elevation: 0,
+          child: SafeArea(
+            bottom: false,
+            child: SizedBox(
+              height: 56,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.l,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // LEFT: HarvestHub logo
+                    const AppLogo(),
+                    const Spacer(),
+                    // RIGHT: Avatar + dropdown arrow
+                    Obx(() {
+                      final url = controller.photoUrl.value;
+                      final name = controller.businessName.value.isNotEmpty
+                          ? controller.businessName.value
+                          : (controller.authService.currentUserModel.value?.name ?? 'F');
+
+                      return _AvatarMenu(
+                        photoUrl: url.isNotEmpty ? url : null,
+                        name: name,
+                        onChat: () => Get.toNamed(Routes.chatInbox),
+                        onLogout: () async {
+                          if (await confirmDialog(
+                              'Logout', 'Do you want to log out?')) {
+                            await controller.logout();
+                          }
+                        },
+                      );
+                    }),
+                  ],
+                ),
               ),
-            );
-          }),
+            ),
+          ),
         ),
-        leadingWidth: 64,
-        // ── Title: welcome + name ────────────────────────────────────────
-        title: Obx(() {
-          final name = controller.businessName.value.isNotEmpty
-              ? controller.businessName.value
-              : (controller.authService.currentUserModel.value?.name ?? 'My Farm');
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppText.caption(
-                'Welcome back 👋',
-                color: AppColors.textSecondary,
-              ),
-              AppText.sectionHeading(
-                name,
-                color: AppColors.textPrimary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          );
-        }),
-        automaticallyImplyLeading: false,
-        // ── Actions: Chat + Logout ───────────────────────────────────────
-        actions: [
-          AppIconButton(
-            icon: Icons.chat_bubble_outline_rounded,
-            size: 40,
-            iconSize: 22,
-            backgroundColor: AppColors.surfaceMuted,
-            iconColor: AppColors.primaryDark,
-            tooltip: 'Chat Inbox',
-            onTap: () => Get.toNamed(Routes.chatInbox),
-          ),
-          AppIconButton(
-            icon: Icons.logout_rounded,
-            size: 40,
-            iconSize: 22,
-            backgroundColor: AppColors.surfaceMuted,
-            iconColor: AppColors.textSecondary,
-            tooltip: 'Logout',
-            onTap: () async {
-              if (await confirmDialog('Logout', 'Do you want to log out?')) {
-                await controller.logout();
-              }
-            },
-          ),
-        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -119,6 +79,27 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ── Greeting block ───────────────────────────────────────
+                Obx(() {
+                  final name = controller.businessName.value.isNotEmpty
+                      ? controller.businessName.value
+                      : (controller.authService.currentUserModel.value?.name ??
+                          'My Farm');
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                     
+                      AppText.sectionHeading(
+                        name,
+                        color: AppColors.textPrimary,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  );
+                }),
+                const SizedBox(height: AppSpacing.l),
+
                 // ── Stat Cards Row ──────────────────────────────────────
                 Row(
                   children: [
@@ -175,6 +156,7 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
     );
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // Pending Orders List (reads from FarmerOrdersController if registered)
@@ -506,3 +488,99 @@ class _QuickLinkTile extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Avatar + dropdown menu anchored below the avatar
+// ---------------------------------------------------------------------------
+class _AvatarMenu extends StatelessWidget {
+  final String? photoUrl;
+  final String name;
+  final VoidCallback onChat;
+  final VoidCallback onLogout;
+
+  const _AvatarMenu({
+    required this.photoUrl,
+    required this.name,
+    required this.onChat,
+    required this.onLogout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_MenuAction>(
+      offset: const Offset(0, 44),
+      color: AppColors.surfaceWhite,
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      constraints: const BoxConstraints(minWidth: 200, maxWidth: 200),
+      onSelected: (action) {
+        switch (action) {
+          case _MenuAction.chat:
+            onChat();
+          case _MenuAction.logout:
+            onLogout();
+        }
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem<_MenuAction>(
+          value: _MenuAction.chat,
+          child: Row(
+            children: const [
+              Icon(Icons.chat_bubble_outline_rounded,
+                  size: 18, color: AppColors.textPrimary),
+              SizedBox(width: 12),
+              Text(
+                'Chat',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(height: 1),
+        PopupMenuItem<_MenuAction>(
+          value: _MenuAction.logout,
+          child: Row(
+            children: const [
+              Icon(Icons.logout_rounded, size: 18, color: AppColors.accentRed),
+              SizedBox(width: 12),
+              Text(
+                'Logout',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.accentRed,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+      // Custom tap target: AppAvatar + drop-down chevron
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppAvatar(
+            imageUrl: photoUrl,
+            name: name,
+            size: 40,
+          ),
+          const Icon(
+            Icons.arrow_drop_down,
+            size: 18,
+            color: AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _MenuAction { chat, logout }

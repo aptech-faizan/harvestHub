@@ -94,48 +94,41 @@ class FarmerBioView extends GetView<FarmerProfileController> {
                           ? currentId
                           : '';
 
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceMuted,
-                      borderRadius: AppRadius.inputRadius,
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: effectiveValue,
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.textSecondary,
-                        ),
-                        items: [
-                          DropdownMenuItem<String>(
-                            value: '',
-                            child: Text(
-                              'No market assigned (optional)',
-                              style: AppTextStyles.bodyText.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                          ...controller.markets.map(
-                            (m) => DropdownMenuItem<String>(
-                              value: m.id,
-                              child: Text(
-                                '${m.marketName} — ${m.address}',
-                                style: AppTextStyles.bodyText.copyWith(
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          controller.selectedMarketId.value = v ?? '';
-                        },
+                  return DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: effectiveValue,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Color.fromARGB(255, 88, 88, 88),
                       ),
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: '',
+                          child: Text(
+                            'No market assigned (optional)',
+                            style: AppTextStyles.bodyText.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        ...controller.markets.map(
+                          (m) => DropdownMenuItem<String>(
+                            value: m.id,
+                            child: Text(
+                              '${m.marketName} — ${m.address}',
+                              style: AppTextStyles.bodyText.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        controller.selectedMarketId.value = v ?? '';
+                      },
                     ),
                   );
                 }),

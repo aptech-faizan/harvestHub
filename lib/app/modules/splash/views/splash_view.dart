@@ -33,7 +33,7 @@ class SplashView extends StatelessWidget {
                 );
               },
               child: Image.asset(
-                'assets/images/logo_stacked.png',
+                'assets/images/ logo1.png',
                 width: 220,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) => const AppText.displayLogo(
