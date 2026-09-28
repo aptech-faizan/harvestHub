@@ -242,6 +242,9 @@ class FarmerDetailsView extends GetView<FarmersController> {
                       horizontalPad: AppSpacing.screenHorizontalPadding,
                       horizontalGutter: AppSpacing.gridHorizontalGutter,
                       verticalGutter: AppSpacing.m,
+                      // Cards here have no "Add to Cart" button (showBottomButton: false),
+                      // so a tighter aspect ratio removes the empty bottom gap.
+                      aspect: 1.35,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

@@ -267,10 +267,15 @@ class AppMediaCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(
-                          price,
-                          style: AppTextStyles.priceText,
+                        Expanded(
+                          child: Text(
+                            price,
+                            style: AppTextStyles.priceText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        const SizedBox(width: 4),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

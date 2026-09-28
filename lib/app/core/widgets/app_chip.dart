@@ -162,10 +162,11 @@ class AppChip extends StatelessWidget {
         borderRadius: AppRadius.chipRadius,
         child: Container(
           height: 32.0,
-          padding: const EdgeInsets.symmetric(horizontal: 14.0),
-          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (iconData != null) ...[
                 Icon(

@@ -113,10 +113,11 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
 
             const SizedBox(height: AppSpacing.m),
 
-            // 1. AppChip Tags Row: In Stock, 100% Organic, category inside Wrap (8, 8)
+            // 1. AppChip Tags Row: In Stock, 100% Organic, category inside horizontal Wrap (8, 8)
             Wrap(
               spacing: 8.0,
               runSpacing: 8.0,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 // Stock status tag
                 AppChip.pill(
