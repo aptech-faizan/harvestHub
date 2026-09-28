@@ -52,7 +52,7 @@ String formatDate(DateTime? d) {
   return '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
 }
 
-String money(num value) => 'Rs ${value.toStringAsFixed(2)}';
+String money(num value) => 'Rs. ${value.toStringAsFixed(2)}';
 
 String errorText(Object e) => e.toString().replaceFirst('Exception: ', '');
 

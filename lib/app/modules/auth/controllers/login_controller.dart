@@ -8,60 +8,18 @@ class LoginController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
 
   final formKey = GlobalKey<FormState>();
-  late TextEditingController emailController;
-  late TextEditingController passwordController;
+
+  // Initialized directly as fields — no manual disposal needed.
+  // fenix: true in LoginBinding guarantees a brand-new LoginController
+  // (and therefore brand-new TextEditingControllers) every time the
+  // Login route is mounted. The GC reclaims them when the controller
+  // is collected; explicit .dispose() calls cause the crash because
+  // Flutter's TextField can still hold a reference at that point.
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   final RxBool isLoading = false.obs;
   final RxBool hidePassword = true.obs;
-
-  bool _isDisposed = false;
-
-  LoginController() {
-    _initControllers();
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-    if (_isDisposed) {
-      _initControllers();
-      _isDisposed = false;
-    }
-  }
-
-  void _initControllers() {
-    emailController = TextEditingController();
-    passwordController = TextEditingController();
-  }
-
-  @override
-  void onClose() {
-    _isDisposed = true;
-    final email = emailController;
-    final pass = passwordController;
-    final binding = WidgetsBinding.instance;
-    // Delay disposal until after the current frame to prevent
-    // "TextEditingController was used after being disposed" during route transitions.
-    // ignore: unnecessary_null_comparison
-    if (binding != null) {
-      binding.addPostFrameCallback((_) {
-        try {
-          email.dispose();
-        } catch (_) {}
-        try {
-          pass.dispose();
-        } catch (_) {}
-      });
-    } else {
-      try {
-        email.dispose();
-      } catch (_) {}
-      try {
-        pass.dispose();
-      } catch (_) {}
-    }
-    super.onClose();
-  }
 
   void togglePasswordVisibility() {
     hidePassword.toggle();

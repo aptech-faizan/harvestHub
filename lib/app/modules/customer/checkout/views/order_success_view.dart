@@ -271,7 +271,7 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                                         style: AppTextStyles.sectionHeading,
                                       ),
                                       Text(
-                                        '₹${totalAmount.toStringAsFixed(0)}',
+                                        'Rs. ${totalAmount.toStringAsFixed(0)}',
                                         style: AppTextStyles.totalPriceText,
                                       ),
                                     ],

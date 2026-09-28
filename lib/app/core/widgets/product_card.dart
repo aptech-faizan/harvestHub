@@ -134,10 +134,15 @@ class ProductCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(
-                          '₹${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
-                          style: AppTextStyles.priceText,
+                        Expanded(
+                          child: Text(
+                            'Rs. ${product.pricePerUnit.toStringAsFixed(0)}/${product.unit}',
+                            style: AppTextStyles.priceText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        const SizedBox(width: 4),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

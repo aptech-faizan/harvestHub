@@ -106,7 +106,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                 const SizedBox(width: AppSpacing.m),
                 // Price per unit (totalPriceText style: 18px Bold in success color)
                 AppText.totalPrice(
-                  '₹${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
+                  'Rs. ${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
                 ),
               ],
             ),

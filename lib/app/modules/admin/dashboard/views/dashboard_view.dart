@@ -36,25 +36,44 @@ class DashboardView extends GetView<DashboardController> {
     required num revenue,
     required VoidCallback onTap,
   }) {
+    // Dual-tone green gradient hero card with richer shadow and 16px radius
+    const heroRadius = BorderRadius.all(Radius.circular(16.0));
     return Container(
       decoration: BoxDecoration(
-        borderRadius: AppRadius.cardRadius,
+        borderRadius: heroRadius,
+        // Three-stop gradient: light → mid → deep green for premium depth
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          stops: [0.0, 0.55, 1.0],
           colors: [
-            AppColors.primaryDark,
-            AppColors.primaryButton,
+            AppColors.primaryButton,  // #43A047 — vibrant green start
+            AppColors.primary,        // #2E7D32 — mid-tone
+            AppColors.primaryDark,    // #1B5E20 — deep forest finish
           ],
         ),
-        boxShadow: AppRadius.cardElevation,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.38),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.primaryDark.withValues(alpha: 0.18),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: AppRadius.cardRadius,
+        borderRadius: heroRadius,
         child: InkWell(
           onTap: onTap,
-          borderRadius: AppRadius.cardRadius,
+          borderRadius: heroRadius,
+          splashColor: Colors.white.withValues(alpha: 0.08),
+          highlightColor: Colors.white.withValues(alpha: 0.05),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.l),
             child: Column(
@@ -63,21 +82,53 @@ class DashboardView extends GetView<DashboardController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Platform Sales',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 13.0,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                    // Label + subtle shimmer-leaf decoration
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0,
+                            vertical: 3.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6.0),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.trending_up_rounded,
+                                size: 13.0,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 4.0),
+                              Text(
+                                'LIVE',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                    // Icon badge
                     Container(
-                      width: 40.0,
-                      height: 40.0,
+                      width: 42.0,
+                      height: 42.0,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.20),
-                        borderRadius: BorderRadius.circular(10.0),
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(12.0),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 1.0,
+                        ),
                       ),
                       child: const Icon(
                         Icons.payments_rounded,
@@ -87,12 +138,23 @@ class DashboardView extends GetView<DashboardController> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.s),
+                const SizedBox(height: AppSpacing.m),
+                const Text(
+                  'Platform Sales',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white70,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 4.0),
                 Text(
                   money(revenue),
                   style: const TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 28.0,
+                    fontSize: 30.0,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                     letterSpacing: -0.5,
@@ -100,14 +162,14 @@ class DashboardView extends GetView<DashboardController> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2.0),
+                const SizedBox(height: 4.0),
                 Text(
                   'excluding cancelled orders',
                   style: TextStyle(
                     fontFamily: 'Inter',
-                    fontSize: 12.0,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w400,
-                    color: Colors.white.withValues(alpha: 0.80),
+                    color: Colors.white.withValues(alpha: 0.72),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -189,7 +251,9 @@ class DashboardView extends GetView<DashboardController> {
       backgroundColor: AppColors.surfaceWhite,
       drawerScrimColor: Colors.black.withValues(alpha: 0.35),
       appBar: AppAppBar(
-        titleText: 'Admin Dashboard',
+        // Branded logo in top-bar matching customer/farmer shell style
+        isLogo: true,
+        title: const AppLogo(height: 28),
         leadingWidth: 56.0,
         leading: Builder(
           builder: (ctx) => Padding(
@@ -269,19 +333,53 @@ class DashboardView extends GetView<DashboardController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Greeting & Date from Device
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // 1. Greeting & Date — with branded admin avatar
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const AppText.sectionHeading(
-                      'Welcome back',
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
+                    // Admin circular avatar — initials fallback, no photo needed
+                    Container(
+                      width: 46.0,
+                      height: 46.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primaryButton, AppColors.primaryDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.28),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.admin_panel_settings_rounded,
+                          size: 22.0,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 2.0),
-                    AppText.caption(
-                      _formatToday(),
-                      color: AppColors.textSecondary,
+                    const SizedBox(width: AppSpacing.m),
+                    // Greeting text column
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppText.sectionHeading(
+                          'Welcome back, Admin',
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        const SizedBox(height: 2.0),
+                        AppText.caption(
+                          _formatToday(),
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
                     ),
                   ],
                 ),

@@ -200,7 +200,7 @@ class CartView extends GetView<CartController> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        '₹${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
+                                        'Rs. ${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
                                         style: AppTextStyles.bodyText.copyWith(
                                           color: AppColors.textSecondary,
                                           fontSize: 13,
@@ -208,7 +208,7 @@ class CartView extends GetView<CartController> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'Total: ₹${item.total.toStringAsFixed(0)}',
+                                        'Total: Rs. ${item.total.toStringAsFixed(0)}',
                                         style: AppTextStyles.caption.copyWith(
                                           color: AppColors.primaryDark,
                                           fontWeight: FontWeight.w600,
@@ -260,13 +260,13 @@ class CartView extends GetView<CartController> {
                       children: [
                         _invoiceRow(
                           label: 'Items Subtotal',
-                          value: '₹${controller.subtotal.toStringAsFixed(0)}',
+                          value: 'Rs. ${controller.subtotal.toStringAsFixed(0)}',
                           valueStyle: AppTextStyles.priceText,
                         ),
                         const SizedBox(height: AppSpacing.s),
                         _invoiceRow(
                           label: 'Estimated Delivery',
-                          value: '+₹40',
+                          value: '+Rs. 40',
                           valueStyle: AppTextStyles.priceText.copyWith(
                             color: AppColors.accentOrange,
                           ),
@@ -284,7 +284,7 @@ class CartView extends GetView<CartController> {
                               ),
                             ),
                             Text(
-                              '₹${(controller.subtotal + 40).toStringAsFixed(0)}',
+                              'Rs. ${(controller.subtotal + 40).toStringAsFixed(0)}',
                               style: AppTextStyles.totalPriceText,
                             ),
                           ],

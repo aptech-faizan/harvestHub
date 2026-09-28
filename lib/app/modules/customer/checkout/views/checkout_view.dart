@@ -92,7 +92,7 @@ class CheckoutView extends GetView<CheckoutController> {
                               .copyWith(fontWeight: FontWeight.w700),
                         ),
                         Text(
-                          'Get ₹20 off on all fresh harvest orders',
+                          'Get Rs. 20 off on all fresh harvest orders',
                           style: AppTextStyles.caption,
                         ),
                       ],
@@ -310,7 +310,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        '₹${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
+                                        'Rs. ${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
                                         style: AppTextStyles.bodyText.copyWith(
                                           color: AppColors.textSecondary,
                                           fontSize: 13,
@@ -355,7 +355,7 @@ class CheckoutView extends GetView<CheckoutController> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '₹${item.total.toStringAsFixed(0)}',
+                                      'Rs. ${item.total.toStringAsFixed(0)}',
                                       style: AppTextStyles.priceText,
                                     ),
                                   ],
@@ -493,7 +493,7 @@ class CheckoutView extends GetView<CheckoutController> {
                               children: [
                                 if (controller.couponDiscount.value > 0) ...[
                                   Text(
-                                    '-₹${controller.couponDiscount.value.toStringAsFixed(0)}',
+                                    '-Rs. ${controller.couponDiscount.value.toStringAsFixed(0)}',
                                     style: AppTextStyles.caption.copyWith(
                                       color: AppColors.success,
                                       fontWeight: FontWeight.w700,
@@ -537,7 +537,7 @@ class CheckoutView extends GetView<CheckoutController> {
                         // Subtotal row
                         _invoiceRow(
                           label: 'Items Subtotal',
-                          value: '₹${controller.grandTotal.toStringAsFixed(0)}',
+                          value: 'Rs. ${controller.grandTotal.toStringAsFixed(0)}',
                           valueStyle: AppTextStyles.priceText,
                         ),
                         const SizedBox(height: AppSpacing.s),
@@ -546,7 +546,7 @@ class CheckoutView extends GetView<CheckoutController> {
                         _invoiceRow(
                           label: 'Delivery Fee',
                           value:
-                              '+₹${controller.deliveryFee.value.toStringAsFixed(0)}',
+                              '+Rs. ${controller.deliveryFee.value.toStringAsFixed(0)}',
                           valueStyle: AppTextStyles.priceText.copyWith(
                             color: AppColors.accentOrange,
                           ),
@@ -558,7 +558,7 @@ class CheckoutView extends GetView<CheckoutController> {
                           _invoiceRow(
                             label: 'Harvest Discount',
                             value:
-                                '-₹${controller.couponDiscount.value.toStringAsFixed(0)}',
+                                '-Rs. ${controller.couponDiscount.value.toStringAsFixed(0)}',
                             valueStyle: AppTextStyles.priceText.copyWith(
                               color: AppColors.success,
                             ),
@@ -580,7 +580,7 @@ class CheckoutView extends GetView<CheckoutController> {
                               ),
                             ),
                             Text(
-                              '₹${controller.finalTotal.toStringAsFixed(0)}',
+                              'Rs. ${controller.finalTotal.toStringAsFixed(0)}',
                               style: AppTextStyles.totalPriceText,
                             ),
                           ],
@@ -615,7 +615,7 @@ class CheckoutView extends GetView<CheckoutController> {
                         children: [
                           Text('Grand Total', style: AppTextStyles.caption),
                           Text(
-                            '₹${controller.finalTotal.toStringAsFixed(0)}',
+                            'Rs. ${controller.finalTotal.toStringAsFixed(0)}',
                             style: AppTextStyles.totalPriceText,
                           ),
                         ],

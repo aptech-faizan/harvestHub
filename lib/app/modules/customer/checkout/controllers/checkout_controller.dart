@@ -55,7 +55,7 @@ class CheckoutController extends GetxController {
     if (code.trim().toUpperCase() == 'FARM20' || code.trim().toUpperCase() == 'HARVEST') {
       appliedCoupon.value = code.trim().toUpperCase();
       couponDiscount.value = 20.0;
-      AppSnackbar.success('₹20 discount applied successfully!', title: 'Coupon Applied');
+      AppSnackbar.success('Rs. 20 discount applied successfully!', title: 'Coupon Applied');
     } else {
       AppSnackbar.error('Coupon code is not valid', title: 'Invalid Coupon');
     }
