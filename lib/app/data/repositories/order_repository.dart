@@ -48,7 +48,7 @@ class OrderRepository {
     required String currentStatus,
     required String nextStatus,
   }) async {
-    if (orderId.isEmpty) throw Exception('Order nahi mila');
+    if (orderId.isEmpty) throw Exception('Order not found');
     if (!OrderStatus.all.contains(nextStatus)) {
       throw Exception('Invalid order status: $nextStatus');
     }
@@ -115,11 +115,11 @@ class OrderRepository {
           final qty = (item['qty'] as num).toInt();
           final snap = pSnaps[pid];
           if (snap == null || !snap.exists || snap.data() == null) {
-            throw Exception('$name ka stock kam hai');
+            throw Exception('Insufficient stock for $name');
           }
           final stock = (snap.data()!['stockQty'] as num).toInt();
           final needed = (pDeducts[pid] ?? 0) + qty;
-          if (stock < needed) throw Exception('$name ka stock kam hai');
+          if (stock < needed) throw Exception('Insufficient stock for $name');
           pDeducts[pid] = needed;
         }
       }
@@ -131,13 +131,13 @@ class OrderRepository {
           final sid = o.pickupSlotId;
           final snap = sSnaps[sid];
           if (snap == null || !snap.exists || snap.data() == null) {
-            throw Exception('Slot full hai');
+            throw Exception('Pickup slot is full');
           }
           // fix: null-safe cast prevents crash when old slot docs lack capacity/bookedCount
           final cap = (snap.data()!['capacity'] as num?)?.toInt() ?? 0;
           final booked = (snap.data()!['bookedCount'] as num?)?.toInt() ?? 0;
           final next = booked + (sIncrements[sid] ?? 0) + 1;
-          if (next > cap) throw Exception('Slot full hai');
+          if (next > cap) throw Exception('Pickup slot is full');
           sIncrements[sid] = (sIncrements[sid] ?? 0) + 1;
         }
       }
@@ -182,12 +182,12 @@ class OrderRepository {
 
     await _firestore.runTransaction((transaction) async {
       final oSnap = await transaction.get(orderRef);
-      if (!oSnap.exists || oSnap.data() == null) throw Exception('Order nahi mila');
+      if (!oSnap.exists || oSnap.data() == null) throw Exception('Order not found');
       final data = oSnap.data()!;
       final status = data['status'] as String? ?? '';
       if (!OrderStatus.canTransition(status, OrderStatus.cancelled) &&
           status != OrderStatus.cancelled) {
-        throw Exception('Sirf pending ya confirmed order cancel ho sakta hai');
+        throw Exception('Only pending or confirmed orders can be cancelled');
       }
 
       final slotId = (data['pickupSlotId'] ?? '') as String;
@@ -238,18 +238,18 @@ class OrderRepository {
 
     await _firestore.runTransaction((transaction) async {
       final oSnap = await transaction.get(orderRef);
-      if (!oSnap.exists || oSnap.data() == null) throw Exception('Order nahi mila');
+      if (!oSnap.exists || oSnap.data() == null) throw Exception('Order not found');
       final status = oSnap.data()!['status'] as String? ?? '';
       if (status != 'pending' && status != 'confirmed') {
-        throw Exception('Sirf pending ya confirmed order ka slot badal sakte hain');
+        throw Exception('Pickup slot can only be changed for pending or confirmed orders');
       }
 
       final oldSnap = oldSlotRef != null ? await transaction.get(oldSlotRef) : null;
       final newSnap = await transaction.get(newSlotRef);
-      if (!newSnap.exists || newSnap.data() == null) throw Exception('Naya slot nahi mila');
+      if (!newSnap.exists || newSnap.data() == null) throw Exception('New pickup slot not found');
       final cap = (newSnap.data()!['capacity'] ?? 0) as num;
       final booked = (newSnap.data()!['bookedCount'] ?? 0) as num;
-      if (booked >= cap) throw Exception('Slot full hai');
+      if (booked >= cap) throw Exception('Pickup slot is full');
 
       if (oldSlotRef != null && oldSnap != null && oldSnap.exists && oldSnap.data() != null) {
         final oldBooked = (oldSnap.data()!['bookedCount'] ?? 0) as num;

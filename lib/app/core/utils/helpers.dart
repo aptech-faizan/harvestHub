@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../widgets/app_snackbar.dart';
 
 DateTime? readDate(dynamic value) => value is Timestamp ? value.toDate() : null;
 
@@ -56,13 +57,11 @@ String money(num value) => 'Rs ${value.toStringAsFixed(2)}';
 String errorText(Object e) => e.toString().replaceFirst('Exception: ', '');
 
 void showError(String message) {
-  Get.snackbar('Error', message,
-      snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red.shade100);
+  AppSnackbar.error(message);
 }
 
 void showSuccess(String message) {
-  Get.snackbar('Done', message,
-      snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green.shade100);
+  AppSnackbar.success(message);
 }
 
 Future<bool> confirmDialog(String title, String message) async {

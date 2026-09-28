@@ -125,20 +125,18 @@ class OrdersView extends GetView<OrdersController> {
         }
       }
       if (addedCount > 0) {
-        Get.snackbar(
-          'Reorder',
+        AppSnackbar.success(
           'Added $addedCount ${addedCount == 1 ? "item" : "items"} to your cart',
-          snackPosition: SnackPosition.BOTTOM,
+          title: 'Reorder',
         );
       } else {
-        Get.snackbar(
-          'Notice',
+        AppSnackbar.warning(
           'Items from this order are currently out of stock',
-          snackPosition: SnackPosition.BOTTOM,
+          title: 'Out of Stock',
         );
       }
     } catch (e) {
-      Get.snackbar('Error', 'Could not reorder: $e');
+      AppSnackbar.error('Could not reorder: $e');
     }
   }
 

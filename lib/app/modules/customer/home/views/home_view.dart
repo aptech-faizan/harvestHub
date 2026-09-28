@@ -46,10 +46,9 @@ class HomeView extends GetView<HomeController> {
             icon: AppIcon.notification,
             tooltip: 'Notifications',
             onTap: () {
-              Get.snackbar(
-                'Notifications',
+              AppSnackbar.info(
                 'No new notifications right now.',
-                snackPosition: SnackPosition.BOTTOM,
+                title: 'Notifications',
               );
             },
           ),

@@ -8,6 +8,7 @@ import '../../../../data/repositories/category_repository.dart';
 import '../../../../data/repositories/market_repository.dart';
 import '../../../../data/repositories/product_repository.dart';
 import '../../cart/controllers/cart_controller.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 // Search results are shown either as a list or as a market map.
 enum SearchViewMode { list, map }
@@ -81,7 +82,7 @@ class ProductSearchController extends GetxController {
 
       applyFilters();
     } catch (e) {
-      Get.snackbar('Error', 'Data load nahi hua: $e');
+      AppSnackbar.error('Failed to load data: $e');
     } finally {
       isLoading.value = false;
     }
@@ -92,7 +93,7 @@ class ProductSearchController extends GetxController {
     if (km > 0) {
       final pos = await LocationHelper.getCurrentPosition();
       if (pos == null) {
-        Get.snackbar('Location Error', 'Location nahi mil saki, distance filter reset ho gaya');
+        AppSnackbar.error('Could not retrieve location. Distance filter has been reset.', title: 'Location Error');
         maxDistanceKm.value = 0;
         applyFilters();
         return;
@@ -255,7 +256,7 @@ class ProductSearchController extends GetxController {
   // Product ko cart mein add karne ka method
   void addToCart(ProductModel product) {
     if (product.stockQty <= 0) {
-      Get.snackbar('Stock khatam', '${product.itemName} out of stock hai');
+      AppSnackbar.warning('${product.itemName} is out of stock', title: 'Out of Stock');
       return;
     }
     if (Get.isRegistered<CartController>()) {

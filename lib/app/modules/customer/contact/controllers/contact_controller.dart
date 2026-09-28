@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 // Controller managing contact details, feedback form inputs, and Firestore submission
 class ContactController extends GetxController {
@@ -33,7 +34,7 @@ class ContactController extends GetxController {
     final message = messageController.text.trim();
 
     if (name.isEmpty || message.isEmpty) {
-      Get.snackbar('Required Fields', 'Please enter your name and message');
+      AppSnackbar.warning('Please enter your name and message', title: 'Required Fields');
       return;
     }
 
@@ -48,9 +49,9 @@ class ContactController extends GetxController {
       });
 
       messageController.clear();
-      Get.snackbar('Success', 'Thank you for your feedback');
+      AppSnackbar.success('Thank you for your feedback');
     } catch (e) {
-      Get.snackbar('Error', 'Failed to send feedback: $e');
+      AppSnackbar.error('Failed to send feedback: $e');
     } finally {
       isSubmitting.value = false;
     }

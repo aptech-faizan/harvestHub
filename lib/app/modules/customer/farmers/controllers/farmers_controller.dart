@@ -6,6 +6,7 @@ import '../../../../data/models/product_model.dart';
 import '../../../../data/repositories/farmer_repository.dart';
 import '../../../../data/repositories/follow_repository.dart';
 import '../../../../data/repositories/product_repository.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 // Ye farmers list, products aur follow state manage karta hai
 class FarmersController extends GetxController {
@@ -52,7 +53,7 @@ class FarmersController extends GetxController {
       final list = await FarmerRepository().getFarmers();
       farmers.assignAll(list);
     } catch (e) {
-      Get.snackbar('Error', 'Farmers load nahi ho sake: $e');
+      AppSnackbar.error('Could not load farmers: $e');
     } finally {
       isLoading.value = false;
     }
@@ -83,7 +84,7 @@ class FarmersController extends GetxController {
       } else {
         followedIds.remove(farmerId);
       }
-      Get.snackbar('Error', 'Follow nahi ho saka: $e');
+      AppSnackbar.error('Could not update follow status: $e');
     }
   }
 

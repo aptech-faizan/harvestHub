@@ -11,6 +11,7 @@ import '../../cart/controllers/cart_controller.dart';
 import '../../home/controllers/home_controller.dart';
 import '../../search/controllers/product_search_controller.dart';
 import '../../shell/controllers/customer_shell_controller.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 // Ye checkout process, slot selection aur order placement handle karta hai
 class CheckoutController extends GetxController {
@@ -53,9 +54,9 @@ class CheckoutController extends GetxController {
     if (code.trim().toUpperCase() == 'FARM20' || code.trim().toUpperCase() == 'HARVEST') {
       appliedCoupon.value = code.trim().toUpperCase();
       couponDiscount.value = 20.0;
-      Get.snackbar('Coupon Applied', '₹20 discount applied successfully!');
+      AppSnackbar.success('₹20 discount applied successfully!', title: 'Coupon Applied');
     } else {
-      Get.snackbar('Invalid Coupon', 'Coupon code is not valid');
+      AppSnackbar.error('Coupon code is not valid', title: 'Invalid Coupon');
     }
   }
 
@@ -81,7 +82,7 @@ class CheckoutController extends GetxController {
         addressController.text = '24 Green Avenue, Sector 4, Gujranwala';
       }
     } catch (e) {
-      Get.snackbar('Error', 'Data load nahi ho saka: $e');
+      AppSnackbar.error('Failed to load checkout data: $e');
     } finally {
       isLoading.value = false;
     }
@@ -90,7 +91,7 @@ class CheckoutController extends GetxController {
   // Farmer ke liye pickup slot select karta hai
   void selectSlot(String farmerId, PickupSlotModel slot) {
     if (slot.isFull) {
-      Get.snackbar('Slot Full', 'Ye slot full hai, doosra slot select karein');
+      AppSnackbar.warning('This slot is full. Please select another slot.', title: 'Slot Full');
       return;
     }
     selectedSlotId[farmerId] = slot.id;
@@ -100,12 +101,12 @@ class CheckoutController extends GetxController {
   Future<void> placeOrder() async {
     if (isPlacing.value) return;
     if (cartController.items.isEmpty) {
-      Get.snackbar('Cart Khali', 'Cart mein koi product nahi hai');
+      AppSnackbar.warning('Your cart is empty', title: 'Empty Cart');
       return;
     }
     final address = addressController.text.trim();
     if (address.isEmpty) {
-      Get.snackbar('Address Missing', 'Delivery address likhna zaroori hai');
+      AppSnackbar.warning('Delivery address is required', title: 'Address Missing');
       return;
     }
     final grouped = cartController.groupedByFarmer;
@@ -114,13 +115,13 @@ class CheckoutController extends GetxController {
       // Only require slot if the farmer has slots configured
       if (availableSlots.isNotEmpty &&
           (!selectedSlotId.containsKey(farmerId) || selectedSlotId[farmerId]!.isEmpty)) {
-        Get.snackbar('Slot Missing', 'Har farmer ka pickup slot select karein');
+        AppSnackbar.warning('Please select a pickup slot for each farmer', title: 'Slot Missing');
         return;
       }
     }
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      Get.snackbar('Auth Error', 'Pehle login karein');
+      AppSnackbar.error('Please sign in to continue', title: 'Authentication Required');
       return;
     }
 
@@ -164,14 +165,14 @@ class CheckoutController extends GetxController {
       cartController.clear();
       if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadData();
       if (Get.isRegistered<ProductSearchController>()) Get.find<ProductSearchController>().loadData();
-      Get.snackbar('Order Placed', 'Your order was successfully placed!');
+      AppSnackbar.success('Your order was successfully placed!', title: 'Order Placed');
       Get.back();
       if (Get.isRegistered<CustomerShellController>()) {
         Get.find<CustomerShellController>().changeTab(3);
       }
     } catch (e) {
       final msg = e.toString().replaceFirst('Exception: ', '');
-      Get.snackbar('Order Fail', msg);
+      AppSnackbar.error(msg, title: 'Order Failed');
     } finally {
       isPlacing.value = false;
     }
