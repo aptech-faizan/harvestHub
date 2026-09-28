@@ -68,7 +68,7 @@ class AppAssistantFab extends StatelessWidget {
 }
 
 /// Custom FAB location for Harvey:
-/// Positions the button at bottom-LEFT with 16px left margin and 16px above
+/// Positions the button at bottom-RIGHT (endFloat) with 16px right margin and 16px above
 /// the bottom navigation bar (with clearance for pinned checkout bar on Cart).
 class AppAssistantFabLocation extends FloatingActionButtonLocation {
   final bool hasPinnedBottomBar;
@@ -77,7 +77,8 @@ class AppAssistantFabLocation extends FloatingActionButtonLocation {
 
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    const double fabX = 16.0;
+    final double fabWidth = scaffoldGeometry.floatingActionButtonSize.width;
+    final double fabX = scaffoldGeometry.scaffoldSize.width - fabWidth - 16.0;
     final double contentBottom = scaffoldGeometry.contentBottom;
     final double fabHeight = scaffoldGeometry.floatingActionButtonSize.height;
     final double extraOffset = hasPinnedBottomBar ? 88.0 : 0.0;

@@ -54,7 +54,8 @@ Widget productImage(String url, {double size = 56}) {
     width: size,
     height: size,
     fit: BoxFit.cover,
-    errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, size: size),
+    errorBuilder: (context, error, stackTrace) =>
+        Icon(Icons.broken_image, size: size),
   );
 }
 
@@ -101,10 +102,14 @@ class ProductsView extends GetView<ProductsController> {
               AppSpacing.m,
             ),
             child: Obx(() {
-              final names = ['All', ...controller.categories.map((c) => c.name)];
-              final effectiveCat = names.contains(controller.categoryFilter.value)
-                  ? controller.categoryFilter.value
-                  : 'All';
+              final names = [
+                'All',
+                ...controller.categories.map((c) => c.name)
+              ];
+              final effectiveCat =
+                  names.contains(controller.categoryFilter.value)
+                      ? controller.categoryFilter.value
+                      : 'All';
               return Column(
                 children: [
                   // Search
@@ -155,25 +160,27 @@ class ProductsView extends GetView<ProductsController> {
               AppSpacing.m,
             ),
             child: Obx(() => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _kStatusFilters.map((s) {
-                  final isSelected = _productsStatusFilter.value == s;
-                  final style = _statusStyle(s);
-                  return Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.s),
-                    child: AppChip.pill(
-                      label: s,
-                      iconData: style.icon,
-                      backgroundColor: isSelected ? style.bg : AppColors.surfaceMuted,
-                      textColor: isSelected ? style.text : AppColors.textSecondary,
-                      isSelected: isSelected,
-                      onTap: () => _productsStatusFilter.value = s,
-                    ),
-                  );
-                }).toList(),
-              ),
-            )),
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _kStatusFilters.map((s) {
+                      final isSelected = _productsStatusFilter.value == s;
+                      final style = _statusStyle(s);
+                      return Padding(
+                        padding: const EdgeInsets.only(right: AppSpacing.s),
+                        child: AppChip.pill(
+                          label: s,
+                          iconData: style.icon,
+                          backgroundColor:
+                              isSelected ? style.bg : AppColors.surfaceMuted,
+                          textColor:
+                              isSelected ? style.text : AppColors.textSecondary,
+                          isSelected: isSelected,
+                          onTap: () => _productsStatusFilter.value = s,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                )),
           ),
 
           const Divider(height: 1, color: AppColors.divider),
@@ -200,8 +207,9 @@ class ProductsView extends GetView<ProductsController> {
                   AppSpacing.xl,
                 ),
                 itemCount: list.length,
-                separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.m),
-                itemBuilder: (_, i) => _ProductOversightRow(
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.m),
+                itemBuilder: (_, i) => _AdminProductCard(
                   product: list[i],
                   farmerName: controller.farmerName(list[i].farmerId),
                   statusFilter: _productsStatusFilter.value,
@@ -223,7 +231,8 @@ class ProductsView extends GetView<ProductsController> {
       builder: (ctx) => Container(
         decoration: const BoxDecoration(
           color: AppColors.surfaceWhite,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
         ),
         padding: const EdgeInsets.all(AppSpacing.l),
         child: Column(
@@ -248,20 +257,22 @@ class ProductsView extends GetView<ProductsController> {
               runSpacing: AppSpacing.s,
               children: names.map((n) {
                 return Obx(() => AppChip.pill(
-                  label: n,
-                  backgroundColor: controller.categoryFilter.value == n
-                      ? AppColors.chipHerbsBg
-                      : AppColors.surfaceMuted,
-                  textColor: controller.categoryFilter.value == n
-                      ? AppColors.primaryDark
-                      : AppColors.textSecondary,
-                  isSelected: controller.categoryFilter.value == n,
-                  iconData: n == 'All' ? Icons.grid_view_rounded : AppChip.getCategoryIcon(n),
-                  onTap: () {
-                    controller.categoryFilter.value = n;
-                    Navigator.of(ctx).pop();
-                  },
-                ));
+                      label: n,
+                      backgroundColor: controller.categoryFilter.value == n
+                          ? AppColors.chipHerbsBg
+                          : AppColors.surfaceMuted,
+                      textColor: controller.categoryFilter.value == n
+                          ? AppColors.primaryDark
+                          : AppColors.textSecondary,
+                      isSelected: controller.categoryFilter.value == n,
+                      iconData: n == 'All'
+                          ? Icons.grid_view_rounded
+                          : AppChip.getCategoryIcon(n),
+                      onTap: () {
+                        controller.categoryFilter.value = n;
+                        Navigator.of(ctx).pop();
+                      },
+                    ));
               }).toList(),
             ),
             const SizedBox(height: AppSpacing.l),
@@ -286,14 +297,18 @@ class ProductsView extends GetView<ProductsController> {
                 color: AppColors.chipHerbsBg,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.inventory_2_outlined, size: 40, color: AppColors.primaryDark),
+              child: const Icon(Icons.inventory_2_outlined,
+                  size: 40, color: AppColors.primaryDark),
             ),
             const SizedBox(height: AppSpacing.l),
-            Text('No products found', style: AppTextStyles.sectionHeading, textAlign: TextAlign.center),
+            Text('No products found',
+                style: AppTextStyles.sectionHeading,
+                textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.s),
             Text(
               'Try adjusting your search or filter.',
-              style: AppTextStyles.bodyText.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyText
+                  .copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -310,15 +325,20 @@ class ProductsView extends GetView<ProductsController> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off_rounded, size: 48, color: AppColors.textSecondary),
+            const Icon(Icons.wifi_off_rounded,
+                size: 48, color: AppColors.textSecondary),
             const SizedBox(height: AppSpacing.m),
             Text(
               controller.error.value,
-              style: AppTextStyles.bodyText.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyText
+                  .copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.l),
-            AppButton.small(label: 'Retry', icon: Icons.refresh, onPressed: controller.load),
+            AppButton.small(
+                label: 'Retry',
+                icon: Icons.refresh,
+                onPressed: controller.load),
           ],
         ),
       ),
@@ -326,14 +346,14 @@ class ProductsView extends GetView<ProductsController> {
   }
 }
 
-// ── Product Oversight Row ─────────────────────────────────────────────────────
-class _ProductOversightRow extends StatelessWidget {
+// ── Admin Product Card ───────────────────────────────────────────────────────
+class _AdminProductCard extends StatelessWidget {
   final ProductModel product;
   final String farmerName;
   final String statusFilter;
   final VoidCallback onView;
 
-  const _ProductOversightRow({
+  const _AdminProductCard({
     required this.product,
     required this.farmerName,
     required this.statusFilter,
@@ -348,7 +368,8 @@ class _ProductOversightRow extends StatelessWidget {
     final style = _statusStyle(_displayStatus);
 
     return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.m),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.m, vertical: 10),
       onTap: onView,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,90 +396,112 @@ class _ProductOversightRow extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.m),
 
-              // Name, farmer, category chip
+              // Right-side content column (Title, Farmer name, Price, Badges)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      product.itemName,
-                      style: AppTextStyles.cardTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    // Title and Price row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            product.itemName,
+                            style:
+                                AppTextStyles.cardTitle.copyWith(height: 1.25),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.s),
+                        Text(
+                          money(product.pricePerUnit),
+                          style: AppTextStyles.priceText,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        const Icon(Icons.person_outline, size: 13, color: AppColors.textSecondary),
+                        const Icon(Icons.person_outline,
+                            size: 13, color: AppColors.textSecondary),
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(
                             farmerName,
-                            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                            style: AppTextStyles.caption
+                                .copyWith(color: AppColors.textSecondary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.s),
-                    Wrap(
-                      spacing: AppSpacing.xs,
-                      children: [
-                        if (product.category.isNotEmpty)
+                    const SizedBox(height: 6),
+                    // Horizontal Badges side-by-side — wrapped in a
+                    // horizontal scroll view so long category/status labels
+                    // (e.g. "Herbs & Spices") never overflow the card width.
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (product.category.isNotEmpty) ...[
+                            AppChip.pill(
+                              label: product.category,
+                              backgroundColor: AppChip.getCategoryBgColor(
+                                  product.category),
+                              textColor: AppColors.primaryDark,
+                              iconData:
+                                  AppChip.getCategoryIcon(product.category),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                           AppChip.pill(
-                            label: product.category,
-                            backgroundColor: AppChip.getCategoryBgColor(product.category),
-                            textColor: AppColors.primaryDark,
-                            iconData: AppChip.getCategoryIcon(product.category),
+                            label: _displayStatus,
+                            backgroundColor: style.bg,
+                            textColor: style.text,
+                            iconData: style.icon,
                           ),
-                        AppChip.pill(
-                          label: _displayStatus,
-                          backgroundColor: style.bg,
-                          textColor: style.text,
-                          iconData: style.icon,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
-                ),
-              ),
-
-              // Price (top-right)
-              Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.s),
-                child: Text(
-                  money(product.pricePerUnit),
-                  style: AppTextStyles.priceText,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: AppSpacing.m),
+          const SizedBox(height: 10),
           const Divider(color: AppColors.divider, height: 1),
-          const SizedBox(height: AppSpacing.s),
+          const SizedBox(height: 8),
 
           // ── Action Row ──────────────────────────────────────────────────────
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Stock badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: product.stockQty > 0 ? AppColors.chipHerbsBg : const Color(0xFFFFEBEE),
+                  color: product.stockQty > 0
+                      ? AppColors.chipHerbsBg
+                      : const Color(0xFFFFEBEE),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  product.stockQty > 0 ? 'Stock: ${product.stockQty}' : 'Out of stock',
+                  product.stockQty > 0
+                      ? 'Stock: ${product.stockQty}'
+                      : 'Out of stock',
                   style: AppTextStyles.caption.copyWith(
-                    color: product.stockQty > 0 ? AppColors.primaryDark : AppColors.accentRed,
+                    color: product.stockQty > 0
+                        ? AppColors.primaryDark
+                        : AppColors.accentRed,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-
-              const Spacer(),
 
               // Moderation actions — UI only, logic untouched
               AppTextButton(
@@ -467,14 +510,12 @@ class _ProductOversightRow extends StatelessWidget {
                 color: AppColors.primaryDark,
                 onPressed: () {},
               ),
-              const SizedBox(width: AppSpacing.s),
               AppTextButton(
                 label: 'Reject',
                 leadingIcon: Icons.cancel_outlined,
                 color: AppColors.accentRed,
                 onPressed: () {},
               ),
-              const SizedBox(width: AppSpacing.s),
               AppTextButton(
                 label: 'View',
                 leadingIcon: Icons.open_in_new_rounded,
@@ -488,10 +529,10 @@ class _ProductOversightRow extends StatelessWidget {
   }
 
   Widget _placeholder() => Center(
-    child: Icon(
-      Icons.eco_outlined,
-      size: 28,
-      color: AppColors.primary.withValues(alpha: 0.35),
-    ),
-  );
+        child: Icon(
+          Icons.eco_outlined,
+          size: 28,
+          color: AppColors.primary.withValues(alpha: 0.35),
+        ),
+      );
 }
