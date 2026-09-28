@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/constants/app_constants.dart';
+import 'package:harvest_hub/app/core/theme/app_colors.dart';
+import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/widgets/app_app_bar.dart';
+import 'package:harvest_hub/app/core/widgets/app_button.dart';
+import 'package:harvest_hub/app/core/widgets/app_card.dart';
+import 'package:harvest_hub/app/core/widgets/app_chip.dart';
+import 'package:harvest_hub/app/core/widgets/app_section_header.dart';
+import 'package:harvest_hub/app/core/widgets/app_stat_card.dart';
+import 'package:harvest_hub/app/data/models/order_model.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/controllers/farmer_dashboard_controller.dart';
+import 'package:harvest_hub/app/modules/farmer/orders/controllers/farmer_orders_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 
 /// Main navigation shell and overview for authenticated Farmer users.
@@ -11,11 +22,41 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Farmer Dashboard'),
+      backgroundColor: AppColors.surfaceMuted,
+      appBar: AppAppBar(
+        title: Obx(() {
+          final name = controller.businessName.value.isNotEmpty
+              ? controller.businessName.value
+              : 'My Farm';
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Welcome back 👋',
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          );
+        }),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
             tooltip: 'Logout',
             onPressed: () async {
               if (await confirmDialog('Logout', 'Do you want to log out?')) {
@@ -34,175 +75,390 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
           onRefresh: controller.loadFarmerData,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.l,
+              vertical: AppSpacing.m,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Farmer Business Card
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Colors.green,
-                          child: Icon(Icons.agriculture, color: Colors.white, size: 30),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                controller.businessName.value.isNotEmpty
-                                    ? controller.businessName.value
-                                    : 'Farmer Account',
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.star, size: 16, color: Colors.amber),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    controller.rating.value.toStringAsFixed(1),
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text('• Verified Farmer',
-                                      style: TextStyle(color: Colors.green, fontSize: 12)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Overview',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                // Overview metrics
+                // ── Stat Cards Row ──────────────────────────────────────
                 Row(
                   children: [
                     Expanded(
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.inventory_2, color: Colors.green),
-                              const SizedBox(height: 8),
-                              const Text('My Products', style: TextStyle(color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${controller.productCount.value}',
-                                style: const TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
+                      child: AppStatCard(
+                        title: 'My Products',
+                        value: '${controller.productCount.value}',
+                        icon: Icons.inventory_2_rounded,
+                        iconColor: AppColors.primaryDark,
+                        iconBgColor: AppColors.chipHerbsBg,
+                        onTap: () => Get.toNamed(Routes.farmerProducts),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.m),
                     Expanded(
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.receipt_long, color: Colors.orange),
-                              const SizedBox(height: 8),
-                              const Text('Active Orders', style: TextStyle(color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${controller.orderCount.value}',
-                                style: const TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
+                      child: AppStatCard(
+                        title: 'Active Orders',
+                        value: '${controller.orderCount.value}',
+                        icon: Icons.receipt_long_rounded,
+                        iconColor: AppColors.accentOrange,
+                        iconBgColor: const Color(0xFFFFF3E0),
+                        onTap: () => Get.toNamed(Routes.farmerOrders),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Farmer Modules',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+                const SizedBox(height: AppSpacing.l),
+
+                // ── Pending Orders Section ──────────────────────────────
+                AppSectionHeader(
+                  title: 'Pending Orders',
+                  actionTitle: 'View All',
+                  onActionTap: () => Get.toNamed(Routes.farmerOrders),
                 ),
-                const SizedBox(height: 12),
-                // Farmer section tiles matching existing directory placeholders
-                ListTile(
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Manage Products'),
-                  subtitle: const Text('Add, update and remove products'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(Routes.farmerProducts),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.warehouse_outlined),
-                  title: const Text('Inventory'),
-                  subtitle: const Text('Stock levels and zero-stock handling'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(Routes.farmerInventory),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.receipt_long_outlined),
-                  title: const Text('Orders'),
-                  subtitle: const Text('Track and update order status'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(Routes.farmerOrders),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.chat_bubble_outline),
-                  title: const Text('Chats'),
-                  subtitle: const Text('Messages from your customers'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(Routes.chatInbox),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.schedule_outlined),
-                  title: const Text('Pickup Slots'),
-                  subtitle: const Text('Manage pickup time slots'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(Routes.farmerSlots),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.bar_chart_outlined),
-                  title: const Text('Reports & Analytics'),
-                  subtitle: const Text('Sales summaries and performance'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(Routes.farmerReports),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.person_outline),
-                  title: const Text('Farmer Profile'),
-                  subtitle: const Text('Update farm details and market'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Get.toNamed(Routes.farmerProfile),
-                ),
+                const SizedBox(height: AppSpacing.s),
+
+                _PendingOrdersList(),
+
+                const SizedBox(height: AppSpacing.l),
+
+                // ── Quick Links ─────────────────────────────────────────
+                const AppSectionHeader(title: 'Farmer Modules'),
+                const SizedBox(height: AppSpacing.s),
+
+                _QuickLinksGrid(),
+
+                const SizedBox(height: AppSpacing.xl),
               ],
             ),
           ),
         );
       }),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pending Orders List (reads from FarmerOrdersController if registered)
+// ---------------------------------------------------------------------------
+class _PendingOrdersList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Lazily find the orders controller if it is already registered; if not,
+    // show a prompt so we don't duplicate Firestore fetches.
+    if (!Get.isRegistered<FarmerOrdersController>()) {
+      return _EmptyOrdersCard();
+    }
+
+    final ordersCtrl = Get.find<FarmerOrdersController>();
+
+    return Obx(() {
+      if (ordersCtrl.isLoading.value) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(AppSpacing.l),
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      final pending = ordersCtrl.orders
+          .where((o) => o.status == OrderStatus.pending)
+          .take(5)
+          .toList();
+
+      if (pending.isEmpty) {
+        return AppCard.list(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.m),
+              child: Center(
+                child: const Text(
+                  'No pending orders – all caught up! 🎉',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
+      return Column(
+        children: [
+          for (int i = 0; i < pending.length; i++) ...[
+            _PendingOrderRow(
+              order: pending[i],
+              ordersCtrl: ordersCtrl,
+            ),
+            if (i < pending.length - 1) const SizedBox(height: AppSpacing.s),
+          ],
+        ],
+      );
+    });
+  }
+}
+
+class _EmptyOrdersCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AppCard.list(
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.receipt_long_rounded,
+                size: 20, color: AppColors.textSecondary),
+            const SizedBox(width: AppSpacing.s),
+            const Expanded(
+              child: Text(
+                'Open Orders to see pending items.',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            AppTextButton(
+              label: 'View Orders',
+              onPressed: () => Get.toNamed(Routes.farmerOrders),
+              trailingIcon: Icons.arrow_forward_ios_rounded,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _PendingOrderRow extends StatelessWidget {
+  final OrderModel order;
+  final FarmerOrdersController ordersCtrl;
+
+  const _PendingOrderRow({
+    required this.order,
+    required this.ordersCtrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final customerLabel = ordersCtrl.customerName(order.customerId);
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.m),
+      onTap: () => ordersCtrl.openDetails(order),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Order icon avatar
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.shopping_bag_rounded,
+              size: 22,
+              color: AppColors.accentOrange,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.m),
+
+          // Order info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  customerLabel,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      money(order.totalPrice),
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('•',
+                        style: TextStyle(color: AppColors.textSecondary)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        order.pickupSlotTime.isNotEmpty
+                            ? order.pickupSlotTime
+                            : formatDate(order.createdAt),
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.s),
+
+          // Status chip + Confirm button
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              AppChip.status(status: order.status),
+              const SizedBox(height: 6),
+              AppButton.small(
+                label: 'Confirm',
+                icon: Icons.check_rounded,
+                onPressed: () =>
+                    ordersCtrl.updateStatus(order, OrderStatus.confirmed),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Quick Links Grid
+// ---------------------------------------------------------------------------
+class _QuickLinksGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final links = [
+      _QuickLinkItem(
+        icon: Icons.inventory_2_rounded,
+        label: 'Products',
+        bg: AppColors.chipHerbsBg,
+        iconColor: AppColors.primaryDark,
+        route: Routes.farmerProducts,
+      ),
+      _QuickLinkItem(
+        icon: Icons.warehouse_rounded,
+        label: 'Inventory',
+        bg: const Color(0xFFF0E4C8),
+        iconColor: const Color(0xFF795548),
+        route: Routes.farmerInventory,
+      ),
+      _QuickLinkItem(
+        icon: Icons.schedule_rounded,
+        label: 'Pickup Slots',
+        bg: const Color(0xFFE3F2FD),
+        iconColor: const Color(0xFF1565C0),
+        route: Routes.farmerSlots,
+      ),
+      _QuickLinkItem(
+        icon: Icons.receipt_long_rounded,
+        label: 'Orders',
+        bg: const Color(0xFFFFF3E0),
+        iconColor: AppColors.accentOrange,
+        route: Routes.farmerOrders,
+      ),
+      _QuickLinkItem(
+        icon: Icons.bar_chart_rounded,
+        label: 'Reports',
+        bg: const Color(0xFFFCE4EC),
+        iconColor: const Color(0xFFAD1457),
+        route: Routes.farmerReports,
+      ),
+      _QuickLinkItem(
+        icon: Icons.person_rounded,
+        label: 'Profile',
+        bg: const Color(0xFFEDE7F6),
+        iconColor: const Color(0xFF4527A0),
+        route: Routes.farmerProfile,
+      ),
+    ];
+
+    return GridView.count(
+      crossAxisCount: 3,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: AppSpacing.m,
+      mainAxisSpacing: AppSpacing.m,
+      childAspectRatio: 1.0,
+      children: links.map((item) => _QuickLinkTile(item: item)).toList(),
+    );
+  }
+}
+
+class _QuickLinkItem {
+  final IconData icon;
+  final String label;
+  final Color bg;
+  final Color iconColor;
+  final String route;
+
+  const _QuickLinkItem({
+    required this.icon,
+    required this.label,
+    required this.bg,
+    required this.iconColor,
+    required this.route,
+  });
+}
+
+class _QuickLinkTile extends StatelessWidget {
+  final _QuickLinkItem item;
+
+  const _QuickLinkTile({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.m),
+      onTap: () => Get.toNamed(item.route),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: item.bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(item.icon, size: 24, color: item.iconColor),
+          ),
+          const SizedBox(height: AppSpacing.s),
+          Text(
+            item.label,
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }
