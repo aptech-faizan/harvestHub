@@ -18,6 +18,106 @@ import 'package:harvest_hub/app/routes/app_routes.dart';
 class DashboardView extends GetView<DashboardController> {
   const DashboardView({super.key});
 
+  String _formatToday() {
+    final now = DateTime.now();
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    const weekdays = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+    ];
+    return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}, ${now.year}';
+  }
+
+  Widget _platformSalesHeroCard({
+    required num revenue,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.cardRadius,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryDark,
+            AppColors.primaryButton,
+          ],
+        ),
+        boxShadow: AppRadius.cardElevation,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.cardRadius,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.cardRadius,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.l),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Platform Sales',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      width: 40.0,
+                      height: 40.0,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.20),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: const Icon(
+                        Icons.payments_rounded,
+                        size: 22.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.s),
+                Text(
+                  money(revenue),
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2.0),
+                Text(
+                  'excluding cancelled orders',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withValues(alpha: 0.80),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _quickShortcut({
     required String title,
     required IconData icon,
@@ -26,8 +126,9 @@ class DashboardView extends GetView<DashboardController> {
     required VoidCallback onTap,
   }) {
     return Container(
-      width: 90.0,
-      margin: const EdgeInsets.only(right: AppSpacing.m),
+      width: 88.0,
+      height: 88.0,
+      margin: const EdgeInsets.only(right: AppSpacing.gridHorizontalGutter),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         borderRadius: AppRadius.cardRadius,
@@ -42,18 +143,18 @@ class DashboardView extends GetView<DashboardController> {
           borderRadius: AppRadius.cardRadius,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              vertical: AppSpacing.m,
-              horizontal: AppSpacing.s,
+              vertical: AppSpacing.s,
+              horizontal: 6.0,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 42.0,
-                  height: 42.0,
+                  width: 40.0,
+                  height: 40.0,
                   decoration: BoxDecoration(
                     color: color,
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: Icon(
                     icon,
@@ -61,7 +162,7 @@ class DashboardView extends GetView<DashboardController> {
                     color: iconColor,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.s),
+                const SizedBox(height: 6.0),
                 Text(
                   title,
                   style: AppTextStyles.caption.copyWith(
@@ -84,11 +185,29 @@ class DashboardView extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceWhite,
+      drawerScrimColor: Colors.black.withValues(alpha: 0.35),
       appBar: AppAppBar(
         titleText: 'Admin Dashboard',
+        leadingWidth: 56.0,
+        leading: Builder(
+          builder: (ctx) => Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.l),
+            child: AppIconButton(
+              icon: Icons.menu_rounded,
+              iconColor: AppColors.primaryDark,
+              backgroundColor: AppColors.surfaceMuted,
+              size: 40.0,
+              tooltip: 'Menu',
+              onTap: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+        ),
         actions: [
           AppIconButton(
             icon: Icons.refresh_rounded,
+            iconColor: AppColors.primaryDark,
+            backgroundColor: AppColors.surfaceMuted,
+            size: 40.0,
             tooltip: 'Refresh',
             onTap: controller.load,
           ),
@@ -150,105 +269,119 @@ class DashboardView extends GetView<DashboardController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Hero Revenue Stat Card
-                AppStatCard(
-                  title: 'Platform Sales (excluding cancelled orders)',
-                  value: money(controller.revenue.value),
-                  trend: '+18.4%',
-                  isPositiveTrend: true,
-                  icon: Icons.payments_rounded,
-                  iconColor: AppColors.primaryDark,
-                  iconBgColor: AppColors.chipHerbsBg,
+                // 1. Greeting & Date from Device
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppText.sectionHeading(
+                      'Welcome back',
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    const SizedBox(height: 2.0),
+                    AppText.caption(
+                      _formatToday(),
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: AppSpacing.l),
+
+                // 2. Hero Platform Sales Card with Primary Gradient
+                _platformSalesHeroCard(
+                  revenue: controller.revenue.value,
                   onTap: () => Get.toNamed(Routes.reports),
                 ),
 
                 const SizedBox(height: AppSpacing.m),
 
-                // 2. Platform Stats Grid (2-column AppStatCards)
-                GridView.count(
-                  crossAxisCount: 2,
+                // 3. Platform Stats Grid (2-column AppStatCards with 12px gutters)
+                GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12
-                  mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16
-                  childAspectRatio: 1.25,
-                  children: [
-                    AppStatCard(
-                      title: 'Total Orders',
-                      value: '${controller.totalOrders.value}',
-                      trend: '+12%',
-                      isPositiveTrend: true,
-                      icon: Icons.receipt_long_rounded,
-                      iconColor: const Color(0xFF1565C0),
-                      iconBgColor: const Color(0xFFE3F2FD),
-                      onTap: () => Get.toNamed(Routes.orders),
-                    ),
-                    AppStatCard(
-                      title: 'Active Customers',
-                      value: '${controller.customers.value}',
-                      trend: '+8%',
-                      isPositiveTrend: true,
-                      icon: Icons.people_rounded,
-                      iconColor: const Color(0xFFE65100),
-                      iconBgColor: AppColors.chipFruitsBg,
-                      onTap: () => Get.toNamed(Routes.customers),
-                    ),
-                    AppStatCard(
-                      title: 'Verified Farmers',
-                      value: '${controller.farmers.value}',
-                      trend: '+5%',
-                      isPositiveTrend: true,
-                      icon: Icons.agriculture_rounded,
-                      iconColor: const Color(0xFF5D4037),
-                      iconBgColor: AppColors.chipGrainsBg,
-                      onTap: () => Get.toNamed(Routes.farmers),
-                    ),
-                    AppStatCard(
-                      title: 'Listed Produce',
-                      value: '${controller.products.value}',
-                      trend: 'Active',
-                      isPositiveTrend: true,
-                      icon: Icons.inventory_2_rounded,
-                      iconColor: AppColors.primaryDark,
-                      iconBgColor: AppColors.chipHerbsBg,
-                      onTap: () => Get.toNamed(Routes.products),
-                    ),
-                    AppStatCard(
-                      title: 'Partner Markets',
-                      value: '${controller.markets.value}',
-                      trend: 'Hubs',
-                      isPositiveTrend: true,
-                      icon: Icons.storefront_rounded,
-                      iconColor: const Color(0xFF4527A0),
-                      iconBgColor: const Color(0xFFEDE7F6),
-                      onTap: () => Get.toNamed(Routes.markets),
-                    ),
-                    AppStatCard(
-                      title: 'Categories',
-                      value: '${controller.categories.value}',
-                      trend: 'Live',
-                      isPositiveTrend: true,
-                      icon: Icons.category_rounded,
-                      iconColor: const Color(0xFF00695C),
-                      iconBgColor: const Color(0xFFE0F2F1),
-                      onTap: () => Get.toNamed(Routes.categories),
-                    ),
-                  ],
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12
+                    mainAxisSpacing: AppSpacing.gridHorizontalGutter,   // 12
+                    mainAxisExtent: 156, // fixed height with spare height for font scale
+                  ),
+                  itemCount: 6,
+                  itemBuilder: (context, index) {
+                    switch (index) {
+                      case 0:
+                        return AppStatCard(
+                          title: 'Total Orders',
+                          value: '${controller.totalOrders.value}',
+                          icon: Icons.receipt_long_rounded,
+                          iconColor: const Color(0xFF1565C0),
+                          iconBgColor: const Color(0xFFE3F2FD),
+                          onTap: () => Get.toNamed(Routes.orders),
+                        );
+                      case 1:
+                        return AppStatCard(
+                          title: 'Active Customers',
+                          value: '${controller.customers.value}',
+                          icon: Icons.people_rounded,
+                          iconColor: const Color(0xFFE65100),
+                          iconBgColor: AppColors.chipFruitsBg,
+                          onTap: () => Get.toNamed(Routes.customers),
+                        );
+                      case 2:
+                        return AppStatCard(
+                          title: 'Verified Farmers',
+                          value: '${controller.farmers.value}',
+                          icon: Icons.agriculture_rounded,
+                          iconColor: const Color(0xFF5D4037),
+                          iconBgColor: AppColors.chipGrainsBg,
+                          onTap: () => Get.toNamed(Routes.farmers),
+                        );
+                      case 3:
+                        return AppStatCard(
+                          title: 'Listed Produce',
+                          value: '${controller.products.value}',
+                          icon: Icons.inventory_2_rounded,
+                          iconColor: AppColors.primaryDark,
+                          iconBgColor: AppColors.chipHerbsBg,
+                          onTap: () => Get.toNamed(Routes.products),
+                        );
+                      case 4:
+                        return AppStatCard(
+                          title: 'Partner Markets',
+                          value: '${controller.markets.value}',
+                          icon: Icons.storefront_rounded,
+                          iconColor: const Color(0xFF4527A0),
+                          iconBgColor: const Color(0xFFEDE7F6),
+                          onTap: () => Get.toNamed(Routes.markets),
+                        );
+                      case 5:
+                      default:
+                        return AppStatCard(
+                          title: 'Categories',
+                          value: '${controller.categories.value}',
+                          icon: Icons.category_rounded,
+                          iconColor: const Color(0xFF00695C),
+                          iconBgColor: const Color(0xFFE0F2F1),
+                          onTap: () => Get.toNamed(Routes.categories),
+                        );
+                    }
+                  },
                 ),
 
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xxl), // 24px between sections
 
-                // 3. Quick-Link Row with AppSectionHeader
+                // 4. Quick Management Section
                 AppSectionHeader(
                   title: 'Quick Management',
                   actionTitle: 'All Reports',
                   onActionTap: () => Get.toNamed(Routes.reports),
                 ),
-                const SizedBox(height: AppSpacing.s),
+                const SizedBox(height: AppSpacing.m), // 12px between header and content
                 SizedBox(
-                  height: 104.0,
+                  height: 92.0,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
+                    clipBehavior: Clip.none,
                     children: [
                       _quickShortcut(
                         title: 'Categories',
@@ -296,33 +429,50 @@ class DashboardView extends GetView<DashboardController> {
                   ),
                 ),
 
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xxl), // 24px between sections
 
-                // 4. Recent Activity: Recent Orders Section
+                // 5. Recent Activity: Recent Orders Section
                 AppSectionHeader(
                   title: 'Recent Orders',
                   actionTitle: 'View All',
                   onActionTap: () => Get.toNamed(Routes.orders),
                 ),
-                const SizedBox(height: AppSpacing.s),
-                AppCard.list(
-                  padding: const EdgeInsets.all(AppSpacing.l),
-                  children: [
-                    if (controller.recentOrders.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.l,
-                        ),
-                        child: Center(
-                          child: Text(
-                            'No recent orders yet',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                const SizedBox(height: AppSpacing.m), // 12px between header and content
+                if (controller.recentOrders.isEmpty)
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xxl,
+                      horizontal: AppSpacing.l,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const AppIcon(
+                            Icons.receipt_long_outlined,
+                            size: 32.0,
+                            color: AppColors.textDisabled,
                           ),
-                        ),
-                      )
-                    else
+                          const SizedBox(height: AppSpacing.s),
+                          const AppText.cardTitle(
+                            'No recent orders yet',
+                            color: AppColors.textSecondary,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 2.0),
+                          const AppText.caption(
+                            'New customer orders will appear here automatically',
+                            color: AppColors.textDisabled,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  AppCard.list(
+                    padding: const EdgeInsets.all(AppSpacing.l),
+                    children: [
                       ...controller.recentOrders.map((o) {
                         final isLast = controller.recentOrders.last == o;
                         final customerName =
@@ -389,36 +539,53 @@ class DashboardView extends GetView<DashboardController> {
                           ],
                         );
                       }),
-                  ],
-                ),
+                    ],
+                  ),
 
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xxl), // 24px between sections
 
-                // 5. Most Active Farmers Section
+                // 6. Most Active Farmers Section
                 AppSectionHeader(
                   title: 'Most Active Farmers',
                   actionTitle: 'View All',
                   onActionTap: () => Get.toNamed(Routes.farmers),
                 ),
-                const SizedBox(height: AppSpacing.s),
-                AppCard.list(
-                  padding: const EdgeInsets.all(AppSpacing.l),
-                  children: [
-                    if (controller.topFarmers.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.l,
-                        ),
-                        child: Center(
-                          child: Text(
-                            'No active farmer activity recorded yet',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                const SizedBox(height: AppSpacing.m), // 12px between header and content
+                if (controller.topFarmers.isEmpty)
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xxl,
+                      horizontal: AppSpacing.l,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const AppIcon(
+                            Icons.agriculture_outlined,
+                            size: 32.0,
+                            color: AppColors.textDisabled,
                           ),
-                        ),
-                      )
-                    else
+                          const SizedBox(height: AppSpacing.s),
+                          const AppText.cardTitle(
+                            'No active farmer activity recorded yet',
+                            color: AppColors.textSecondary,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 2.0),
+                          const AppText.caption(
+                            'Farmer fulfilled orders will be ranked here',
+                            color: AppColors.textDisabled,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  AppCard.list(
+                    padding: const EdgeInsets.all(AppSpacing.l),
+                    children: [
                       ...controller.topFarmers.map((f) {
                         final isLast = controller.topFarmers.last == f;
                         return Column(
@@ -489,8 +656,8 @@ class DashboardView extends GetView<DashboardController> {
                           ],
                         );
                       }),
-                  ],
-                ),
+                    ],
+                  ),
 
                 const SizedBox(height: AppSpacing.xxl),
               ],

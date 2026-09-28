@@ -8,6 +8,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? titleText;
   final bool isLogo;
   final Widget? leading;
+  final double? leadingWidth;
   final List<Widget>? actions;
   final Color backgroundColor;
   final double elevation;
@@ -19,6 +20,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.titleText,
     this.isLogo = false,
     this.leading,
+    this.leadingWidth,
     this.actions,
     this.backgroundColor = AppColors.surfaceWhite,
     this.elevation = 0,
@@ -45,6 +47,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: AppSpacing.l,
       automaticallyImplyLeading: automaticallyImplyLeading,
       leading: leading,
+      leadingWidth: leadingWidth,
       title: effectiveTitle,
       actions: actions != null
           ? [

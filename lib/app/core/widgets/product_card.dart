@@ -156,7 +156,7 @@ class ProductCard extends StatelessWidget {
                     ),
 
                     if (showFullButton) ...[
-                      const SizedBox(height: AppSpacing.m),
+                      const SizedBox(height: AppSpacing.s),
                       AppButton.small(
                         width: double.infinity,
                         label: isOutOfStock ? 'Sold Out' : 'Add to Cart',

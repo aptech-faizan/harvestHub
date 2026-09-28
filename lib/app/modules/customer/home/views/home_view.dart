@@ -270,7 +270,7 @@ class HomeView extends GetView<HomeController> {
                       crossAxisCount: 2,
                       crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px gutter
                       mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px gutter
-                      childAspectRatio: 0.58,
+                      mainAxisExtent: 270, // fixed height; immune to screen width
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

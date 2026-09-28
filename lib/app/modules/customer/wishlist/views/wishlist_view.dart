@@ -129,7 +129,7 @@ class WishlistView extends GetView<WishlistController> {
               crossAxisCount: 2,
               crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px gutter
               mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px gutter
-              childAspectRatio: 0.64, // Matches Home and Explore card proportions
+              mainAxisExtent: 270, // fixed height; immune to screen width
             ),
             itemCount: controller.items.length,
             itemBuilder: (context, index) {

@@ -125,78 +125,81 @@ class SearchView extends GetView<ProductSearchController> {
   }
 
   void _openMarketSheet(BuildContext context, MarketModel market) {
+    final farmers = controller.farmersAtMarket(market.id);
+
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       showDragHandle: true,
       backgroundColor: AppColors.surfaceWhite,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                market.marketName,
-                style: AppTextStyles.sectionHeading.copyWith(fontSize: 18),
-              ),
-              const SizedBox(height: AppSpacing.s),
-              if (market.address.isNotEmpty)
-                _infoRow(Icons.location_on_outlined, market.address),
-              if (market.operatingHours.isNotEmpty)
-                _infoRow(Icons.schedule, market.operatingHours),
-              Obx(() {
-                final label = controller.distanceLabelToMarket(market);
-                if (label.isEmpty) return const SizedBox.shrink();
-                return _infoRow(Icons.near_me, label);
-              }),
-              Obx(() {
-                final farmers = controller.farmersAtMarket(market.id);
-                if (farmers.isEmpty) return const SizedBox.shrink();
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: AppSpacing.s),
-                    Text('Farmers at this market', style: AppTextStyles.cardTitle),
-                    const SizedBox(height: 4),
-                    for (final f in farmers)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        leading: const Icon(Icons.agriculture, size: 20, color: AppColors.primary),
-                        title: Text(f.farmerName.isEmpty ? 'Farmer' : f.farmerName,
-                            style: AppTextStyles.bodyText),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ChatFarmerButton(
-                              farmerId: f.farmerId,
-                              farmerName: f.farmerName,
-                              compact: true,
-                            ),
-                            FollowFarmerButton(
-                              farmerId: f.farmerId,
-                              farmerName: f.farmerName,
-                              compact: true,
-                            ),
-                          ],
-                        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.70,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  market.marketName,
+                  style: AppTextStyles.sectionHeading.copyWith(fontSize: 18),
+                ),
+                const SizedBox(height: AppSpacing.s),
+                if (market.address.isNotEmpty)
+                  _infoRow(Icons.location_on_outlined, market.address),
+                if (market.operatingHours.isNotEmpty)
+                  _infoRow(Icons.schedule, market.operatingHours),
+                Obx(() {
+                  final label = controller.distanceLabelToMarket(market);
+                  if (label.isEmpty) return const SizedBox.shrink();
+                  return _infoRow(Icons.near_me, label);
+                }),
+                if (farmers.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.s),
+                  Text('Farmers at this market', style: AppTextStyles.cardTitle),
+                  const SizedBox(height: 4),
+                  for (final f in farmers)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      leading: const Icon(Icons.agriculture, size: 20, color: AppColors.primary),
+                      title: Text(
+                        f.farmerName.isEmpty ? 'Farmer' : f.farmerName,
+                        style: AppTextStyles.bodyText,
                       ),
-                  ],
-                );
-              }),
-              const SizedBox(height: AppSpacing.l),
-              AppButton.primary(
-                label: 'View Products from this Market',
-                onPressed: () {
-                  Navigator.of(sheetContext).pop();
-                  controller.filterByMarket(market);
-                },
-              ),
-            ],
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ChatFarmerButton(
+                            farmerId: f.farmerId,
+                            farmerName: f.farmerName,
+                            compact: true,
+                          ),
+                          FollowFarmerButton(
+                            farmerId: f.farmerId,
+                            farmerName: f.farmerName,
+                            compact: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+                const SizedBox(height: AppSpacing.l),
+                AppButton.primary(
+                  label: 'View Products from this Market',
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    controller.filterByMarket(market);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -413,7 +416,7 @@ class SearchView extends GetView<ProductSearchController> {
                       crossAxisCount: 2,
                       crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px
                       mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px
-                      childAspectRatio: 0.64,
+                      mainAxisExtent: 270, // fixed height; immune to screen width
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

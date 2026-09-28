@@ -245,7 +245,7 @@ class FarmerDetailsView extends GetView<FarmersController> {
                       crossAxisCount: 2,
                       mainAxisSpacing: AppSpacing.m,
                       crossAxisSpacing: AppSpacing.gridHorizontalGutter,
-                      childAspectRatio: 0.72,
+                      mainAxisExtent: 270, // fixed height; immune to screen width
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
