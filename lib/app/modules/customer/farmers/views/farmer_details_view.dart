@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/responsive/responsive.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -217,14 +219,10 @@ class FarmerDetailsView extends GetView<FarmersController> {
 
               // ── 8. Product grid ───────────────────────────────────────────────
               if (isLoading)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.primary),
-                      strokeWidth: 2.5,
-                    ),
-                  ),
+                // Shimmer grid using the same column derivation as the real grid
+                // below, so the products do not reflow when they arrive.
+                SliverToBoxAdapter(
+                  child: ShimmerProductGrid(count: context.resp.productColumns * 2),
                 )
               else if (products.isEmpty)
                 SliverFillRemaining(
@@ -240,12 +238,10 @@ class FarmerDetailsView extends GetView<FarmersController> {
                     AppSpacing.xxl,
                   ),
                   sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: AppSpacing.m,
-                      crossAxisSpacing: AppSpacing.gridHorizontalGutter,
-                      mainAxisExtent: 270, // fixed height; immune to screen width
+                    gridDelegate: context.resp.productGridDelegate(
+                      horizontalPad: AppSpacing.screenHorizontalPadding,
+                      horizontalGutter: AppSpacing.gridHorizontalGutter,
+                      verticalGutter: AppSpacing.m,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

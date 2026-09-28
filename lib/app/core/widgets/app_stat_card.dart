@@ -105,44 +105,53 @@ class AppStatCard extends StatelessWidget {
                             ),
                           ),
                         if (trend != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 3.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isPositiveTrend
-                                  ? AppColors.chipHerbsBg
-                                  : const Color(0xFFFFEBEE),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (showTrendIcon) ...[
-                                  Icon(
-                                    isPositiveTrend
-                                        ? Icons.trending_up
-                                        : Icons.trending_down,
-                                    size: 13.0,
-                                    color: isPositiveTrend
-                                        ? AppColors.primaryDark
-                                        : AppColors.accentRed,
+                          // Flexible: the 40px icon plus a scaled-up trend pill
+                          // could exceed the tile width on a narrow screen and
+                          // overflow the row. No visual change while it fits.
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 3.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isPositiveTrend
+                                    ? AppColors.chipHerbsBg
+                                    : const Color(0xFFFFEBEE),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (showTrendIcon) ...[
+                                    Icon(
+                                      isPositiveTrend
+                                          ? Icons.trending_up
+                                          : Icons.trending_down,
+                                      size: 13.0,
+                                      color: isPositiveTrend
+                                          ? AppColors.primaryDark
+                                          : AppColors.accentRed,
+                                    ),
+                                    const SizedBox(width: 3.0),
+                                  ],
+                                  Flexible(
+                                    child: Text(
+                                      trend!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 11.0,
+                                        fontWeight: FontWeight.w700,
+                                        color: isPositiveTrend
+                                            ? AppColors.primaryDark
+                                            : AppColors.accentRed,
+                                      ),
+                                    ),
                                   ),
-                                  const SizedBox(width: 3.0),
                                 ],
-                                Text(
-                                  trend!,
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 11.0,
-                                    fontWeight: FontWeight.w700,
-                                    color: isPositiveTrend
-                                        ? AppColors.primaryDark
-                                        : AppColors.accentRed,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                       ],

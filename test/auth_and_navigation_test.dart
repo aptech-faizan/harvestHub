@@ -350,9 +350,15 @@ void main() {
         ),
       );
 
-      expect(find.text('Welcome back 👋'), findsOneWidget);
+      // Assert against the redesigned dashboard (commits "farmer dashbord ui
+      // changes" / "changed logo"). The old "Welcome back 👋" greeting no longer
+      // exists here, and logout moved from an AppBar IconButton into a popup
+      // menu, so those two assertions were stale. These check the real header
+      // counters and module tiles instead.
       expect(find.text('Green Valley Farm'), findsOneWidget);
-      expect(find.byIcon(Icons.logout_rounded), findsOneWidget);
+      expect(find.text('My Products'), findsOneWidget);
+      expect(find.text('Active Orders'), findsOneWidget);
+      expect(find.text('Farmer Modules'), findsOneWidget);
     });
 
     testWidgets('AppAssistantFab renders and links to Harvey assistant', (tester) async {

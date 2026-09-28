@@ -4,6 +4,7 @@ import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/data/models/farmer_model.dart';
 import 'package:harvest_hub/app/modules/customer/follow/controllers/follow_controller.dart';
@@ -43,11 +44,7 @@ class FollowedFarmersView extends StatelessWidget {
       ),
       body: Obx(() {
         if (follow.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          );
+          return const ShimmerListSkeleton();
         }
 
         // Surface actual errors instead of silently showing an empty screen

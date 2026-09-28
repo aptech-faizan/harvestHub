@@ -4,6 +4,7 @@ import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import '../controllers/profile_controller.dart';
 
@@ -20,11 +21,7 @@ class PersonalInfoView extends GetView<ProfileController> {
       appBar: const AppAppBar(titleText: 'Personal Information'),
       body: Obx(() {
         if (controller.isLoading.value && controller.user.value == null) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          );
+          return const ShimmerDetailBlock();
         }
 
         final u = controller.user.value;

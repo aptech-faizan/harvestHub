@@ -47,6 +47,25 @@ class HarvestHubApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      // Root setup for the responsiveness utility.
+      //
+      // `Responsive` reads MediaQuery at each call site rather than caching
+      // global state, so it needs no init call. What this builder does is cap
+      // the OS font-size setting: at the largest accessibility step, fixed
+      // height rows and two-line list tiles overflow. Capping keeps large-font
+      // users supported while guaranteeing the layout still fits.
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: media.textScaler.clamp(
+              minScaleFactor: 0.85,
+              maxScaleFactor: 1.30,
+            ),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       initialRoute: AppPages.initial,
       getPages: AppPages.pages,
     );

@@ -4,7 +4,9 @@ import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/responsive/responsive.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/admin/dashboard/controllers/dashboard_controller.dart';
 import 'package:harvest_hub/app/modules/admin/widgets/admin_drawer.dart';
@@ -216,9 +218,7 @@ class DashboardView extends GetView<DashboardController> {
       drawer: const AdminDrawer(),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
+          return const ShimmerDetailBlock();
         }
 
         if (controller.error.value.isNotEmpty) {
@@ -300,11 +300,13 @@ class DashboardView extends GetView<DashboardController> {
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12
-                    mainAxisSpacing: AppSpacing.gridHorizontalGutter,   // 12
-                    mainAxisExtent: 156, // fixed height with spare height for font scale
+                  // 2 columns on a phone (unchanged); the count is derived so a
+                  // tablet adds a column instead of stretching each card to
+                  // half the screen width. Fixed 156px height is preserved.
+                  gridDelegate: context.resp.statGridDelegate(
+                    minTileWidth: 160,
+                    gutter: AppSpacing.gridHorizontalGutter,
+                    extent: 156,
                   ),
                   itemCount: 6,
                   itemBuilder: (context, index) {

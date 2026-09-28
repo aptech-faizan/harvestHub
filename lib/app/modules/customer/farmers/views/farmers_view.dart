@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 import '../../../../data/models/farmer_model.dart';
@@ -107,12 +108,7 @@ class FarmersView extends GetView<FarmersController> {
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                    strokeWidth: 2.5,
-                  ),
-                );
+                return const ShimmerListSkeleton();
               }
 
               final farmers = _filteredFarmers(

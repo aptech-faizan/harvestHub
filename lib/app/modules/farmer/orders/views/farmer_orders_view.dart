@@ -93,6 +93,7 @@ class FarmerOrdersView extends GetView<FarmerOrdersController> {
                 isEmpty: list.isEmpty,
                 emptyText: 'No orders for this filter.',
                 onRetry: controller.load,
+                variant: StateViewVariant.order,
                 child: RefreshIndicator(
                   onRefresh: controller.load,
                   child: ListView.separated(

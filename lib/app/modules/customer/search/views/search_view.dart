@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/responsive/responsive.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/data/models/market_model.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
@@ -379,12 +381,11 @@ class SearchView extends GetView<ProductSearchController> {
               // 4. Product grid with Add-to-Cart buttons (2 columns, 12px horizontal, 16px vertical gutter)
               Obx(() {
                 if (controller.isLoading.value) {
-                  return const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.xxl),
-                      child: Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
-                      ),
+                  // Shimmer grid using the same column derivation as the real
+                  // grid below, so results do not reflow when they arrive.
+                  return SliverToBoxAdapter(
+                    child: ShimmerProductGrid(
+                      count: context.resp.productColumns * 3,
                     ),
                   );
                 }
@@ -411,12 +412,13 @@ class SearchView extends GetView<ProductSearchController> {
                     bottom: 84.0, // Space for floating assistant button
                   ),
                   sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px
-                      mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px
-                      mainAxisExtent: 270, // fixed height; immune to screen width
+                    // Derived from the available width instead of a fixed
+                    // 2-column / 270px grid, which clipped on small phones and
+                    // stretched on tablets. Same proportions at 360px.
+                    gridDelegate: context.resp.productGridDelegate(
+                      horizontalPad: AppSpacing.screenHorizontalPadding,
+                      horizontalGutter: AppSpacing.gridHorizontalGutter,
+                      verticalGutter: AppSpacing.gridVerticalGutter,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
