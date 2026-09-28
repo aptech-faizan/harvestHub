@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:harvest_hub/app/core/constants/app_constants.dart';
+import 'package:harvest_hub/app/core/theme/app_colors.dart';
+import 'package:harvest_hub/app/core/theme/app_radius.dart';
+import 'package:harvest_hub/app/core/theme/app_spacing.dart';
+import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/auth/controllers/register_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 
@@ -12,197 +16,297 @@ class RegisterView extends GetView<RegisterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Account'),
+      backgroundColor: AppColors.surfaceWhite,
+      appBar: AppAppBar(
+        titleText: 'Create Account',
+        leadingWidth: 56.0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.l),
+          child: AppIconButton(
+            icon: Icons.arrow_back_rounded,
+            iconColor: AppColors.primaryDark,
+            backgroundColor: AppColors.surfaceMuted,
+            size: 40.0,
+            tooltip: 'Back',
+            onTap: () => Get.back(),
+          ),
+        ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: Form(
-              key: controller.formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Join HarvestHub',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Select your account type and fill in your details',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  const SizedBox(height: 20),
-                  // Role Selection: Customer or Farmer
-                  const Text(
-                    'Register as:',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                  ),
-                  const SizedBox(height: 8),
-                  Obx(() => SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment<String>(
-                            value: Roles.customer,
-                            label: Text('Customer'),
-                            icon: Icon(Icons.person),
-                          ),
-                          ButtonSegment<String>(
-                            value: Roles.farmer,
-                            label: Text('Farmer'),
-                            icon: Icon(Icons.agriculture),
-                          ),
-                        ],
-                        selected: {controller.selectedRole.value},
-                        onSelectionChanged: (newSelection) {
-                          if (newSelection.isNotEmpty) {
-                            controller.setRole(newSelection.first);
-                          }
-                        },
-                      )),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: controller.nameController,
-                    decoration: const InputDecoration(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xxl, // 24px horizontal padding
+              vertical: AppSpacing.l,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420.0),
+              child: Form(
+                key: controller.formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top: Logo + Join HarvestHub + subtitle
+                    const AppAuthHeader(
+                      title: 'Join HarvestHub',
+                      subtitle: 'Select your account type and fill in your details',
+                      logoWidth: 120.0,
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // Role Selector: Customer or Farmer
+                    const AppText.body(
+                      'Register as:',
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    const SizedBox(height: AppSpacing.s),
+                    Obx(() => AppRoleSelector(
+                          selectedRole: controller.selectedRole.value,
+                          onRoleChanged: controller.setRole,
+                        )),
+
+                    const SizedBox(height: AppSpacing.l), // 16px gap
+
+                    // Full Name
+                    AppTextField(
+                      controller: controller.nameController,
                       labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) {
-                      if ((v ?? '').trim().isEmpty) return 'Full name is required';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: controller.emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) {
-                      final t = (v ?? '').trim();
-                      if (t.isEmpty) return 'Email is required';
-                      if (!GetUtils.isEmail(t)) return 'Enter a valid email';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: controller.phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      prefixIcon: Icon(Icons.phone_outlined),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) {
-                      if ((v ?? '').trim().isEmpty) return 'Phone number is required';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: controller.addressController,
-                    decoration: const InputDecoration(
-                      labelText: 'Address',
-                      prefixIcon: Icon(Icons.location_on_outlined),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) {
-                      if ((v ?? '').trim().isEmpty) return 'Address is required';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  // Farmer-only: optionally link the account to a market.
-                  // Can also be selected or updated later in farmer profile.
-                  Obx(() {
-                    if (!controller.isFarmer) return const SizedBox.shrink();
-                    if (controller.isLoadingMarkets.value) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: LinearProgressIndicator(),
-                      );
-                    }
-                    if (controller.markets.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    final ids = controller.markets.map((m) => m.id).toList();
-                    final value = ids.contains(controller.selectedMarketId.value)
-                        ? controller.selectedMarketId.value
-                        : null;
-                    return DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      initialValue: value,
-                      decoration: const InputDecoration(
-                        labelText: 'Market (Optional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.store),
+                      hintText: 'Enter your full name',
+                      keyboardType: TextInputType.name,
+                      textInputAction: TextInputAction.next,
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                        size: 20,
+                        color: AppColors.textSecondary,
                       ),
-                      hint: const Text('Select your market (optional)'),
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: '',
-                          child: Text('None / Select later'),
-                        ),
-                        ...controller.markets.map((m) => DropdownMenuItem(
-                              value: m.id,
-                              child: Text(
-                                m.marketName,
-                                overflow: TextOverflow.ellipsis,
+                      validator: (v) {
+                        if ((v ?? '').trim().isEmpty) return 'Full name is required';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.l), // 16px gap
+
+                    // Email
+                    AppTextField(
+                      controller: controller.emailController,
+                      labelText: 'Email',
+                      hintText: 'Enter your email',
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      prefixIcon: const Icon(
+                        Icons.email_outlined,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      ),
+                      validator: (v) {
+                        final t = (v ?? '').trim();
+                        if (t.isEmpty) return 'Email is required';
+                        if (!GetUtils.isEmail(t)) return 'Enter a valid email';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.l), // 16px gap
+
+                    // Phone Number
+                    AppTextField(
+                      controller: controller.phoneController,
+                      labelText: 'Phone Number',
+                      hintText: 'Enter phone number',
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      prefixIcon: const Icon(
+                        Icons.phone_outlined,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      ),
+                      validator: (v) {
+                        if ((v ?? '').trim().isEmpty) return 'Phone number is required';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.l), // 16px gap
+
+                    // Address
+                    AppTextField(
+                      controller: controller.addressController,
+                      labelText: 'Address',
+                      hintText: 'Enter your address',
+                      keyboardType: TextInputType.streetAddress,
+                      textInputAction: TextInputAction.next,
+                      prefixIcon: const Icon(
+                        Icons.location_on_outlined,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      ),
+                      validator: (v) {
+                        if ((v ?? '').trim().isEmpty) return 'Address is required';
+                        return null;
+                      },
+                    ),
+
+                    // Farmer-only: optionally link the account to a market
+                    Obx(() {
+                      if (!controller.isFarmer) return const SizedBox.shrink();
+                      if (controller.isLoadingMarkets.value) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: AppSpacing.m),
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.0,
+                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                               ),
-                            )),
-                      ],
-                      onChanged: controller.setMarket,
-                    );
-                  }),
-                  const SizedBox(height: 14),
-                  Obx(() => TextFormField(
-                        controller: controller.passwordController,
-                        obscureText: controller.hidePassword.value,
-                        decoration: InputDecoration(
-                          labelText: 'Password (min 6 characters)',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          border: const OutlineInputBorder(),
-                          suffixIcon: IconButton(
-                            icon: Icon(controller.hidePassword.value
-                                ? Icons.visibility_off
-                                : Icons.visibility),
-                            onPressed: controller.togglePasswordVisibility,
+                            ),
                           ),
+                        );
+                      }
+                      if (controller.markets.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      final ids = controller.markets.map((m) => m.id).toList();
+                      final value = ids.contains(controller.selectedMarketId.value)
+                          ? controller.selectedMarketId.value
+                          : null;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.l),
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          initialValue: value,
+                          style: AppTextStyles.bodyText.copyWith(color: AppColors.textPrimary),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            filled: true,
+                            fillColor: AppColors.surfaceMuted,
+                            labelText: 'Market (Optional)',
+                            hintText: 'Select your market (optional)',
+                            labelStyle: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                            hintStyle: AppTextStyles.caption.copyWith(color: AppColors.textDisabled),
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.only(left: 12.0, right: 8.0),
+                              child: Icon(Icons.storefront_outlined, size: 20, color: AppColors.textSecondary),
+                            ),
+                            prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14.0,
+                              vertical: 13.0,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: AppRadius.inputRadius,
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: AppRadius.inputRadius,
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: AppRadius.inputRadius,
+                              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                            ),
+                          ),
+                          items: [
+                            const DropdownMenuItem<String>(
+                              value: '',
+                              child: Text('None / Select later'),
+                            ),
+                            ...controller.markets.map((m) => DropdownMenuItem(
+                                  value: m.id,
+                                  child: Text(
+                                    m.marketName,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                )),
+                          ],
+                          onChanged: controller.setMarket,
                         ),
-                        validator: (v) {
-                          if (v == null || v.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
-                      )),
-                  const SizedBox(height: 24),
-                  Obx(() => SizedBox(
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed:
-                              controller.isLoading.value ? null : controller.register,
-                          child: controller.isLoading.value
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Register', style: TextStyle(fontSize: 16)),
+                      );
+                    }),
+
+                    const SizedBox(height: AppSpacing.l), // 16px gap
+
+                    // Password with helper text
+                    Obx(() => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppTextField(
+                              controller: controller.passwordController,
+                              labelText: 'Password',
+                              hintText: 'Enter your password',
+                              obscureText: controller.hidePassword.value,
+                              keyboardType: TextInputType.visiblePassword,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => controller.register(),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline,
+                                size: 20,
+                                color: AppColors.textSecondary,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  controller.hidePassword.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  size: 20,
+                                  color: AppColors.textSecondary,
+                                ),
+                                onPressed: controller.togglePasswordVisibility,
+                              ),
+                              validator: (v) {
+                                if (v == null || v.length < 6) {
+                                  return 'Password must be at least 6 characters';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 4.0),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 4.0),
+                              child: AppText.caption(
+                                'Minimum 6 characters',
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        )),
+
+                    const SizedBox(height: AppSpacing.xxl), // 24px gap
+
+                    // Register Button (52px, 16px radius, full width)
+                    Obx(() => AppButton.primary(
+                          label: 'Register',
+                          isLoading: controller.isLoading.value,
+                          onPressed: controller.isLoading.value
+                              ? null
+                              : controller.register,
+                        )),
+
+                    const SizedBox(height: AppSpacing.xxl), // 24px gap
+
+                    // Bottom: "Already have an account?" + "Login"
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const AppText.body(
+                          'Already have an account?',
+                          color: AppColors.textSecondary,
                         ),
-                      )),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Get.toNamed(Routes.login),
-                    child: const Text('Already have an account? Login'),
-                  ),
-                ],
+                        const SizedBox(width: 4.0),
+                        AppTextButton(
+                          label: 'Login',
+                          color: AppColors.primaryDark,
+                          onPressed: () => Get.toNamed(Routes.login),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
