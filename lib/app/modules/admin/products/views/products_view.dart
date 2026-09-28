@@ -45,6 +45,18 @@ const _kStatusFilters = ['All', 'Pending', 'Approved', 'Flagged'];
 // Module-level reactive status filter – UI-only, no logic touched.
 final _productsStatusFilter = 'All'.obs;
 
+/// Shows the product image, or an icon if there is no image / it fails to load.
+Widget productImage(String url, {double size = 56}) {
+  if (url.isEmpty) return Icon(Icons.image_not_supported, size: size);
+  return Image.network(
+    url,
+    width: size,
+    height: size,
+    fit: BoxFit.cover,
+    errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, size: size),
+  );
+}
+
 class ProductsView extends GetView<ProductsController> {
   const ProductsView({super.key});
 
