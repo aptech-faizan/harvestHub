@@ -68,18 +68,20 @@ class AppIconButton extends StatelessWidget {
     this.isCircle = true,
   });
 
-  // Wishlist heart button spec: 32px circular, white bg, 1px divider border
+  // Wishlist heart button spec: circular, white bg, 1px divider border (default 32px or 40px)
   factory AppIconButton.wishlist({
     Key? key,
     required bool isWishlisted,
     required VoidCallback onTap,
+    double size = 32.0,
+    double iconSize = 18.0,
   }) {
     return AppIconButton(
       key: key,
       icon: isWishlisted ? AppIcon.heartFilled : AppIcon.heartOutlined,
       onTap: onTap,
-      size: 32.0,
-      iconSize: 18.0,
+      size: size,
+      iconSize: iconSize,
       backgroundColor: AppColors.surfaceWhite,
       iconColor: isWishlisted ? AppColors.accentRed : AppColors.textSecondary,
       border: Border.all(color: AppColors.divider, width: 1.0),

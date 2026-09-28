@@ -25,123 +25,132 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
 
     return Scaffold(
       backgroundColor: AppColors.surfaceWhite,
-      // Screen App Bar with Wishlist action button
+      // 2 & 3. App Bar: 40x40 circular back button, 40x40 wishlist button, title removed
       appBar: AppAppBar(
-        titleText: p.itemName,
+        leading: Center(
+          child: AppIconButton(
+            icon: Icons.arrow_back_rounded,
+            size: 40.0,
+            iconSize: 20.0,
+            backgroundColor: AppColors.surfaceMuted,
+            iconColor: AppColors.primaryDark,
+            tooltip: 'Back',
+            onTap: () => Get.back(),
+          ),
+        ),
         actions: [
           Obx(() => AppIconButton.wishlist(
+                size: 40.0,
+                iconSize: 20.0,
                 isWishlisted: controller.isWishlisted.value,
                 onTap: () => controller.toggleWishlist(),
               )),
         ],
       ),
-      body: Column(
-        children: [
-          // Scrollable content area
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenHorizontalPadding,
-                vertical: AppSpacing.m,
+      // 4. Scrollable area with bottom padding equal to bottom bar height plus 16px (100px)
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(
+          left: AppSpacing.screenHorizontalPadding,
+          right: AppSpacing.screenHorizontalPadding,
+          top: AppSpacing.m,
+          bottom: 100.0, // bottom bar (~84px) + 16px
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Top Image Area: rounded per radiusCard (16px)
+            ClipRRect(
+              borderRadius: AppRadius.cardRadius,
+              child: Container(
+                height: 240,
+                width: double.infinity,
+                color: AppColors.surfaceMuted,
+                child: p.imageUrl.isNotEmpty
+                    ? Image.network(
+                        p.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _placeholderImage(),
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
+                              value: progress.expectedTotalBytes != null
+                                  ? progress.cumulativeBytesLoaded /
+                                      progress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          );
+                        },
+                      )
+                    : _placeholderImage(),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Top Image Area: rounded per radiusCard (16px)
-                  ClipRRect(
-                    borderRadius: AppRadius.cardRadius,
-                    child: Container(
-                      height: 240,
-                      width: double.infinity,
-                      color: AppColors.surfaceMuted,
-                      child: p.imageUrl.isNotEmpty
-                          ? Image.network(
-                              p.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _placeholderImage(),
-                              loadingBuilder: (context, child, progress) {
-                                if (progress == null) return child;
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: const AlwaysStoppedAnimation<Color>(
-                                      AppColors.primary,
-                                    ),
-                                    value: progress.expectedTotalBytes != null
-                                        ? progress.cumulativeBytesLoaded /
-                                            progress.expectedTotalBytes!
-                                        : null,
-                                  ),
-                                );
-                              },
-                            )
-                          : _placeholderImage(),
-                    ),
+            ),
+
+            const SizedBox(height: AppSpacing.l),
+
+            // 2. Produce Name & Price Row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Produce name
+                Expanded(
+                  child: AppText.screenTitle(
+                    p.itemName,
                   ),
+                ),
+                const SizedBox(width: AppSpacing.m),
+                // Price per unit (totalPriceText style: 18px Bold in success color)
+                AppText.totalPrice(
+                  '₹${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
+                ),
+              ],
+            ),
 
-                  const SizedBox(height: AppSpacing.l),
+            const SizedBox(height: AppSpacing.m),
 
-                  // 2. Produce Name & Price Row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Produce name
-                      Expanded(
-                        child: AppText.screenTitle(
-                          p.itemName,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.m),
-                      // Price per unit (totalPriceText style: 18px Bold in success color)
-                      AppText.totalPrice(
-                        '₹${p.pricePerUnit.toStringAsFixed(0)} / ${p.unit}',
-                      ),
-                    ],
-                  ),
+            // 1. AppChip Tags Row: In Stock, 100% Organic, category inside Wrap (8, 8)
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: [
+                // Stock status tag
+                AppChip.pill(
+                  label: isOutOfStock ? 'Out of Stock' : 'In Stock',
+                  backgroundColor: isOutOfStock
+                      ? AppColors.accentRed.withValues(alpha: 0.12)
+                      : AppColors.chipHerbsBg,
+                  textColor: isOutOfStock
+                      ? AppColors.accentRed
+                      : AppColors.primaryDark,
+                  iconData: isOutOfStock
+                      ? Icons.cancel_outlined
+                      : Icons.check_circle_outline,
+                ),
 
-                  const SizedBox(height: AppSpacing.m),
+                // Organic tag
+                const AppChip.pill(
+                  label: '100% Organic',
+                  backgroundColor: AppColors.chipHerbsBg,
+                  textColor: AppColors.primaryDark,
+                  iconData: Icons.eco,
+                ),
 
-                  // 3. AppChip Tags Row: Stock, Organic, and Seasonal / Category tags
-                  Wrap(
-                    spacing: AppSpacing.s,
-                    runSpacing: AppSpacing.s,
-                    children: [
-                      // Stock status tag
-                      AppChip.pill(
-                        label: isOutOfStock
-                            ? 'Out of Stock'
-                            : 'In Stock (${p.stockQty} left)',
-                        backgroundColor: isOutOfStock
-                            ? AppColors.accentRed.withValues(alpha: 0.12)
-                            : AppColors.chipHerbsBg,
-                        textColor: isOutOfStock
-                            ? AppColors.accentRed
-                            : AppColors.primaryDark,
-                        iconData: isOutOfStock
-                            ? Icons.cancel_outlined
-                            : Icons.check_circle_outline,
-                      ),
-
-                      // Organic tag
-                      const AppChip.pill(
-                        label: '100% Organic',
-                        backgroundColor: AppColors.chipHerbsBg,
-                        textColor: AppColors.primaryDark,
-                        iconData: Icons.eco,
-                      ),
-
-                      // Category / Seasonal tag
-                      AppChip.pill(
-                        label: p.categoryName.isNotEmpty
-                            ? p.categoryName
-                            : 'Seasonal Harvest',
-                        backgroundColor: AppColors.chipFruitsBg,
-                        textColor: AppColors.textPrimary,
-                        iconData: Icons.wb_sunny_outlined,
-                      ),
-                    ],
-                  ),
+                // Category tag
+                AppChip.pill(
+                  label: p.categoryName.isNotEmpty
+                      ? p.categoryName
+                      : 'Fruits',
+                  backgroundColor: AppChip.getCategoryBgColor(p.categoryName),
+                  textColor: AppColors.textPrimary,
+                  iconData: AppChip.getCategoryIcon(p.categoryName),
+                ),
+              ],
+            ),
 
                   const SizedBox(height: AppSpacing.xl),
 
@@ -249,7 +258,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                         ),
                       ],
                       const SizedBox(height: AppSpacing.m),
-                      // Follow and Chat actions
+                      // Follow and Chat actions (both Expanded with label 'Chat' to prevent overflow on 360px screens)
                       Obx(() {
                         final resolvedId = controller.farmer.value?.id.isNotEmpty == true
                             ? controller.farmer.value!.id
@@ -263,9 +272,12 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                               ),
                             ),
                             const SizedBox(width: AppSpacing.s),
-                            ChatFarmerButton(
-                              farmerId: resolvedId,
-                              farmerName: p.farmerName,
+                            Expanded(
+                              child: ChatFarmerButton(
+                                farmerId: resolvedId,
+                                farmerName: p.farmerName,
+                                label: 'Chat',
+                              ),
                             ),
                           ],
                         );
@@ -284,53 +296,50 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                         : p.description,
                     variant: AppTextStyleVariant.bodyText,
                   ),
-
-                  const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
             ),
+      // 4. Pinned Bottom Bar: white surface, top hairline divider & safe-area padding
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screenHorizontalPadding,
+          vertical: AppSpacing.m,
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.surfaceWhite,
+          border: Border(
+            top: BorderSide(color: AppColors.divider, width: 1.0),
           ),
-
-          // 6. Pinned Bottom Bar: AppStepper for quantity + AppButton.primary "Add to Cart"
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.l),
-            decoration: const BoxDecoration(
-              color: AppColors.surfaceWhite,
-              border: Border(
-                top: BorderSide(color: AppColors.divider, width: 1.0),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              // AppStepper for quantity (min: 1, max: stockQty)
+              Obx(() => AppStepper(
+                    value: controller.qty.value,
+                    min: 1,
+                    max: p.stockQty > 0 ? p.stockQty : 1,
+                    onChanged: (newQty) {
+                      if (newQty > controller.qty.value) {
+                        controller.increment();
+                      } else if (newQty < controller.qty.value) {
+                        controller.decrement();
+                      }
+                    },
+                  )),
+              const SizedBox(width: AppSpacing.m),
+              // AppButton.primary "Add to Cart"
+              Expanded(
+                child: AppButton.primary(
+                  label: isOutOfStock ? 'Out of Stock' : 'Add to Cart',
+                  icon: isOutOfStock ? null : Icons.add_shopping_cart,
+                  onPressed: isOutOfStock ? null : () => controller.addToCart(),
+                ),
               ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Row(
-                children: [
-                  // AppStepper for quantity (min: 1, max: stockQty)
-                  Obx(() => AppStepper(
-                        value: controller.qty.value,
-                        min: 1,
-                        max: p.stockQty > 0 ? p.stockQty : 1,
-                        onChanged: (newQty) {
-                          if (newQty > controller.qty.value) {
-                            controller.increment();
-                          } else if (newQty < controller.qty.value) {
-                            controller.decrement();
-                          }
-                        },
-                      )),
-                  const SizedBox(width: AppSpacing.m),
-                  // AppButton.primary "Add to Cart"
-                  Expanded(
-                    child: AppButton.primary(
-                      label: isOutOfStock ? 'Out of Stock' : 'Add to Cart',
-                      icon: isOutOfStock ? null : Icons.add_shopping_cart,
-                      onPressed: isOutOfStock ? null : () => controller.addToCart(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
