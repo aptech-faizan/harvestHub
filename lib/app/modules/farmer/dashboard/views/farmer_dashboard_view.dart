@@ -8,8 +8,10 @@ import 'package:harvest_hub/app/core/widgets/app_app_bar.dart';
 import 'package:harvest_hub/app/core/widgets/app_button.dart';
 import 'package:harvest_hub/app/core/widgets/app_card.dart';
 import 'package:harvest_hub/app/core/widgets/app_chip.dart';
+import 'package:harvest_hub/app/core/widgets/app_icon.dart';
 import 'package:harvest_hub/app/core/widgets/app_section_header.dart';
 import 'package:harvest_hub/app/core/widgets/app_stat_card.dart';
+import 'package:harvest_hub/app/core/widgets/app_text.dart';
 import 'package:harvest_hub/app/data/models/order_model.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/controllers/farmer_dashboard_controller.dart';
 import 'package:harvest_hub/app/modules/farmer/orders/controllers/farmer_orders_controller.dart';
@@ -24,41 +26,76 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
     return Scaffold(
       backgroundColor: AppColors.surfaceMuted,
       appBar: AppAppBar(
+        // ── Leading: profile avatar ──────────────────────────────────────
+        leading: Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.l),
+          child: Obx(() {
+            final url = controller.photoUrl.value;
+            return GestureDetector(
+              onTap: () => Get.toNamed(Routes.farmerProfile),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.chipHerbsBg,
+                backgroundImage: url.isNotEmpty ? NetworkImage(url) : null,
+                onBackgroundImageError: url.isNotEmpty ? (_, __) {} : null,
+                child: url.isEmpty
+                    ? Text(
+                        controller.farmerInitial,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark,
+                        ),
+                      )
+                    : null,
+              ),
+            );
+          }),
+        ),
+        leadingWidth: 64,
+        // ── Title: welcome + name ────────────────────────────────────────
         title: Obx(() {
           final name = controller.businessName.value.isNotEmpty
               ? controller.businessName.value
-              : 'My Farm';
+              : (controller.authService.currentUserModel.value?.name ?? 'My Farm');
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              AppText.caption(
                 'Welcome back 👋',
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textSecondary,
-                ),
+                color: AppColors.textSecondary,
               ),
-              Text(
+              AppText.sectionHeading(
                 name,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
+                color: AppColors.textPrimary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           );
         }),
         automaticallyImplyLeading: false,
+        // ── Actions: Chat + Logout ───────────────────────────────────────
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
+          AppIconButton(
+            icon: Icons.chat_bubble_outline_rounded,
+            size: 40,
+            iconSize: 22,
+            backgroundColor: AppColors.surfaceMuted,
+            iconColor: AppColors.primaryDark,
+            tooltip: 'Chat Inbox',
+            onTap: () => Get.toNamed(Routes.chatInbox),
+          ),
+          AppIconButton(
+            icon: Icons.logout_rounded,
+            size: 40,
+            iconSize: 22,
+            backgroundColor: AppColors.surfaceMuted,
+            iconColor: AppColors.textSecondary,
             tooltip: 'Logout',
-            onPressed: () async {
+            onTap: () async {
               if (await confirmDialog('Logout', 'Do you want to log out?')) {
                 await controller.logout();
               }
@@ -384,6 +421,13 @@ class _QuickLinksGrid extends StatelessWidget {
         bg: const Color(0xFFFCE4EC),
         iconColor: const Color(0xFFAD1457),
         route: Routes.farmerReports,
+      ),
+      _QuickLinkItem(
+        icon: Icons.chat_bubble_outline_rounded,
+        label: 'Chat',
+        bg: const Color(0xFFE8F5E9),
+        iconColor: AppColors.primary,
+        route: Routes.chatInbox,
       ),
       _QuickLinkItem(
         icon: Icons.person_rounded,
