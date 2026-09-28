@@ -61,6 +61,41 @@ class AppCard extends StatelessWidget {
     );
   }
 
+  /// Product / Media card variant specified in Section 6.6 and Section 8
+  static Widget media({
+    Key? key,
+    required String title,
+    String? subtitle,
+    required String price,
+    double rating = 4.8,
+    int? ratingCount,
+    String? imageUrl,
+    bool isWishlisted = false,
+    VoidCallback? onWishlistTap,
+    VoidCallback? onAddToCart,
+    VoidCallback? onTap,
+    String buttonLabel = 'Add to Cart',
+    bool isOutOfStock = false,
+    bool showBottomButton = true,
+  }) {
+    return AppMediaCard(
+      key: key,
+      title: title,
+      subtitle: subtitle,
+      price: price,
+      rating: rating,
+      ratingCount: ratingCount,
+      imageUrl: imageUrl,
+      isWishlisted: isWishlisted,
+      onWishlistTap: onWishlistTap,
+      onAddToCart: onAddToCart,
+      onTap: onTap,
+      buttonLabel: buttonLabel,
+      isOutOfStock: isOutOfStock,
+      showBottomButton: showBottomButton,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
