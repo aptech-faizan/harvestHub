@@ -36,7 +36,7 @@ class AppBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 144.0,
+      constraints: const BoxConstraints(minHeight: 130.0),
       decoration: BoxDecoration(
         borderRadius: AppRadius.cardRadius,
         gradient: isDiscount
@@ -74,16 +74,36 @@ class AppBanner extends StatelessWidget {
                   ),
                 ),
               ),
+              // Decorative leaf / discount icon placed in background so it NEVER pushes content
+              if (trailingImage == null)
+                Positioned(
+                  right: 8,
+                  bottom: -8,
+                  child: IgnorePointer(
+                    child: Icon(
+                      isDiscount ? Icons.local_offer : Icons.eco,
+                      size: 88,
+                      color: (isDiscount ? Colors.white : AppColors.primaryDark)
+                          .withValues(alpha: 0.18),
+                    ),
+                  ),
+                ),
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.l),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.l,
+                  AppSpacing.m,
+                  trailingImage != null
+                      ? AppSpacing.m
+                      : (AppSpacing.xxl + AppSpacing.m),
+                  AppSpacing.m,
+                ),
                 child: Row(
                   children: [
                     // Text Column
                     Expanded(
-                      flex: 6,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           if (badgeText != null) ...[
                             Container(
@@ -105,14 +125,18 @@ class AppBanner extends StatelessWidget {
                                       : AppColors.primaryDark,
                                   fontWeight: FontWeight.w700,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.s),
+                            const SizedBox(height: AppSpacing.xs),
                           ],
                           Text(
                             title,
                             style: AppTextStyles.sectionHeading.copyWith(
-                              color: isDiscount ? Colors.white : AppColors.textPrimary,
+                              color: isDiscount
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
                               fontWeight: FontWeight.w700,
                               height: 1.2,
                             ),
@@ -120,7 +144,7 @@ class AppBanner extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (subtitle != null) ...[
-                            const SizedBox(height: AppSpacing.xs),
+                            const SizedBox(height: 3),
                             Text(
                               subtitle!,
                               style: AppTextStyles.caption.copyWith(
@@ -128,7 +152,7 @@ class AppBanner extends StatelessWidget {
                                     ? Colors.white.withValues(alpha: 0.9)
                                     : AppColors.textSecondary,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -137,13 +161,17 @@ class AppBanner extends StatelessWidget {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  ctaText!,
-                                  style: AppTextStyles.linkText.copyWith(
-                                    color: isDiscount
-                                        ? Colors.white
-                                        : AppColors.primaryDark,
-                                    fontWeight: FontWeight.w700,
+                                Flexible(
+                                  child: Text(
+                                    ctaText!,
+                                    style: AppTextStyles.linkText.copyWith(
+                                      color: isDiscount
+                                          ? Colors.white
+                                          : AppColors.primaryDark,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
@@ -160,22 +188,10 @@ class AppBanner extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.m),
-                    // Trailing Graphic or Image
-                    Expanded(
-                      flex: 4,
-                      child: trailingImage ??
-                          Center(
-                            child: Icon(
-                              isDiscount ? Icons.local_offer : Icons.eco,
-                              size: 70,
-                              color: (isDiscount
-                                      ? Colors.white
-                                      : AppColors.primaryDark)
-                                  .withValues(alpha: 0.25),
-                            ),
-                          ),
-                    ),
+                    if (trailingImage != null) ...[
+                      const SizedBox(width: AppSpacing.m),
+                      trailingImage!,
+                    ],
                   ],
                 ),
               ),

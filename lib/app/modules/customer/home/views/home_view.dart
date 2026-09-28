@@ -25,22 +25,21 @@ class HomeView extends GetView<HomeController> {
 
     return Scaffold(
       backgroundColor: AppColors.surfaceWhite,
-      // 1. App Bar: Logo text "Farmers" (primaryDark, 24px Bold), Points pill badge, Notification bell
+      // 1. App Bar: Left-aligned logo image with fallback, Notification bell, and Profile button
       appBar: AppAppBar(
-        isLogo: true,
-        titleText: 'Farmers',
+        title: Image.asset(
+          'assets/images/logo.png',
+          height: 32,
+          fit: BoxFit.contain,
+          alignment: Alignment.centerLeft,
+          errorBuilder: (context, error, stackTrace) {
+            return const AppText.displayLogo(
+              'HarvestHub',
+              color: AppColors.primaryDark,
+            );
+          },
+        ),
         actions: [
-          // Coin / points gold pill badge (Section 5 & 6.1)
-          AppPointsBadge(
-            points: 320,
-            onTap: () {
-              Get.snackbar(
-                'Harvest Points',
-                'You have 320 points available for checkout discounts!',
-                snackPosition: SnackPosition.BOTTOM,
-              );
-            },
-          ),
           // Notification bell with circular muted background touch target 40px (Section 5 & 6.1)
           AppIconButton(
             icon: AppIcon.notification,
@@ -51,6 +50,18 @@ class HomeView extends GetView<HomeController> {
                 'No new notifications right now.',
                 snackPosition: SnackPosition.BOTTOM,
               );
+            },
+          ),
+          // Profile icon button opening customer Profile screen via same route/tab as bottom nav
+          AppIconButton(
+            icon: Icons.person_outline_rounded,
+            tooltip: 'Profile',
+            onTap: () {
+              if (Get.isRegistered<CustomerShellController>()) {
+                Get.find<CustomerShellController>().changeTab(4);
+              } else {
+                Get.toNamed(Routes.customerShell);
+              }
             },
           ),
         ],
@@ -120,7 +131,7 @@ class HomeView extends GetView<HomeController> {
 
                       // Horizontal category chips list: AppChip.circular (58px diameter, soft pastel tint, icon, chipLabel below, 12px gap) (Section 6.5)
                       SizedBox(
-                        height: 92,
+                        height: 96,
                         child: Obx(() {
                           final cats = controller.categories;
                           final selectedId = controller.selectedCategoryId.value;
@@ -247,7 +258,7 @@ class HomeView extends GetView<HomeController> {
                       crossAxisCount: 2,
                       crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px gutter
                       mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px gutter
-                      childAspectRatio: 0.64,
+                      childAspectRatio: 0.58,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
