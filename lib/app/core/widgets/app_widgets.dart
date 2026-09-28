@@ -1,5 +1,6 @@
 // Barrel export file for the Farmers App Design System Components
 export 'app_app_bar.dart';
+export 'app_avatar.dart';
 export 'app_banner.dart';
 export 'app_bottom_nav_bar.dart';
 export 'app_button.dart';

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
+import 'package:harvest_hub/app/data/services/auth_service.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 import '../../shell/controllers/customer_shell_controller.dart';
 import '../../wishlist/controllers/wishlist_controller.dart';
@@ -52,18 +53,30 @@ class HomeView extends GetView<HomeController> {
               );
             },
           ),
-          // Profile icon button opening customer Profile screen via same route/tab as bottom nav
-          AppIconButton(
-            icon: Icons.person_outline_rounded,
-            tooltip: 'Profile',
-            onTap: () {
+          // Profile avatar / icon button opening customer Profile screen via same route/tab as bottom nav
+          Obx(() {
+            final authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : null;
+            final user = authService?.currentUserModel.value;
+
+            void openProfile() {
               if (Get.isRegistered<CustomerShellController>()) {
                 Get.find<CustomerShellController>().changeTab(4);
               } else {
                 Get.toNamed(Routes.customerShell);
               }
-            },
-          ),
+            }
+
+            return Semantics(
+              label: 'Profile',
+              button: true,
+              child: AppAvatar(
+                size: 38,
+                imageUrl: user?.photoUrl,
+                name: user?.name ?? '',
+                onTap: openProfile,
+              ),
+            );
+          }),
         ],
       ),
       body: SafeArea(

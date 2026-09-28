@@ -11,6 +11,7 @@ class UserModel {
   final String fcmToken;
   final bool isActive;
   final DateTime? createdAt;
+  final String photoUrl;
 
   // Constructor
   UserModel({
@@ -23,6 +24,7 @@ class UserModel {
     this.fcmToken = '',
     this.isActive = true,
     this.createdAt,
+    this.photoUrl = '',
   });
 
   // Map se UserModel banane ke liye
@@ -43,6 +45,33 @@ class UserModel {
       fcmToken: map['fcmToken'] ?? '',
       isActive: map['isActive'] ?? true,
       createdAt: parseDate(map['createdAt']),
+      photoUrl: map['photoUrl'] ?? '',
+    );
+  }
+
+  UserModel copyWith({
+    String? uid,
+    String? name,
+    String? email,
+    String? phone,
+    String? address,
+    String? role,
+    String? fcmToken,
+    bool? isActive,
+    DateTime? createdAt,
+    String? photoUrl,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      role: role ?? this.role,
+      fcmToken: fcmToken ?? this.fcmToken,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
 
@@ -57,6 +86,7 @@ class UserModel {
       'fcmToken': fcmToken,
       'isActive': isActive,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
+      'photoUrl': photoUrl,
     };
   }
 }

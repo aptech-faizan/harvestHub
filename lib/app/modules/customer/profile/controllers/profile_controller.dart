@@ -1,17 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../data/repositories/user_repository.dart';
 import '../../../../data/services/auth_service.dart';
+import '../../../../data/services/cloudinary_service.dart';
 
 // Ye customer profile details, update, password change aur logout manage karta hai
 class ProfileController extends GetxController {
   final UserRepository _userRepo = UserRepository();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImagePicker _picker = ImagePicker();
+  final CloudinaryService _cloudinary = CloudinaryService();
 
   final Rxn<UserModel> user = Rxn<UserModel>();
   final RxBool isLoading = false.obs;
+  final RxBool isUploadingPhoto = false.obs;
 
   // Form input controllers
   final TextEditingController nameC = TextEditingController();
@@ -113,6 +118,66 @@ class ProfileController extends GetxController {
       Get.snackbar('Error', 'Kuch masla hua: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Profile photo upload via Cloudinary
+  Future<void> pickAndUploadPhoto(ImageSource source) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    try {
+      final file = await _picker.pickImage(source: source, imageQuality: 80);
+      if (file == null) return;
+
+      isUploadingPhoto.value = true;
+      final url = await _cloudinary.uploadImage(file);
+      await _userRepo.updateUser(uid, {'photoUrl': url});
+
+      if (user.value != null) {
+        user.value = user.value!.copyWith(photoUrl: url);
+      }
+      if (Get.isRegistered<AuthService>()) {
+        final authService = Get.find<AuthService>();
+        if (authService.currentUserModel.value != null) {
+          authService.currentUserModel.value =
+              authService.currentUserModel.value!.copyWith(photoUrl: url);
+        }
+      }
+
+      Get.snackbar('Kamyabi', 'Profile picture update ho gayi');
+    } catch (e) {
+      Get.snackbar('Error', 'Photo upload nahi ho saki: $e');
+    } finally {
+      isUploadingPhoto.value = false;
+    }
+  }
+
+  // Remove profile photo
+  Future<void> removePhoto() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    try {
+      isUploadingPhoto.value = true;
+      await _userRepo.updateUser(uid, {'photoUrl': ''});
+
+      if (user.value != null) {
+        user.value = user.value!.copyWith(photoUrl: '');
+      }
+      if (Get.isRegistered<AuthService>()) {
+        final authService = Get.find<AuthService>();
+        if (authService.currentUserModel.value != null) {
+          authService.currentUserModel.value =
+              authService.currentUserModel.value!.copyWith(photoUrl: '');
+        }
+      }
+
+      Get.snackbar('Kamyabi', 'Profile picture hata di gayi');
+    } catch (e) {
+      Get.snackbar('Error', 'Photo remove nahi ho saki: $e');
+    } finally {
+      isUploadingPhoto.value = false;
     }
   }
 

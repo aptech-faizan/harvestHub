@@ -6,6 +6,7 @@ import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
+import 'package:image_picker/image_picker.dart';
 import '../controllers/profile_controller.dart';
 
 /// Customer Profile screen restructured as a menu per UI Master Rules:
@@ -44,7 +45,13 @@ class ProfileView extends GetView<ProfileController> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── Header: Avatar, Name, Email, Verified Member ───────────
-              _ProfileHeader(name: name, email: email),
+              _ProfileHeader(
+                name: name,
+                email: email,
+                photoUrl: u?.photoUrl,
+                isUploading: controller.isUploadingPhoto.value,
+                onPhotoTap: () => _showPhotoBottomSheet(context, controller),
+              ),
 
               const SizedBox(height: AppSpacing.l),
 
@@ -142,24 +149,92 @@ class ProfileView extends GetView<ProfileController> {
       }),
     );
   }
+
+  void _showPhotoBottomSheet(
+      BuildContext context, ProfileController controller) {
+    final hasPhoto = controller.user.value?.photoUrl.isNotEmpty == true;
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(AppSpacing.l),
+        decoration: const BoxDecoration(
+          color: AppColors.surfaceWhite,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.card),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.m),
+              const AppText.sectionHeading('Profile Photo'),
+              const SizedBox(height: AppSpacing.s),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined,
+                    color: AppColors.primaryDark),
+                title: const AppText.body('Choose from gallery'),
+                onTap: () {
+                  Get.back();
+                  controller.pickAndUploadPhoto(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined,
+                    color: AppColors.primaryDark),
+                title: const AppText.body('Take photo'),
+                onTap: () {
+                  Get.back();
+                  controller.pickAndUploadPhoto(ImageSource.camera);
+                },
+              ),
+              if (hasPhoto)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline_rounded,
+                      color: AppColors.accentRed),
+                  title: const AppText.body('Remove photo',
+                      color: AppColors.accentRed),
+                  onTap: () {
+                    Get.back();
+                    controller.removePhoto();
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Private: Profile header — avatar circle, name, email, Verified Member chip
+// Private: Profile header — AppAvatar, name, email, Verified Member chip
 // ─────────────────────────────────────────────────────────────────────────────
 class _ProfileHeader extends StatelessWidget {
   final String name;
   final String email;
+  final String? photoUrl;
+  final bool isUploading;
+  final VoidCallback onPhotoTap;
 
-  const _ProfileHeader({required this.name, required this.email});
-
-  /// Returns up to 2 initials from a display name
-  String get _initials {
-    final parts = name.trim().split(' ');
-    if (parts.isEmpty || name.isEmpty) return '?';
-    if (parts.length == 1) return parts[0][0].toUpperCase();
-    return (parts[0][0] + parts.last[0]).toUpperCase();
-  }
+  const _ProfileHeader({
+    required this.name,
+    required this.email,
+    this.photoUrl,
+    this.isUploading = false,
+    required this.onPhotoTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -172,37 +247,14 @@ class _ProfileHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Avatar circle with initials
-          Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primaryButton, AppColors.primaryDark],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.30),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                _initials,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 30,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
+          // AppAvatar with network image, fallback initials, camera badge & loading spinner
+          AppAvatar(
+            imageUrl: photoUrl,
+            name: name,
+            size: 88,
+            showCameraBadge: true,
+            isUploading: isUploading,
+            onTap: onPhotoTap,
           ),
 
           const SizedBox(height: AppSpacing.m),
