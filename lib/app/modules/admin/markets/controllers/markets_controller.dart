@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
 import 'package:harvest_hub/app/modules/admin/models/market_model.dart';
 import 'package:harvest_hub/app/modules/admin/repositories/admin_repository.dart';
@@ -11,6 +13,7 @@ class MarketsController extends GetxController {
   final error = ''.obs;
   final search = ''.obs;
   final markets = <MarketModel>[].obs;
+  final slotCounts = <String, int>{}.obs;
 
   @override
   void onInit() {
@@ -26,11 +29,27 @@ class MarketsController extends GetxController {
         .toList();
   }
 
+  int getSlotCount(String marketId) => slotCounts[marketId] ?? 0;
+
   Future<void> load() async {
     isLoading.value = true;
     error.value = '';
     try {
       markets.assignAll(await repo.getMarkets());
+      try {
+        final farmers = await repo.getFarmers();
+        final farmerToMarket = {for (final f in farmers) f.id: f.marketId};
+        final slotsSnap = await FirebaseFirestore.instance.collection(Db.pickupSlots).get();
+        final counts = <String, int>{};
+        for (final doc in slotsSnap.docs) {
+          final fid = (doc.data()['farmerId'] ?? '').toString();
+          final mid = farmerToMarket[fid];
+          if (mid != null && mid.isNotEmpty) {
+            counts[mid] = (counts[mid] ?? 0) + 1;
+          }
+        }
+        slotCounts.assignAll(counts);
+      } catch (_) {}
     } catch (e) {
       error.value = 'Could not load markets: ${errorText(e)}';
     } finally {
