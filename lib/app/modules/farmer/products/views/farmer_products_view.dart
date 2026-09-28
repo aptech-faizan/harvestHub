@@ -1,4 +1,4 @@
-import 'package:harvest_hub/app/core/responsive/responsive.dart';
+import 'package:harvest_hub/app/core/widgets/app_bounceable.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
@@ -113,7 +113,9 @@ class _ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final outOfStock = product.stockQty <= 0;
 
-    return Container(
+    return AppBounceable(
+      onTap: onEdit,
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
@@ -250,8 +252,9 @@ class _ProductCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _imageFallback() {
     return Center(

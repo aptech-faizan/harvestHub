@@ -6,6 +6,9 @@ import 'package:harvest_hub/app/core/utils/helpers.dart';
 import 'package:harvest_hub/app/data/models/market_model.dart';
 import 'package:harvest_hub/app/data/repositories/market_repository.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
+
+typedef CustomerRegisterController = RegisterController;
 
 class RegisterController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
@@ -124,7 +127,7 @@ class RegisterController extends GetxController {
 
     isLoading.value = true;
     try {
-      final role = await authService.register(
+      await authService.register(
         name: nameController.text.trim(),
         email: emailController.text.trim(),
         phone: phoneController.text.trim(),
@@ -134,8 +137,17 @@ class RegisterController extends GetxController {
         marketId: market?.id ?? '',
         marketName: market?.marketName ?? '',
       );
-      showSuccess('Registration successful!');
-      authService.navigateToRoleHome(role);
+
+      // If Firebase Auth automatically signs in the new user, immediately trigger a sign-out
+      if (authService.currentUser != null) {
+        await authService.signOut();
+      }
+
+      // Redirect the user to the Login Page (Routes.LOGIN) instead of the Dashboard
+      Get.offAllNamed(Routes.LOGIN);
+
+      // Display a GetX success Snackbar: "Account created successfully! Please log in with your credentials."
+      showSuccess('Account created successfully! Please log in with your credentials.');
     } on FirebaseAuthException catch (e) {
       showError(_getAuthErrorMessage(e));
     } catch (e) {

@@ -8,16 +8,58 @@ class LoginController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
 
   final formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
 
   final RxBool isLoading = false.obs;
   final RxBool hidePassword = true.obs;
 
+  bool _isDisposed = false;
+
+  LoginController() {
+    _initControllers();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    if (_isDisposed) {
+      _initControllers();
+      _isDisposed = false;
+    }
+  }
+
+  void _initControllers() {
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+  }
+
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
+    _isDisposed = true;
+    final email = emailController;
+    final pass = passwordController;
+    final binding = WidgetsBinding.instance;
+    // Delay disposal until after the current frame to prevent
+    // "TextEditingController was used after being disposed" during route transitions.
+    // ignore: unnecessary_null_comparison
+    if (binding != null) {
+      binding.addPostFrameCallback((_) {
+        try {
+          email.dispose();
+        } catch (_) {}
+        try {
+          pass.dispose();
+        } catch (_) {}
+      });
+    } else {
+      try {
+        email.dispose();
+      } catch (_) {}
+      try {
+        pass.dispose();
+      } catch (_) {}
+    }
     super.onClose();
   }
 

@@ -2,6 +2,8 @@ abstract class Routes {
   // Splash & Common Authentication
   static const splash = '/splash';
   static const login = '/login';
+  // ignore: constant_identifier_names
+  static const LOGIN = '/login';
   static const register = '/register';
   static const adminLogin = '/login'; // Backward compatibility alias
 

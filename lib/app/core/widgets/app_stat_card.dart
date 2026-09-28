@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
+import 'app_bounceable.dart';
 
 /// Reusable metric statistic card conforming to Master Rules and Section 6.6.
 /// Features metric label + big number + trend indicator pill + icon container.
@@ -33,7 +34,10 @@ class AppStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppBounceable(
+      onTap: null,
+      enabled: onTap != null,
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         borderRadius: AppRadius.cardRadius,
@@ -166,6 +170,7 @@ class AppStatCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

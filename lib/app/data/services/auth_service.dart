@@ -188,8 +188,18 @@ class AuthService extends GetxService {
       });
     }
 
-    final resolvedRole = await loadUserRoleAndProfile();
-    return resolvedRole ?? normalizedRole;
+    // If Firebase Auth automatically signed in the new user, immediately trigger a sign-out
+    await signOut();
+
+    return normalizedRole;
+  }
+
+  /// Signs out from Firebase Auth and clears local in-memory authentication state.
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+    } catch (_) {}
+    _clearState();
   }
 
   /// Centralized logout clearing Firebase Auth, in-memory state, cart, and wishlist.

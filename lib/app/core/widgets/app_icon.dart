@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_bounceable.dart';
 import '../theme/app_colors.dart';
 
 class AppIcon extends StatelessWidget {
@@ -143,6 +144,10 @@ class AppIconButton extends StatelessWidget {
       button = Tooltip(message: tooltip!, child: button);
     }
 
-    return button;
+    return AppBounceable(
+      onTap: null, // InkWell handles actual onTap
+      enabled: onTap != null,
+      child: button,
+    );
   }
 }

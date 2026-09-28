@@ -3,6 +3,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import 'app_bounceable.dart';
 import 'app_button.dart';
 import 'app_icon.dart';
 
@@ -98,22 +99,26 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: AppRadius.cardRadius,
-        border: border ?? Border.all(color: AppColors.divider, width: 1.0),
-        boxShadow: AppRadius.cardElevation,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: AppRadius.cardRadius,
-        child: InkWell(
-          onTap: onTap,
+    return AppBounceable(
+      onTap: null, // InkWell handles the actual onTap callback
+      enabled: onTap != null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: backgroundColor,
           borderRadius: AppRadius.cardRadius,
-          child: Padding(
-            padding: padding,
-            child: child,
+          border: border ?? Border.all(color: AppColors.divider, width: 1.0),
+          boxShadow: AppRadius.cardElevation,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: AppRadius.cardRadius,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: AppRadius.cardRadius,
+            child: Padding(
+              padding: padding,
+              child: child,
+            ),
           ),
         ),
       ),
@@ -156,13 +161,16 @@ class AppMediaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceWhite,
-        borderRadius: AppRadius.cardRadius, // unified 16px
-        border: Border.all(color: AppColors.divider, width: 1.0),
-        boxShadow: AppRadius.cardElevation,
-      ),
+    return AppBounceable(
+      onTap: null,
+      enabled: onTap != null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceWhite,
+          borderRadius: AppRadius.cardRadius, // unified 16px
+          border: Border.all(color: AppColors.divider, width: 1.0),
+          boxShadow: AppRadius.cardElevation,
+        ),
       child: Material(
         color: Colors.transparent,
         borderRadius: AppRadius.cardRadius,
@@ -306,6 +314,7 @@ class AppMediaCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

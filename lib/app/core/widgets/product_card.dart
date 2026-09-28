@@ -4,6 +4,7 @@ import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../../data/models/product_model.dart';
+import 'app_bounceable.dart';
 import 'app_button.dart';
 import 'app_icon.dart';
 
@@ -31,7 +32,10 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOutOfStock = product.stockQty <= 0;
 
-    return Container(
+    return AppBounceable(
+      onTap: null,
+      enabled: true,
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
         borderRadius: AppRadius.cardRadius, // Section 8: Unify to 16px everywhere
@@ -170,6 +174,7 @@ class ProductCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

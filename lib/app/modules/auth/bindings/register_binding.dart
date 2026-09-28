@@ -4,6 +4,6 @@ import 'package:harvest_hub/app/modules/auth/controllers/register_controller.dar
 class RegisterBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<RegisterController>(() => RegisterController());
+    Get.lazyPut<RegisterController>(() => RegisterController(), fenix: true);
   }
 }
