@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/theme/app_colors.dart';
+import 'package:harvest_hub/app/core/theme/app_spacing.dart';
+import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/auth/controllers/login_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 
@@ -11,89 +14,116 @@ class LoginView extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Form(
-              key: controller.formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(Icons.eco, size: 64, color: Colors.green),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'HarvestHub',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Sign in to your account',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  const SizedBox(height: 28),
-                  TextFormField(
-                    controller: controller.emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
+      backgroundColor: AppColors.surfaceWhite,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xxl, // 24px horizontal padding
+              vertical: AppSpacing.xl,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420.0),
+              child: Form(
+                key: controller.formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top: Logo + Welcome back + subtitle
+                    const AppAuthHeader(
+                      title: 'Welcome back',
+                      subtitle: 'Sign in to your account',
+                      logoWidth: 160.0,
                     ),
-                    validator: (v) {
-                      final t = (v ?? '').trim();
-                      if (t.isEmpty) return 'Email is required';
-                      if (!GetUtils.isEmail(t)) return 'Enter a valid email';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Obx(() => TextFormField(
-                        controller: controller.passwordController,
-                        obscureText: controller.hidePassword.value,
-                        decoration: InputDecoration(
+
+                    const SizedBox(height: 32.0), // 32px gap before form
+
+                    // Email Field
+                    AppTextField(
+                      controller: controller.emailController,
+                      hintText: 'Enter your email',
+                      labelText: 'Email',
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      prefixIcon: const Icon(
+                        Icons.email_outlined,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      ),
+                      validator: (v) {
+                        final t = (v ?? '').trim();
+                        if (t.isEmpty) return 'Email is required';
+                        if (!GetUtils.isEmail(t)) return 'Enter a valid email';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.l), // 16px gap
+
+                    // Password Field with show/hide toggle
+                    Obx(() => AppTextField(
+                          controller: controller.passwordController,
+                          hintText: 'Enter your password',
                           labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          border: const OutlineInputBorder(),
+                          obscureText: controller.hidePassword.value,
+                          keyboardType: TextInputType.visiblePassword,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => controller.login(),
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            size: 20,
+                            color: AppColors.textSecondary,
+                          ),
                           suffixIcon: IconButton(
-                            icon: Icon(controller.hidePassword.value
-                                ? Icons.visibility_off
-                                : Icons.visibility),
+                            icon: Icon(
+                              controller.hidePassword.value
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              size: 20,
+                              color: AppColors.textSecondary,
+                            ),
                             onPressed: controller.togglePasswordVisibility,
                           ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) {
+                              return 'Password is required';
+                            }
+                            return null;
+                          },
+                        )),
+
+                    const SizedBox(height: AppSpacing.xxl), // 24px gap
+
+                    // Login Button (52px, 16px radius, full width)
+                    Obx(() => AppButton.primary(
+                          label: 'Login',
+                          isLoading: controller.isLoading.value,
+                          onPressed: controller.isLoading.value
+                              ? null
+                              : controller.login,
+                        )),
+
+                    const SizedBox(height: AppSpacing.xxl), // 24px gap
+
+                    // Bottom: "Don't have an account?" + "Register"
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const AppText.body(
+                          "Don't have an account?",
+                          color: AppColors.textSecondary,
                         ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Password is required';
-                          }
-                          return null;
-                        },
-                      )),
-                  const SizedBox(height: 24),
-                  Obx(() => SizedBox(
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed:
-                              controller.isLoading.value ? null : controller.login,
-                          child: controller.isLoading.value
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Login', style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 4.0),
+                        AppTextButton(
+                          label: 'Register',
+                          color: AppColors.primaryDark,
+                          onPressed: () => Get.toNamed(Routes.register),
                         ),
-                      )),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Get.toNamed(Routes.register),
-                    child: const Text('Don\'t have an account? Register'),
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

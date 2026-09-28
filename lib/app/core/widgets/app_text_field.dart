@@ -18,6 +18,10 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final TextInputType? keyboardType;
   final FocusNode? focusNode;
+  final bool obscureText;
+  final FormFieldValidator<String>? validator;
+  final AutovalidateMode? autovalidateMode;
+  final TextInputAction? textInputAction;
 
   const AppTextField({
     super.key,
@@ -34,6 +38,10 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType,
     this.focusNode,
+    this.obscureText = false,
+    this.validator,
+    this.autovalidateMode,
+    this.textInputAction,
   });
 
   const AppTextField.outlined({
@@ -50,6 +58,10 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType,
     this.focusNode,
+    this.obscureText = false,
+    this.validator,
+    this.autovalidateMode,
+    this.textInputAction,
   }) : isOutlined = true;
 
   @override
@@ -63,46 +75,64 @@ class AppTextField extends StatelessWidget {
       borderSide: borderSide,
     );
 
-    return SizedBox(
-      height: maxLines == 1 ? 48.0 : null,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        readOnly: readOnly,
-        onTap: onTap,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        onChanged: onChanged,
-        onSubmitted: onSubmitted,
-        style: AppTextStyles.bodyText.copyWith(color: AppColors.textPrimary),
-        decoration: InputDecoration(
-          isDense: true,
-          filled: !isOutlined,
-          fillColor: isOutlined ? Colors.transparent : AppColors.surfaceMuted,
-          hintText: hintText,
-          labelText: labelText,
-          hintStyle: AppTextStyles.caption.copyWith(color: AppColors.textDisabled),
-          labelStyle: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-          prefixIcon: prefixIcon != null
-              ? Padding(
-                  padding: const EdgeInsets.only(left: 12.0, right: 8.0),
-                  child: prefixIcon,
-                )
-              : null,
-          prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
-          suffixIcon: suffixIcon,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14.0,
-            vertical: 13.0,
-          ),
-          border: border,
-          enabledBorder: border,
-          focusedBorder: OutlineInputBorder(
-            borderRadius: AppRadius.inputRadius,
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-          ),
+    final field = TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      readOnly: readOnly,
+      obscureText: obscureText,
+      validator: validator,
+      autovalidateMode: autovalidateMode,
+      textInputAction: textInputAction,
+      onTap: onTap,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      style: AppTextStyles.bodyText.copyWith(color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: !isOutlined,
+        fillColor: isOutlined ? Colors.transparent : AppColors.surfaceMuted,
+        hintText: hintText,
+        labelText: labelText,
+        hintStyle: AppTextStyles.caption.copyWith(color: AppColors.textDisabled),
+        labelStyle: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+        prefixIcon: prefixIcon != null
+            ? Padding(
+                padding: const EdgeInsets.only(left: 12.0, right: 8.0),
+                child: prefixIcon,
+              )
+            : null,
+        prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14.0,
+          vertical: 13.0,
+        ),
+        border: border,
+        enabledBorder: border,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppRadius.inputRadius,
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: AppRadius.inputRadius,
+          borderSide: const BorderSide(color: AppColors.accentRed, width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: AppRadius.inputRadius,
+          borderSide: const BorderSide(color: AppColors.accentRed, width: 1.5),
         ),
       ),
+    );
+
+    if (validator != null) {
+      return field;
+    }
+
+    return SizedBox(
+      height: maxLines == 1 ? 48.0 : null,
+      child: field,
     );
   }
 }

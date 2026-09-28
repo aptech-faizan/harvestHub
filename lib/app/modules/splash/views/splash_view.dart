@@ -1,31 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/theme/app_colors.dart';
+import 'package:harvest_hub/app/core/widgets/app_text.dart';
 import '../controllers/splash_controller.dart';
 
-// Ye app start hone par initial loading splash screen hai
 class SplashView extends StatelessWidget {
   const SplashView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Redirection trigger karne ke liye SplashController initialize karna
-    Get.put(SplashController());
+    // Startup logic / controller initialization unchanged
+    if (!Get.isRegistered<SplashController>()) {
+      Get.put(SplashController());
+    }
 
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.eco, size: 72, color: Colors.green),
-            SizedBox(height: 16),
-            Text(
-              'HarvestHub',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.green),
+    return Scaffold(
+      backgroundColor: AppColors.surfaceWhite,
+      body: Stack(
+        children: [
+          Center(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeOut,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.scale(
+                    scale: 0.90 + (0.10 * value),
+                    child: child,
+                  ),
+                );
+              },
+              child: Image.asset(
+                'assets/images/logo_stacked.png',
+                width: 220,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const AppText.displayLogo(
+                  'HarvestHub',
+                  color: AppColors.primaryDark,
+                ),
+              ),
             ),
-            SizedBox(height: 24),
-            CircularProgressIndicator(),
-          ],
-        ),
+          ),
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 24.0),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryButton),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
