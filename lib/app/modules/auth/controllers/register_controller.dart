@@ -116,16 +116,10 @@ class RegisterController extends GetxController {
       return;
     }
 
-    // Farmers must be tied to a market; products and orders both depend on it.
+    // Farmers can optionally be linked to a market on registration, or later via profile.
     MarketModel? market;
-    if (isFarmer) {
+    if (isFarmer && selectedMarketId.value.isNotEmpty) {
       market = selectedMarket;
-      if (market == null) {
-        showError(markets.isEmpty
-            ? 'No active markets are available yet. Ask an admin to add one.'
-            : 'Please select the market where you sell your produce.');
-        return;
-      }
     }
 
     isLoading.value = true;

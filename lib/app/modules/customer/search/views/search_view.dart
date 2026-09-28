@@ -405,7 +405,7 @@ class SearchView extends GetView<ProductSearchController> {
                   padding: const EdgeInsets.only(
                     left: AppSpacing.screenHorizontalPadding,
                     right: AppSpacing.screenHorizontalPadding,
-                    bottom: AppSpacing.xxl,
+                    bottom: 84.0, // Space for floating assistant button
                   ),
                   sliver: SliverGrid(
                     gridDelegate:

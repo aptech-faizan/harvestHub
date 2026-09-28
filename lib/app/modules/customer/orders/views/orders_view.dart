@@ -283,7 +283,7 @@ class OrdersView extends GetView<OrdersController> {
                           left: AppSpacing.screenHorizontalPadding,
                           right: AppSpacing.screenHorizontalPadding,
                           top: AppSpacing.xs,
-                          bottom: AppSpacing.xxl,
+                          bottom: 84.0, // Space for floating assistant button
                         ),
                         itemCount: displayedOrders.length,
                         separatorBuilder: (_, __) =>

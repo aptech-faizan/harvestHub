@@ -134,7 +134,7 @@ class AuthService extends GetxService {
   /// Common registration method for Customer and Farmer.
   /// Public registration for Admin is strictly prevented.
   ///
-  /// [marketId] is required for Farmers and stored in `farmers/{uid}` alongside
+  /// [marketId] is optional for Farmers and stored in `farmers/{uid}` alongside
   /// the denormalised [marketName] so lists never need a second lookup.
   Future<String> register({
     required String name,
@@ -155,9 +155,6 @@ class AuthService extends GetxService {
     if (email.trim().isEmpty || !email.contains('@')) throw Exception('Enter a valid email.');
     if (phone.trim().isEmpty) throw Exception('Phone number cannot be empty.');
     if (password.length < 6) throw Exception('Password must be at least 6 characters.');
-    if (normalizedRole == Roles.farmer && marketId.trim().isEmpty) {
-      throw Exception('Please select the market where you sell your produce.');
-    }
 
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),

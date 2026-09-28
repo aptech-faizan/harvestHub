@@ -32,6 +32,10 @@ class CustomerShellView extends GetView<CustomerShellController> {
             ProfileView(),
           ],
         ),
+        floatingActionButton: const AppAssistantFab(),
+        floatingActionButtonLocation: AppAssistantFabLocation(
+          hasPinnedBottomBar: controller.currentIndex.value == 2 && cartCount > 0,
+        ),
         // Standardized AppBottomNavBar matching Section 6.8 and Section 5
         bottomNavigationBar: AppBottomNavBar(
           currentIndex: controller.currentIndex.value,

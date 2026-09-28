@@ -4,151 +4,120 @@ import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
-/// Shared chat bubble widget — two variants driven by [isUser].
+/// Shared chat bubble widget — supports both peer-to-peer conversations
+/// and assistant dialogues.
 ///
-/// - [isUser] = true  → right-aligned, primaryButton green bg, white text,
-///                       rounded all corners except bottom-right (tear-drop tail).
-/// - [isUser] = false → left-aligned, surfaceWhite bg, divider border, dark text,
-///                       avatar circle on the far left, rounded all except bottom-left.
-///
-/// Styled exclusively with AppColors / AppTextStyles / AppRadius tokens.
+/// Spec requirements:
+/// - sent: right aligned, primaryButton bg, white text, corner nearest sender at 4px
+/// - received: left aligned, surfaceMuted bg, textPrimary text, corner nearest sender at 4px
+/// - 16px radius everywhere else, max width 75%, 12px padding, 8px vertical gap
+/// - timestamp in caption style (white 70% on sent, textSecondary on received)
 class AppChatBubble extends StatelessWidget {
   final String text;
   final bool isUser;
-
-  /// Label shown inside the assistant avatar circle (e.g. "H" for Harvey).
-  /// Ignored when [isUser] is true.
-  final String assistantLabel;
+  final String? timestamp;
+  final bool showAvatar;
+  final String? assistantLabel;
 
   const AppChatBubble({
     super.key,
     required this.text,
     required this.isUser,
-    this.assistantLabel = 'H',
+    this.timestamp,
+    this.showAvatar = false,
+    this.assistantLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: isUser ? _UserBubble(text: text) : _AssistantBubble(text: text, label: assistantLabel),
-    );
-  }
-}
+    final bool hasAvatar = showAvatar || (assistantLabel != null && assistantLabel!.isNotEmpty && !isUser);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// User bubble — right-aligned, green background
-// ─────────────────────────────────────────────────────────────────────────────
-class _UserBubble extends StatelessWidget {
-  final String text;
-  const _UserBubble({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.72,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.l,
-          vertical: AppSpacing.m,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.primaryButton,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(AppRadius.card),
-            topRight: Radius.circular(AppRadius.card),
-            bottomLeft: Radius.circular(AppRadius.card),
-            bottomRight: Radius.circular(4), // tail
-          ),
-          boxShadow: AppRadius.cardElevation,
-        ),
-        child: Text(
-          text,
-          style: AppTextStyles.bodyText.copyWith(
-            color: Colors.white,
-            height: 1.45,
-          ),
+    final bubble = Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.75,
+      ),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isUser ? AppColors.primaryButton : AppColors.surfaceMuted,
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(16),
+          topRight: const Radius.circular(16),
+          bottomLeft: Radius.circular(isUser ? 16 : 4),
+          bottomRight: Radius.circular(isUser ? 4 : 16),
         ),
       ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Assistant bubble — left-aligned, white card bg, with avatar
-// ─────────────────────────────────────────────────────────────────────────────
-class _AssistantBubble extends StatelessWidget {
-  final String text;
-  final String label;
-  const _AssistantBubble({required this.text, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Harvey avatar circle
-          Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primaryButton, AppColors.primaryDark],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
+          Text(
+            text,
+            style: AppTextStyles.bodyText.copyWith(
+              color: isUser ? Colors.white : AppColors.textPrimary,
+              height: 1.4,
             ),
           ),
-          const SizedBox(width: AppSpacing.s),
-          // Bubble
-          Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.68,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.l,
-                vertical: AppSpacing.m,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceWhite,
-                border: Border.all(color: AppColors.divider, width: 1.0),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(AppRadius.card),
-                  topRight: Radius.circular(AppRadius.card),
-                  bottomLeft: Radius.circular(4), // tail
-                  bottomRight: Radius.circular(AppRadius.card),
-                ),
-                boxShadow: AppRadius.cardElevation,
-              ),
-              child: Text(
-                text,
-                style: AppTextStyles.bodyText.copyWith(
-                  color: AppColors.textPrimary,
-                  height: 1.50,
-                ),
+          if (timestamp != null && timestamp!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              timestamp!,
+              style: AppTextStyles.caption.copyWith(
+                color: isUser
+                    ? Colors.white.withValues(alpha: 0.70)
+                    : AppColors.textSecondary,
+                fontSize: 10,
               ),
             ),
-          ),
+          ],
         ],
+      ),
+    );
+
+    if (hasAvatar) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryButton, AppColors.primaryDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    assistantLabel ?? 'H',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.s),
+              Flexible(child: bubble),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Align(
+        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+        child: bubble,
       ),
     );
   }

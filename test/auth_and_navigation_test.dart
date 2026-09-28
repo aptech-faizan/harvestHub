@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/constants/app_constants.dart';
+import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/middleware/admin_middleware.dart';
 import 'package:harvest_hub/app/middleware/customer_middleware.dart';
 import 'package:harvest_hub/app/middleware/farmer_middleware.dart';
@@ -77,9 +78,6 @@ class MockAuthService extends AuthService {
     if (normalized != Roles.customer && normalized != Roles.farmer) {
       throw Exception('Public registration is only allowed for Customer or Farmer.');
     }
-    if (normalized == Roles.farmer && marketId.isEmpty) {
-      throw Exception('Please select the market where you sell your produce.');
-    }
     mockRole = normalized;
     this.role.value = normalized;
     return normalized;
@@ -141,18 +139,16 @@ void main() {
       expect(mockAuth.isCustomer, isFalse);
       expect(mockAuth.isAdmin, isFalse);
 
-      // A farmer without a market must be rejected
-      expect(
-        () => mockAuth.register(
-          name: 'No Market Farmer',
-          email: 'nomarket@test.com',
-          phone: '0987654321',
-          password: 'password123',
-          address: '456 Farm Rd',
-          role: Roles.farmer,
-        ),
-        throwsA(isA<Exception>()),
+      // Farmer registration without a market is allowed
+      final noMarketFarmerRole = await mockAuth.register(
+        name: 'No Market Farmer',
+        email: 'nomarket@test.com',
+        phone: '0987654321',
+        password: 'password123',
+        address: '456 Farm Rd',
+        role: Roles.farmer,
       );
+      expect(noMarketFarmerRole, equals(Roles.farmer));
 
       // Public Admin registration MUST be rejected
       expect(
@@ -354,9 +350,58 @@ void main() {
         ),
       );
 
-      expect(find.text('Farmer Dashboard'), findsOneWidget);
+      expect(find.text('Welcome back 👋'), findsOneWidget);
       expect(find.text('Green Valley Farm'), findsOneWidget);
-      expect(find.byIcon(Icons.logout), findsOneWidget);
+      expect(find.byIcon(Icons.logout_rounded), findsOneWidget);
+    });
+
+    testWidgets('AppAssistantFab renders and links to Harvey assistant', (tester) async {
+      bool tapped = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            floatingActionButton: AppAssistantFab(
+              onTap: () => tapped = true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AppAssistantFab), findsOneWidget);
+      expect(find.byIcon(Icons.smart_toy_outlined), findsOneWidget);
+      expect(find.byTooltip('Harvey'), findsOneWidget);
+
+      await tester.tap(find.byType(AppAssistantFab));
+      await tester.pump();
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('AppChatBubble renders sent and received variants with timestamps', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                AppChatBubble(
+                  text: 'Hello from farmer',
+                  isUser: false,
+                  timestamp: '28 Sep, 1:30 PM',
+                ),
+                AppChatBubble(
+                  text: 'Hi there!',
+                  isUser: true,
+                  timestamp: '28 Sep, 1:31 PM',
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Hello from farmer'), findsOneWidget);
+      expect(find.text('Hi there!'), findsOneWidget);
+      expect(find.text('28 Sep, 1:30 PM'), findsOneWidget);
+      expect(find.text('28 Sep, 1:31 PM'), findsOneWidget);
     });
   });
 }
