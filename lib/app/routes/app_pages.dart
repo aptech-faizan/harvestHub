@@ -47,6 +47,9 @@ import 'package:harvest_hub/app/modules/customer/shell/bindings/customer_shell_b
 import 'package:harvest_hub/app/modules/customer/shell/views/customer_shell_view.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/bindings/wishlist_binding.dart';
 import 'package:harvest_hub/app/modules/customer/follow/views/followed_farmers_view.dart';
+import 'package:harvest_hub/app/modules/customer/profile/bindings/profile_binding.dart';
+import 'package:harvest_hub/app/modules/customer/profile/views/change_password_view.dart';
+import 'package:harvest_hub/app/modules/customer/profile/views/personal_info_view.dart';
 import 'package:harvest_hub/app/modules/shared/chat/bindings/chat_binding.dart';
 import 'package:harvest_hub/app/modules/shared/chat/views/chat_inbox_view.dart';
 import 'package:harvest_hub/app/modules/shared/chat/views/chat_room_view.dart';
@@ -141,6 +144,18 @@ class AppPages {
     GetPage(
       name: Routes.customerFollowedFarmers,
       page: () => const FollowedFarmersView(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerPersonalInfo,
+      page: () => const PersonalInfoView(),
+      binding: ProfileBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.customerChangePassword,
+      page: () => const ChangePasswordView(),
+      binding: ProfileBinding(),
       middlewares: [CustomerMiddleware()],
     ),
 

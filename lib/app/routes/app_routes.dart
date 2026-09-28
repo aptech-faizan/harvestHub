@@ -13,6 +13,8 @@ abstract class Routes {
   static const customerProductDetails = '/customer/products/details';
   static const customerWishlist = '/customer/wishlist';
   static const customerFollowedFarmers = '/customer/followed-farmers';
+  static const customerPersonalInfo = '/customer/profile/personal-info';
+  static const customerChangePassword = '/customer/profile/change-password';
 
   // Shared Module (all signed-in roles)
   static const chatInbox = '/chat/inbox';

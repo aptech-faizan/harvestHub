@@ -8,15 +8,12 @@ import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 import '../controllers/profile_controller.dart';
 
-/// Profile screen revamped per UI Master Rules and Design Specification.
-/// Structure:
-///  AppAppBar → Avatar/Header block (initials, name, email, Edit button)
-///  → AppCard.list: Personal Info (editable fields + Save)
-///  → AppCard.list: Change Password
-///  → AppCard.list: Quick Links (Wishlist, Chats, Followed Farmers)
-///  → AppCard.list: App Info (About Us, Contact Us)
-///  → AppButton.primary "Logout" (red)
-/// Business logic (saveProfile, changePassword, logout) is UNTOUCHED.
+/// Customer Profile screen restructured as a menu per UI Master Rules:
+/// a) Header: avatar (initial letter), name, email, and "Verified Member" AppChip.
+/// b) Vertical menu of AppCard.list rows (leading AppIcon, title AppText, trailing chevron)
+///    navigating to existing screens: Personal Information, Change Password, Wishlist,
+///    Followed Farmers, Chats, About Us, and Contact Us.
+/// c) Logout at the bottom, existing logic untouched.
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
 
@@ -46,152 +43,38 @@ class ProfileView extends GetView<ProfileController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ── Avatar / Header Block ───────────────────────────────────
+              // ── Header: Avatar, Name, Email, Verified Member ───────────
               _ProfileHeader(name: name, email: email),
 
-              const SizedBox(height: AppSpacing.m),
+              const SizedBox(height: AppSpacing.l),
 
-              // ── Personal Info Card ──────────────────────────────────────
+              // ── Account Settings Menu ──────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenHorizontalPadding,
                 ),
                 child: AppCard.list(
-                  title: 'Personal Information',
+                  title: 'Account Settings',
                   children: [
-                    // Email — readonly, no edit allowed
-                    _InfoField(
-                      icon: Icons.email_outlined,
-                      label: 'Email',
-                      child: AppText.body(
-                        email.isNotEmpty ? email : '—',
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.m),
-                    const Divider(color: AppColors.divider, height: 1),
-                    const SizedBox(height: AppSpacing.m),
-
-                    // Name — editable
-                    _InfoField(
+                    _NavRow(
                       icon: Icons.person_outline,
-                      label: 'Full Name',
-                      child: AppTextField(
-                        controller: controller.nameC,
-                        hintText: 'Enter your name',
-                      ),
+                      label: 'Personal Information',
+                      subtitle: 'Name, phone number, and delivery address',
+                      onTap: () => Get.toNamed(Routes.customerPersonalInfo),
                     ),
-                    const SizedBox(height: AppSpacing.m),
-
-                    // Phone — editable
-                    _InfoField(
-                      icon: Icons.phone_outlined,
-                      label: 'Phone',
-                      child: AppTextField(
-                        controller: controller.phoneC,
-                        hintText: 'Enter your phone number',
-                        keyboardType: TextInputType.phone,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.m),
-
-                    // Address — editable
-                    _InfoField(
-                      icon: Icons.home_outlined,
-                      label: 'Delivery Address',
-                      child: AppTextField(
-                        controller: controller.addressC,
-                        hintText: 'Enter your address',
-                        maxLines: 2,
-                        keyboardType: TextInputType.streetAddress,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-
-                    // Save Profile button — calls existing saveProfile()
-                    Obx(() => AppButton.primary(
-                          label: controller.isLoading.value
-                              ? 'Saving...'
-                              : 'Save Profile',
-                          icon: Icons.check_circle_outline,
-                          isLoading: controller.isLoading.value,
-                          onPressed: controller.isLoading.value
-                              ? null
-                              : () => controller.saveProfile(),
-                        )),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.m),
-
-              // ── Change Password Card ────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screenHorizontalPadding,
-                ),
-                child: AppCard.list(
-                  title: 'Change Password',
-                  children: [
-                    _InfoField(
+                    const Divider(color: AppColors.divider, height: 1),
+                    _NavRow(
                       icon: Icons.lock_outline,
-                      label: 'Current Password',
-                      child: AppTextField(
-                        controller: controller.currentPassC,
-                        hintText: 'Enter current password',
-                        keyboardType: TextInputType.visiblePassword,
-                      ),
+                      label: 'Change Password',
+                      subtitle: 'Update your security credentials',
+                      onTap: () => Get.toNamed(Routes.customerChangePassword),
                     ),
-                    const SizedBox(height: AppSpacing.m),
-                    _InfoField(
-                      icon: Icons.lock_reset_outlined,
-                      label: 'New Password',
-                      child: AppTextField(
-                        controller: controller.newPassC,
-                        hintText: 'Enter new password (min 6 chars)',
-                        keyboardType: TextInputType.visiblePassword,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-
-                    // Change Password button — calls existing changePassword()
-                    Obx(() => AppButton.primary(
-                          label: 'Change Password',
-                          icon: Icons.security,
-                          backgroundColor: AppColors.primary,
-                          isLoading: controller.isLoading.value,
-                          onPressed: controller.isLoading.value
-                              ? null
-                              : () => controller.changePassword(
-                                    controller.currentPassC.text,
-                                    controller.newPassC.text,
-                                  ),
-                        )),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: AppSpacing.m),
-
-              // ── Quick Links Card ────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screenHorizontalPadding,
-                ),
-                child: AppCard.list(
-                  title: 'My Account',
-                  children: [
+                    const Divider(color: AppColors.divider, height: 1),
                     _NavRow(
                       icon: Icons.favorite_outline,
                       label: 'Wishlist',
+                      subtitle: 'Your saved favorite produce',
                       onTap: () => Get.toNamed(Routes.customerWishlist),
-                    ),
-                    const Divider(color: AppColors.divider, height: 1),
-                    _NavRow(
-                      icon: Icons.chat_bubble_outline,
-                      label: 'Chats',
-                      subtitle: 'Messages with your farmers',
-                      onTap: () => Get.toNamed(Routes.chatInbox),
                     ),
                     const Divider(color: AppColors.divider, height: 1),
                     _NavRow(
@@ -201,30 +84,37 @@ class ProfileView extends GetView<ProfileController> {
                       onTap: () =>
                           Get.toNamed(Routes.customerFollowedFarmers),
                     ),
+                    const Divider(color: AppColors.divider, height: 1),
+                    _NavRow(
+                      icon: Icons.chat_bubble_outline,
+                      label: 'Chats',
+                      subtitle: 'Messages with your farmers',
+                      onTap: () => Get.toNamed(Routes.chatInbox),
+                    ),
                   ],
                 ),
               ),
 
               const SizedBox(height: AppSpacing.m),
 
-              // ── App Info Card ───────────────────────────────────────────
+              // ── Support Menu ───────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.screenHorizontalPadding,
                 ),
                 child: AppCard.list(
-                  title: 'Support',
+                  title: 'Support & Info',
                   children: [
                     _NavRow(
                       icon: Icons.info_outline,
-                      iconColor: AppColors.primary,
+                      iconColor: AppColors.primaryDark,
                       label: 'About Us',
                       onTap: () => Get.toNamed(Routes.aboutUs),
                     ),
                     const Divider(color: AppColors.divider, height: 1),
                     _NavRow(
                       icon: Icons.contact_support_outlined,
-                      iconColor: AppColors.primary,
+                      iconColor: AppColors.primaryDark,
                       label: 'Contact Us & Feedback',
                       onTap: () => Get.toNamed(Routes.contactUs),
                     ),
@@ -255,7 +145,7 @@ class ProfileView extends GetView<ProfileController> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Private: Profile header — avatar circle, name, email, Edit chip
+// Private: Profile header — avatar circle, name, email, Verified Member chip
 // ─────────────────────────────────────────────────────────────────────────────
 class _ProfileHeader extends StatelessWidget {
   final String name;
@@ -340,12 +230,18 @@ class _ProfileHeader extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.chipHerbsBg,
               borderRadius: AppRadius.chipRadius,
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.20),
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.verified_outlined, size: 14, color: AppColors.primaryDark),
+                const Icon(
+                  Icons.verified_outlined,
+                  size: 14,
+                  color: AppColors.primaryDark,
+                ),
                 const SizedBox(width: 5),
                 Text(
                   'Verified Member',
@@ -364,47 +260,7 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Private: A labelled field row with icon + label above its child widget
-// ─────────────────────────────────────────────────────────────────────────────
-class _InfoField extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Widget child;
-
-  const _InfoField({
-    required this.icon,
-    required this.label,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 15, color: AppColors.textSecondary),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        child,
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Private: A tappable navigation row for the Quick Links / Support cards
+// Private: A tappable navigation row for the menu cards
 // ─────────────────────────────────────────────────────────────────────────────
 class _NavRow extends StatelessWidget {
   final IconData icon;
