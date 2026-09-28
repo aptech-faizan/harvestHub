@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../data/models/product_model.dart';
 import '../../../../data/repositories/product_repository.dart';
 import '../../../../data/repositories/user_repository.dart';
@@ -56,18 +57,18 @@ class WishlistController extends GetxController {
           await UserRepository().removeFromWishlist(currentUid, product.id);
         } catch (e) {
           items.add(product);
-          Get.snackbar('Error', 'Wishlist update nahi ho saki');
+          AppSnackbar.error('Could not update wishlist');
         }
       }
     } else {
       items.add(product);
-      Get.snackbar('Wishlist', '${product.itemName} wishlist mein add ho gaya');
+      AppSnackbar.success('${product.itemName} added to wishlist', title: 'Wishlist');
       if (currentUid != null) {
         try {
           await UserRepository().addToWishlist(currentUid, product.id);
         } catch (e) {
           items.removeWhere((p) => p.id == product.id);
-          Get.snackbar('Error', 'Wishlist update nahi ho saki');
+          AppSnackbar.error('Could not update wishlist');
         }
       }
     }
@@ -94,7 +95,7 @@ class WishlistController extends GetxController {
   // Product ko direct cart mein add karne ke liye
   void addToCart(ProductModel product) {
     if (product.stockQty <= 0) {
-      Get.snackbar('Stock khatam', '${product.itemName} out of stock hai');
+      AppSnackbar.warning('${product.itemName} is out of stock', title: 'Out of Stock');
       return;
     }
 

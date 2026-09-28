@@ -1,13 +1,11 @@
 import 'package:get/get.dart';
 import '../../../../data/models/cart_item_model.dart';
 import '../../../../data/models/product_model.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
-// Ye cart ki tamaam logic aur state manage karta hai
 class CartController extends GetxController {
-  // Cart items ki reactive list
   final RxList<CartItem> items = <CartItem>[].obs;
 
-  // Poore cart ka total bill nikalne ke liye
   double get subtotal {
     double sum = 0.0;
     for (var item in items) {
@@ -16,7 +14,6 @@ class CartController extends GetxController {
     return sum;
   }
 
-  // Cart mein total kitni items hain
   int get itemCount {
     int count = 0;
     for (var item in items) {
@@ -25,7 +22,6 @@ class CartController extends GetxController {
     return count;
   }
 
-  // Items ko farmer ke hisaab se group karne ke liye
   Map<String, List<CartItem>> get groupedByFarmer {
     final Map<String, List<CartItem>> map = {};
     for (var item in items) {
@@ -38,10 +34,9 @@ class CartController extends GetxController {
     return map;
   }
 
-  // Product ko cart mein add karne ke liye
   void add(ProductModel p) {
     if (p.stockQty <= 0) {
-      Get.snackbar('Stock khatam', '${p.itemName} is out of stock');
+      AppSnackbar.warning('${p.itemName} is out of stock', title: 'Out of Stock');
       return;
     }
 
@@ -50,19 +45,19 @@ class CartController extends GetxController {
       if (items[index].qty < p.stockQty) {
         items[index].qty++;
         items.refresh();
-        Get.snackbar('Cart', '${p.itemName} quantity updated',
-            duration: const Duration(seconds: 1), snackPosition: SnackPosition.BOTTOM);
+        AppSnackbar.success('${p.itemName} quantity updated',
+            title: 'Cart Updated', duration: const Duration(seconds: 1));
       } else {
-        Get.snackbar('Limit reach', 'Available stock se zyada add nahi ho sakta');
+        AppSnackbar.warning('Cannot add more than available stock',
+            title: 'Stock Limit');
       }
     } else {
       items.add(CartItem(product: p, qty: 1));
-      Get.snackbar('Cart', '${p.itemName} cart mein add ho gaya',
-          duration: const Duration(seconds: 1), snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.success('${p.itemName} added to cart',
+          title: 'Item Added', duration: const Duration(seconds: 1));
     }
   }
 
-  // Item ki quantity update karne ke liye
   void setQty(String productId, int qty) {
     final index = items.indexWhere((item) => item.product.id == productId);
     if (index == -1) return;
@@ -76,19 +71,18 @@ class CartController extends GetxController {
     if (qty > maxStock) {
       items[index].qty = maxStock;
       items.refresh();
-      Get.snackbar('Stock limit', 'Sirf $maxStock items stock mein hain');
+      AppSnackbar.warning('Only $maxStock items available in stock',
+          title: 'Stock Limit');
     } else {
       items[index].qty = qty;
       items.refresh();
     }
   }
 
-  // Kisi ek product ko cart se hatane ke liye
   void remove(String productId) {
     items.removeWhere((item) => item.product.id == productId);
   }
 
-  // Poora cart saaf karne ke liye
   void clear() {
     items.clear();
   }

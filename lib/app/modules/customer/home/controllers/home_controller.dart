@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../data/models/category_model.dart';
 import '../../../../data/models/product_model.dart';
 import '../../../../data/repositories/category_repository.dart';
@@ -40,7 +41,7 @@ class HomeController extends GetxController {
       products.assignAll(productList);
       categories.assignAll(categoryList);
     } catch (e) {
-      Get.snackbar('Error', 'Data load karne mein masla hua: $e');
+      AppSnackbar.error('Could not load data: $e');
     } finally {
       isLoading.value = false;
     }
@@ -76,7 +77,7 @@ class HomeController extends GetxController {
   // Product ko cart mein add karne ka method
   void addToCart(ProductModel product) {
     if (product.stockQty <= 0) {
-      Get.snackbar('Stock khatam', '${product.itemName} out of stock hai');
+      AppSnackbar.warning('${product.itemName} is out of stock', title: 'Out of Stock');
       return;
     }
 

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../data/models/farmer_model.dart';
 import '../../../../data/models/product_model.dart';
 import '../../../../data/repositories/farmer_repository.dart';
@@ -87,7 +88,7 @@ class ProductDetailsController extends GetxController {
     if (qty.value < product.stockQty) {
       qty.value++;
     } else {
-      Get.snackbar('Stock Limit', 'Available stock se zyada select nahi ho sakta');
+      AppSnackbar.warning('Cannot select more than available stock', title: 'Stock Limit');
     }
   }
 
@@ -101,7 +102,7 @@ class ProductDetailsController extends GetxController {
   // Product ko cart mein selected quantity ke sath add karna
   void addToCart() {
     if (product.stockQty <= 0) {
-      Get.snackbar('Stock khatam', '${product.itemName} out of stock hai');
+      AppSnackbar.warning('${product.itemName} is out of stock', title: 'Out of Stock');
       return;
     }
 
@@ -115,7 +116,7 @@ class ProductDetailsController extends GetxController {
         cart.setQty(product.id, qty.value);
       }
     }
-    Get.snackbar('Cart', '${qty.value} x ${product.itemName} cart mein add ho gaya');
+    AppSnackbar.success('${qty.value} × ${product.itemName} added to cart', title: 'Item Added');
   }
 
   // Wishlist toggle karna aur heart icon update karna

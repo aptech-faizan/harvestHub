@@ -6,8 +6,9 @@ import '../../../../data/models/user_model.dart';
 import '../../../../data/repositories/user_repository.dart';
 import '../../../../data/services/auth_service.dart';
 import '../../../../data/services/cloudinary_service.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
-// Ye customer profile details, update, password change aur logout manage karta hai
+/// Manages customer profile details, updates, password changes and logout.
 class ProfileController extends GetxController {
   final UserRepository _userRepo = UserRepository();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -33,7 +34,6 @@ class ProfileController extends GetxController {
 
   @override
   void onClose() {
-    // Form controllers ko memory se dispose karna
     nameC.dispose();
     phoneC.dispose();
     addressC.dispose();
@@ -42,7 +42,6 @@ class ProfileController extends GetxController {
     super.onClose();
   }
 
-  // User profile Firestore se load karta hai
   Future<void> loadProfile() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
@@ -56,13 +55,12 @@ class ProfileController extends GetxController {
         addressC.text = u.address;
       }
     } catch (e) {
-      Get.snackbar('Error', 'Profile load nahi ho saki: $e');
+      AppSnackbar.error('Could not load profile: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Profile data validate karke Firestore par update karta hai
   Future<void> saveProfile() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
@@ -71,7 +69,7 @@ class ProfileController extends GetxController {
     final address = addressC.text.trim();
 
     if (name.isEmpty || phone.isEmpty) {
-      Get.snackbar('Ghalat Input', 'Naam aur phone khali nahi ho sakte');
+      AppSnackbar.warning('Name and phone number are required', title: 'Invalid Input');
       return;
     }
 
@@ -79,18 +77,17 @@ class ProfileController extends GetxController {
     try {
       await _userRepo.updateUser(uid, {'name': name, 'phone': phone, 'address': address});
       await loadProfile();
-      Get.snackbar('Kamyabi', 'Profile update ho gayi');
+      AppSnackbar.success('Profile updated successfully', title: 'Profile Saved');
     } catch (e) {
-      Get.snackbar('Error', 'Update fail: $e');
+      AppSnackbar.error('Could not update profile: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Re-authenticate karke naya password set karta hai
   Future<void> changePassword(String current, String newPass) async {
     if (newPass.length < 6) {
-      Get.snackbar('Ghalat Input', 'Naya password kam az kam 6 characters ka hona chahiye');
+      AppSnackbar.warning('New password must be at least 6 characters', title: 'Invalid Input');
       return;
     }
     final currentUser = _auth.currentUser;
@@ -103,25 +100,24 @@ class ProfileController extends GetxController {
       await currentUser.updatePassword(newPass);
       currentPassC.clear();
       newPassC.clear();
-      Get.snackbar('Kamyabi', 'Password kamyabi se tabdeel ho gaya');
+      AppSnackbar.success('Password changed successfully', title: 'Password Updated');
     } on FirebaseAuthException catch (e) {
       String msg;
       switch (e.code) {
-        case 'wrong-password': msg = 'Purana password galat hai'; break;
-        case 'invalid-credential': msg = 'Email ya password galat hai'; break;
-        case 'weak-password': msg = 'Naya password kamzor hai'; break;
-        case 'requires-recent-login': msg = 'Dobara login karke koshish karein'; break;
-        default: msg = e.message ?? 'Password tabdeel nahi ho saka';
+        case 'wrong-password': msg = 'Current password is incorrect'; break;
+        case 'invalid-credential': msg = 'Email or password is incorrect'; break;
+        case 'weak-password': msg = 'New password is too weak'; break;
+        case 'requires-recent-login': msg = 'Please log in again and retry'; break;
+        default: msg = e.message ?? 'Could not change password';
       }
-      Get.snackbar('Error', msg);
+      AppSnackbar.error(msg);
     } catch (e) {
-      Get.snackbar('Error', 'Kuch masla hua: $e');
+      AppSnackbar.error('Something went wrong: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Profile photo upload via Cloudinary
   Future<void> pickAndUploadPhoto(ImageSource source) async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
@@ -145,15 +141,14 @@ class ProfileController extends GetxController {
         }
       }
 
-      Get.snackbar('Kamyabi', 'Profile picture update ho gayi');
+      AppSnackbar.success('Profile photo updated', title: 'Photo Updated');
     } catch (e) {
-      Get.snackbar('Error', 'Photo upload nahi ho saki: $e');
+      AppSnackbar.error('Could not upload photo: $e', title: 'Upload Failed');
     } finally {
       isUploadingPhoto.value = false;
     }
   }
 
-  // Remove profile photo
   Future<void> removePhoto() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
@@ -173,15 +168,14 @@ class ProfileController extends GetxController {
         }
       }
 
-      Get.snackbar('Kamyabi', 'Profile picture hata di gayi');
+      AppSnackbar.success('Profile photo removed', title: 'Photo Removed');
     } catch (e) {
-      Get.snackbar('Error', 'Photo remove nahi ho saki: $e');
+      AppSnackbar.error('Could not remove photo: $e', title: 'Remove Failed');
     } finally {
       isUploadingPhoto.value = false;
     }
   }
 
-  // Logs out user and cleans up session via AuthService
   Future<void> logout() async {
     await Get.find<AuthService>().logout();
   }
