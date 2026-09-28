@@ -63,18 +63,25 @@ class FarmerProfileController extends GetxController {
   }
 
   Future<void> load() async {
-    if (uid.isEmpty) return;
+    if (isClosed || uid.isEmpty) return;
     isLoading.value = true;
     try {
-      markets.assignAll(await _marketRepo.getActiveMarkets());
+      final activeMarkets = await _marketRepo.getActiveMarkets();
+      if (isClosed) return;
+      markets.assignAll(activeMarkets);
+
       final user = await _userRepo.getUser(uid);
+      if (isClosed) return;
+
+      final farmer = (await _farmerRepo.getFarmerById(uid)) ??
+          (await _farmerRepo.getFarmerByUserId(uid));
+      if (isClosed) return;
+
       email.value = user?.email ?? authService.currentUser?.email ?? '';
       nameC.text = user?.name ?? '';
       phoneC.text = user?.phone ?? '';
       addressC.text = user?.address ?? '';
 
-      final farmer = (await _farmerRepo.getFarmerById(uid)) ??
-          (await _farmerRepo.getFarmerByUserId(uid));
       farmerDocId.value = farmer?.id ?? uid;
       businessC.text = farmer?.businessName.isNotEmpty == true
           ? farmer!.businessName
@@ -85,14 +92,18 @@ class FarmerProfileController extends GetxController {
       lowStockThreshold.value = farmer?.lowStockThreshold ?? 5;
       isVerified.value = farmer?.isVerified ?? false;
     } catch (e) {
-      showError('Could not load profile: ${errorText(e)}');
+      if (!isClosed) {
+        showError('Could not load profile: ${errorText(e)}');
+      }
     } finally {
-      isLoading.value = false;
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 
   Future<void> save() async {
-    if (uid.isEmpty) return;
+    if (isClosed || uid.isEmpty) return;
     final name = nameC.text.trim();
     final phone = phoneC.text.trim();
     final business = businessC.text.trim();
@@ -108,6 +119,7 @@ class FarmerProfileController extends GetxController {
         'phone': phone,
         'address': addressC.text.trim(),
       });
+      if (isClosed) return;
 
       final selectedMarket = markets.firstWhereOrNull(
         (m) => m.id == selectedMarketId.value,
@@ -129,9 +141,11 @@ class FarmerProfileController extends GetxController {
         isVerified: isVerified.value,
       );
       await _farmerRepo.upsertFarmer(farmer);
+      if (isClosed) return;
 
       if (farmer.marketId.isNotEmpty) {
         final market = await _marketRepo.getMarketById(farmer.marketId);
+        if (isClosed) return;
         await _productRepo.syncFarmerDenormOnProducts(
           farmerId: uid,
           farmerName: farmer.businessName,
@@ -140,6 +154,7 @@ class FarmerProfileController extends GetxController {
           lat: market?.lat ?? 0,
           lng: market?.lng ?? 0,
         );
+        if (isClosed) return;
       }
 
       authService.currentUserModel.value = UserModel(
@@ -156,15 +171,22 @@ class FarmerProfileController extends GetxController {
       if (Get.isRegistered<FarmerDashboardController>()) {
         await Get.find<FarmerDashboardController>().loadFarmerData();
       }
-      showSuccess('Profile saved');
+      if (!isClosed) {
+        showSuccess('Profile saved');
+      }
     } catch (e) {
-      showError('Save failed: ${errorText(e)}');
+      if (!isClosed) {
+        showError('Save failed: ${errorText(e)}');
+      }
     } finally {
-      isSaving.value = false;
+      if (!isClosed) {
+        isSaving.value = false;
+      }
     }
   }
 
   Future<void> changePassword() async {
+    if (isClosed) return;
     final current = currentPassC.text;
     final next = newPassC.text;
     if (next.length < 6) {
@@ -177,16 +199,25 @@ class FarmerProfileController extends GetxController {
     try {
       final cred = EmailAuthProvider.credential(email: user.email!, password: current);
       await user.reauthenticateWithCredential(cred);
+      if (isClosed) return;
       await user.updatePassword(next);
-      currentPassC.clear();
-      newPassC.clear();
-      showSuccess('Password updated');
+      if (!isClosed) {
+        currentPassC.clear();
+        newPassC.clear();
+        showSuccess('Password updated');
+      }
     } on FirebaseAuthException catch (e) {
-      showError(e.message ?? 'Could not change password');
+      if (!isClosed) {
+        showError(e.message ?? 'Could not change password');
+      }
     } catch (e) {
-      showError(errorText(e));
+      if (!isClosed) {
+        showError(errorText(e));
+      }
     } finally {
-      isSaving.value = false;
+      if (!isClosed) {
+        isSaving.value = false;
+      }
     }
   }
 }

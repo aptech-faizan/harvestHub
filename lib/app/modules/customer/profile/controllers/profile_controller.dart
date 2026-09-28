@@ -26,6 +26,9 @@ class ProfileController extends GetxController {
   final TextEditingController currentPassC = TextEditingController();
   final TextEditingController newPassC = TextEditingController();
 
+  bool _isDisposed = false;
+  bool get isDisposed => _isDisposed || isClosed;
+
   @override
   void onInit() {
     super.onInit();
@@ -34,6 +37,7 @@ class ProfileController extends GetxController {
 
   @override
   void onClose() {
+    _isDisposed = true;
     nameC.dispose();
     phoneC.dispose();
     addressC.dispose();
@@ -42,26 +46,52 @@ class ProfileController extends GetxController {
     super.onClose();
   }
 
+  void reset() {
+    user.value = null;
+    if (!isDisposed) {
+      nameC.clear();
+      phoneC.clear();
+      addressC.clear();
+      currentPassC.clear();
+      newPassC.clear();
+    }
+  }
+
+  Future<void> load() => loadProfile();
+
   Future<void> loadProfile() async {
+    if (isDisposed) return;
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return;
+    if (uid == null) {
+      reset();
+      return;
+    }
+    if (user.value != null && user.value!.uid != uid) {
+      reset();
+    }
     isLoading.value = true;
     try {
       final u = await _userRepo.getUser(uid);
+      if (isDisposed) return;
       user.value = u;
-      if (u != null) {
+      if (u != null && !isDisposed) {
         nameC.text = u.name;
         phoneC.text = u.phone;
         addressC.text = u.address;
       }
     } catch (e) {
-      AppSnackbar.error('Could not load profile: $e');
+      if (!isDisposed) {
+        AppSnackbar.error('Could not load profile: $e');
+      }
     } finally {
-      isLoading.value = false;
+      if (!isDisposed) {
+        isLoading.value = false;
+      }
     }
   }
 
   Future<void> saveProfile() async {
+    if (isClosed) return;
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
     final name = nameC.text.trim();
@@ -76,16 +106,24 @@ class ProfileController extends GetxController {
     isLoading.value = true;
     try {
       await _userRepo.updateUser(uid, {'name': name, 'phone': phone, 'address': address});
+      if (isClosed) return;
       await loadProfile();
-      AppSnackbar.success('Profile updated successfully', title: 'Profile Saved');
+      if (!isClosed) {
+        AppSnackbar.success('Profile updated successfully', title: 'Profile Saved');
+      }
     } catch (e) {
-      AppSnackbar.error('Could not update profile: $e');
+      if (!isClosed) {
+        AppSnackbar.error('Could not update profile: $e');
+      }
     } finally {
-      isLoading.value = false;
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 
   Future<void> changePassword(String current, String newPass) async {
+    if (isClosed) return;
     if (newPass.length < 6) {
       AppSnackbar.warning('New password must be at least 6 characters', title: 'Invalid Input');
       return;
@@ -97,38 +135,50 @@ class ProfileController extends GetxController {
     try {
       final cred = EmailAuthProvider.credential(email: currentUser.email!, password: current);
       await currentUser.reauthenticateWithCredential(cred);
+      if (isClosed) return;
       await currentUser.updatePassword(newPass);
-      currentPassC.clear();
-      newPassC.clear();
-      AppSnackbar.success('Password changed successfully', title: 'Password Updated');
-    } on FirebaseAuthException catch (e) {
-      String msg;
-      switch (e.code) {
-        case 'wrong-password': msg = 'Current password is incorrect'; break;
-        case 'invalid-credential': msg = 'Email or password is incorrect'; break;
-        case 'weak-password': msg = 'New password is too weak'; break;
-        case 'requires-recent-login': msg = 'Please log in again and retry'; break;
-        default: msg = e.message ?? 'Could not change password';
+      if (!isClosed) {
+        currentPassC.clear();
+        newPassC.clear();
+        AppSnackbar.success('Password changed successfully', title: 'Password Updated');
       }
-      AppSnackbar.error(msg);
+    } on FirebaseAuthException catch (e) {
+      if (!isClosed) {
+        String msg;
+        switch (e.code) {
+          case 'wrong-password': msg = 'Current password is incorrect'; break;
+          case 'invalid-credential': msg = 'Email or password is incorrect'; break;
+          case 'weak-password': msg = 'New password is too weak'; break;
+          case 'requires-recent-login': msg = 'Please log in again and retry'; break;
+          default: msg = e.message ?? 'Could not change password';
+        }
+        AppSnackbar.error(msg);
+      }
     } catch (e) {
-      AppSnackbar.error('Something went wrong: $e');
+      if (!isClosed) {
+        AppSnackbar.error('Something went wrong: $e');
+      }
     } finally {
-      isLoading.value = false;
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 
   Future<void> pickAndUploadPhoto(ImageSource source) async {
+    if (isClosed) return;
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
     try {
       final file = await _picker.pickImage(source: source, imageQuality: 80);
-      if (file == null) return;
+      if (file == null || isClosed) return;
 
       isUploadingPhoto.value = true;
       final url = await _cloudinary.uploadImage(file);
+      if (isClosed) return;
       await _userRepo.updateUser(uid, {'photoUrl': url});
+      if (isClosed) return;
 
       if (user.value != null) {
         user.value = user.value!.copyWith(photoUrl: url);
@@ -143,19 +193,25 @@ class ProfileController extends GetxController {
 
       AppSnackbar.success('Profile photo updated', title: 'Photo Updated');
     } catch (e) {
-      AppSnackbar.error('Could not upload photo: $e', title: 'Upload Failed');
+      if (!isClosed) {
+        AppSnackbar.error('Could not upload photo: $e', title: 'Upload Failed');
+      }
     } finally {
-      isUploadingPhoto.value = false;
+      if (!isClosed) {
+        isUploadingPhoto.value = false;
+      }
     }
   }
 
   Future<void> removePhoto() async {
+    if (isClosed) return;
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
     try {
       isUploadingPhoto.value = true;
       await _userRepo.updateUser(uid, {'photoUrl': ''});
+      if (isClosed) return;
 
       if (user.value != null) {
         user.value = user.value!.copyWith(photoUrl: '');
@@ -170,13 +226,21 @@ class ProfileController extends GetxController {
 
       AppSnackbar.success('Profile photo removed', title: 'Photo Removed');
     } catch (e) {
-      AppSnackbar.error('Could not remove photo: $e', title: 'Remove Failed');
+      if (!isClosed) {
+        AppSnackbar.error('Could not remove photo: $e', title: 'Remove Failed');
+      }
     } finally {
-      isUploadingPhoto.value = false;
+      if (!isClosed) {
+        isUploadingPhoto.value = false;
+      }
     }
   }
 
   Future<void> logout() async {
+    reset();
+    if (Get.isRegistered<ProfileController>()) {
+      Get.delete<ProfileController>(force: true);
+    }
     await Get.find<AuthService>().logout();
   }
 }

@@ -5,7 +5,14 @@ import '../controllers/profile_controller.dart';
 class ProfileBinding extends Bindings {
   @override
   void dependencies() {
-    // ProfileController inject karna
-    Get.lazyPut<ProfileController>(() => ProfileController());
+    if (!Get.isRegistered<ProfileController>()) {
+      Get.put<ProfileController>(ProfileController(), permanent: true);
+    } else {
+      final existing = Get.find<ProfileController>();
+      if (existing.isClosed || existing.isDisposed) {
+        Get.delete<ProfileController>(force: true);
+        Get.put<ProfileController>(ProfileController(), permanent: true);
+      }
+    }
   }
 }

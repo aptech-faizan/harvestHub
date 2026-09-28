@@ -318,14 +318,11 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         AppButton.primary(
-                          label: 'View My Orders',
-                          onPressed: _navigateToOrders,
-                        ),
-                        const SizedBox(height: AppSpacing.s),
-                        AppTextButton(
                           label: 'Continue Shopping',
                           onPressed: _navigateToHome,
                         ),
+                        const SizedBox(height: AppSpacing.s),
+                       
                       ],
                     ),
                   ),

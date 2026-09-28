@@ -15,6 +15,16 @@ class CustomerShellBinding extends Bindings {
     Get.lazyPut<HomeController>(() => HomeController());
     Get.lazyPut<ProductSearchController>(() => ProductSearchController());
     Get.lazyPut<OrdersController>(() => OrdersController());
-    Get.lazyPut<ProfileController>(() => ProfileController());
+    if (Get.isRegistered<ProfileController>()) {
+      final existing = Get.find<ProfileController>();
+      if (existing.isClosed || existing.isDisposed) {
+        Get.delete<ProfileController>(force: true);
+        Get.put<ProfileController>(ProfileController(), permanent: true);
+      } else {
+        existing.loadProfile();
+      }
+    } else {
+      Get.put<ProfileController>(ProfileController(), permanent: true);
+    }
   }
 }

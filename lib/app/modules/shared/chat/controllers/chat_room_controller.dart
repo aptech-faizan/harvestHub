@@ -118,8 +118,10 @@ class ChatRoomController extends GetxController {
       );
     } catch (e) {
       // Put the text back so the message is not silently lost.
-      inputC.text = text;
-      error.value = 'Message not sent: $e';
+      if (!isClosed) {
+        inputC.text = text;
+        error.value = 'Message not sent: $e';
+      }
     }
   }
 }

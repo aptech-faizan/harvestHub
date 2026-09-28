@@ -23,17 +23,18 @@ class FarmerProductsView extends GetView<FarmerProductsController> {
       appBar: AppAppBar(
         titleText: 'My Products',
         actions: [
-          AppButton.small(
-            label: 'Add Product',
-            icon: Icons.add_rounded,
-            onPressed: () => controller.openForm(),
-          ),
+          
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary),
             tooltip: 'Refresh',
             onPressed: controller.load,
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: controller.openForm,
+        tooltip: 'Add Product',
+        child: const Icon(Icons.add_rounded),
       ),
       body: Column(
         children: [
@@ -72,7 +73,7 @@ class FarmerProductsView extends GetView<FarmerProductsController> {
                     crossAxisCount: 2,
                     crossAxisSpacing: AppSpacing.m,
                     mainAxisSpacing: AppSpacing.m,
-                    childAspectRatio: 0.68,
+                    childAspectRatio: 0.55,
                   ),
                   itemCount: list.length,
                   itemBuilder: (_, i) => _ProductCard(

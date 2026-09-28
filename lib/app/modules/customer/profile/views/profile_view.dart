@@ -50,7 +50,7 @@ class ProfileView extends GetView<ProfileController> {
                 email: email,
                 photoUrl: u?.photoUrl,
                 isUploading: controller.isUploadingPhoto.value,
-                onPhotoTap: () => _showPhotoBottomSheet(context, controller),
+                onPhotoTap: () => _showPhotoBottomSheet(context),
               ),
 
               const SizedBox(height: AppSpacing.l),
@@ -150,8 +150,8 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  void _showPhotoBottomSheet(
-      BuildContext context, ProfileController controller) {
+  void _showPhotoBottomSheet(BuildContext context) {
+    final controller = Get.find<ProfileController>();
     final hasPhoto = controller.user.value?.photoUrl.isNotEmpty == true;
 
     Get.bottomSheet(
