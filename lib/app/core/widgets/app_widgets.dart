@@ -9,6 +9,7 @@ export 'app_chip.dart';
 export 'app_icon.dart';
 export 'app_section_header.dart';
 export 'app_slot_picker.dart';
+export 'app_stat_card.dart';
 export 'app_text.dart';
 export 'app_text_field.dart';
 export 'app_toggle_tabs.dart';
