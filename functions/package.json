@@ -1,6 +1,6 @@
 {
   "name": "harvesthub-functions",
-  "description": "Trusted server operations for HarvestHub (order cancellation compensation)",
+  "description": "Trusted server operations for HarvestHub: FCM notifications and order cancellation compensation",
   "main": "index.js",
   "engines": {
     "node": "20"

@@ -46,6 +46,10 @@ class ChatRepository {
         'customerName': customerName,
         'farmerName': farmerName,
         'lastMessage': '',
+        // Must exist from creation, not only after the first message: Firestore
+        // EXCLUDES documents that lack the orderBy field, so a chat created but
+        // not yet used would be invisible in the recipient's inbox.
+        'lastMessageAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
       });
     } else {
@@ -116,6 +120,8 @@ class ChatRepository {
   }
 
   /// Inbox stream, newest conversation first.
+  ///
+  /// Requires the composite index `{customerId|farmerId ASC, lastMessageAt DESC}`.
   Stream<List<ChatSummary>> watchInbox(String uid, String role) {
     final field = role == 'farmer' ? 'farmerId' : 'customerId';
     return _chats()

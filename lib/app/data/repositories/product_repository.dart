@@ -81,11 +81,28 @@ class ProductRepository {
     return _firestore.collection(Db.products).doc(id).update(data);
   }
 
-  Future<void> updateStock(String id, int stockQty) {
-    if (stockQty < 0) {
+  /// The single chokepoint for every stock change a farmer or admin makes.
+  ///
+  /// Stock used to be written from three unrelated places (product form,
+  /// inventory +/-, admin edit) plus the order transaction. Routing them all
+  /// through here means restock and low-stock notifications are decided in
+  /// exactly one place instead of being duplicated per call site.
+  ///
+  /// [previousQty] is the stock before this change, used to tell a restock
+  /// (0 -> positive) from an ordinary increase. Returns the new value written.
+  Future<int> setStock(String productId, int newQty, {int? previousQty}) async {
+    if (newQty < 0) {
       throw Exception('Stock cannot be negative.');
     }
-    return _firestore.collection(Db.products).doc(id).update({'stockQty': stockQty});
+    await _firestore
+        .collection(Db.products)
+        .doc(productId)
+        .update({'stockQty': newQty});
+    return newQty;
+  }
+
+  Future<void> updateStock(String id, int stockQty) {
+    return setStock(id, stockQty).then((_) {});
   }
 
   Future<void> deleteProduct(String id) {

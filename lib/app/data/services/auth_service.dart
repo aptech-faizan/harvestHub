@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import 'package:harvest_hub/app/data/models/user_model.dart';
+import 'package:harvest_hub/app/data/services/fcm_service.dart';
 import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
 import 'package:harvest_hub/app/modules/customer/follow/controllers/follow_controller.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
@@ -211,6 +212,11 @@ class AuthService extends GetxService {
     // Follow state is per-account, so drop the previous user's follows.
     if (Get.isRegistered<FollowController>()) {
       Get.find<FollowController>().refreshForCurrentUser();
+    }
+    // Drop this device's push token so the next user on the same handset does
+    // not inherit the previous account's notifications.
+    if (Get.isRegistered<FcmService>()) {
+      await Get.find<FcmService>().unregisterCurrentDevice();
     }
 
     Get.offAllNamed(Routes.login);

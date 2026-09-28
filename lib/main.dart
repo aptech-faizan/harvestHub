@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_theme.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
+import 'package:harvest_hub/app/data/services/fcm_service.dart';
 import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
 import 'package:harvest_hub/app/modules/customer/follow/controllers/follow_controller.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
@@ -27,6 +28,10 @@ Future<void> main() async {
   Get.put(FollowController(), permanent: true);
   // One inbox controller backs every "chat with farmer" entry point.
   Get.put(ChatInboxController(), permanent: true);
+
+  // FCM only registers this device's token and shows foreground banners;
+  // every notification is sent from Cloud Functions.
+  await Get.putAsync<FcmService>(() => FcmService().init(), permanent: true);
 
   runApp(const HarvestHubApp());
 }

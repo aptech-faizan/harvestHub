@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/data/models/chat_message.dart';
@@ -36,6 +37,10 @@ class ChatRoomController extends GetxController {
   StreamSubscription<List<ChatMessage>>? _sub;
 
   String get uid => authService.currentUser?.uid ?? '';
+
+  /// Read live rather than captured at construction: a pushed room controller
+  /// is created while the role may still be unresolved, and `myRole` decides
+  /// both the read-receipt field and the message sender role.
   String get myRole => authService.role.value;
   String get myName => authService.currentUserModel.value?.name ?? '';
 
@@ -49,8 +54,14 @@ class ChatRoomController extends GetxController {
       isLoading.value = false;
       return;
     }
-    _subscribe();
-    markRead();
+    // Hold the receipt until the role is known, otherwise it would be written
+    // to customerLastReadAt on a farmer's account (or vice versa).
+    if (uid.isNotEmpty && myRole.isNotEmpty) {
+      _subscribe();
+      markRead();
+    } else {
+      isLoading.value = false;
+    }
   }
 
   @override
@@ -71,11 +82,15 @@ class ChatRoomController extends GetxController {
         isLoading.value = false;
         error.value = '';
       },
-      onError: (Object _) {
+      onError: (Object e, StackTrace _) {
         isLoading.value = false;
-        // Almost always an undeployed/restrictive firestore.rules.
-        error.value =
-            'Could not load messages. Check that Firestore rules are deployed.';
+        debugPrint('ChatRoom stream error for ${args.chatId}: $e');
+        final text = '$e';
+        error.value = text.contains('index')
+            ? 'This query needs a Firestore index. Run: '
+                'firebase deploy --only firestore:indexes'
+            : 'Could not load messages. Check that Firestore rules are deployed. '
+                '($text)';
       },
     );
   }
