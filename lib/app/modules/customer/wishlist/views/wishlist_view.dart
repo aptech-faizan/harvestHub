@@ -97,11 +97,14 @@ class WishlistView extends GetView<WishlistController> {
                               color: AppColors.textSecondary,
                             ),
                             const SizedBox(height: AppSpacing.xl),
-                            AppButton.primary(
-                              label: 'Browse Products',
-                              icon: Icons.search_rounded,
-                              width: 200,
-                              onPressed: () => _navigateToBrowse(context),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 280),
+                              child: AppButton.primary(
+                                label: 'Browse Products',
+                                icon: Icons.search_rounded,
+                                width: double.infinity,
+                                onPressed: () => _navigateToBrowse(context),
+                              ),
                             ),
                           ],
                         ),

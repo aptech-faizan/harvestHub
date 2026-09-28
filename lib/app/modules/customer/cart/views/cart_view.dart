@@ -102,17 +102,20 @@ class CartView extends GetView<CartController> {
                     color: AppColors.textSecondary,
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  AppButton.primary(
-                    label: 'Start Shopping',
-                    icon: Icons.search_rounded,
-                    width: 200,
-                    onPressed: () {
-                      if (Get.isRegistered<CustomerShellController>()) {
-                        Get.find<CustomerShellController>().changeTab(1);
-                      } else {
-                        Get.offAllNamed(Routes.customerShell);
-                      }
-                    },
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    child: AppButton.primary(
+                      label: 'Start Shopping',
+                      icon: Icons.search_rounded,
+                      width: double.infinity,
+                      onPressed: () {
+                        if (Get.isRegistered<CustomerShellController>()) {
+                          Get.find<CustomerShellController>().changeTab(1);
+                        } else {
+                          Get.offAllNamed(Routes.customerShell);
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),

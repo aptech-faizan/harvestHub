@@ -123,11 +123,12 @@ class FollowedFarmersView extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
             const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: 220,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 280),
               child: AppButton.primary(
                 label: 'Explore Farmers',
                 icon: Icons.storefront_rounded,
+                width: double.infinity,
                 onPressed: () => Get.toNamed(Routes.customerFarmers),
               ),
             ),

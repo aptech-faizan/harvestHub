@@ -56,24 +56,29 @@ class AppButton extends StatelessWidget {
       );
     } else {
       content = Row(
-        mainAxisSize: isSmall && width == null ? MainAxisSize.min : MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (icon != null) ...[
             Icon(icon, size: isSmall ? 16 : 18, color: effectiveTextColor),
-            const SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: AppSpacing.s),
           ],
-          Text(
-            label,
-            style: isSmall
-                ? AppTextStyles.buttonText.copyWith(
-                    fontSize: 13.5,
-                    color: effectiveTextColor,
-                  )
-                : AppTextStyles.buttonText.copyWith(
-                    fontSize: 16.0,
-                    color: effectiveTextColor,
-                  ),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: isSmall
+                  ? AppTextStyles.buttonText.copyWith(
+                      fontSize: 13.5,
+                      color: effectiveTextColor,
+                    )
+                  : AppTextStyles.buttonText.copyWith(
+                      fontSize: 15.0,
+                      color: effectiveTextColor,
+                    ),
+            ),
           ),
         ],
       );
@@ -133,9 +138,13 @@ class AppTextButton extends StatelessWidget {
               Icon(leadingIcon, size: 16, color: effectiveColor),
               const SizedBox(width: 4),
             ],
-            Text(
-              label,
-              style: AppTextStyles.linkText.copyWith(color: effectiveColor),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.linkText.copyWith(color: effectiveColor),
+              ),
             ),
             if (trailingIcon != null) ...[
               const SizedBox(width: 4),

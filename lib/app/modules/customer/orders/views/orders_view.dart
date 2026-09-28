@@ -211,55 +211,70 @@ class OrdersView extends GetView<OrdersController> {
                 child: displayedOrders.isEmpty
                     ? SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        child: Container(
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.all(AppSpacing.xxl),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 88,
-                                height: 88,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.surfaceMuted,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.receipt_long_outlined,
-                                  size: 44,
-                                  color: AppColors.textDisabled,
-                                ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: MediaQuery.of(context).size.height * 0.55,
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.screenHorizontalPadding,
+                                vertical: AppSpacing.xxl,
                               ),
-                              const SizedBox(height: AppSpacing.l),
-                              AppText.sectionHeading(
-                                _selectedTab.value == 0
-                                    ? 'No Active Orders'
-                                    : 'No Order History',
-                                textAlign: TextAlign.center,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 88,
+                                    height: 88,
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.surfaceMuted,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.receipt_long_outlined,
+                                      size: 44,
+                                      color: AppColors.textDisabled,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.l),
+                                  AppText.sectionHeading(
+                                    _selectedTab.value == 0
+                                        ? 'No Active Orders'
+                                        : 'No Order History',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: AppSpacing.s),
+                                  AppText.body(
+                                    _selectedTab.value == 0
+                                        ? 'You do not have any active orders being prepared or delivered.'
+                                        : 'You have not completed or cancelled any orders yet.',
+                                    textAlign: TextAlign.center,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  if (_selectedTab.value == 0) ...[
+                                    const SizedBox(height: AppSpacing.xl),
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 280,
+                                      ),
+                                      child: AppButton.primary(
+                                        label: 'Explore Fresh Produce',
+                                        icon: Icons.search_rounded,
+                                        width: double.infinity,
+                                        onPressed: () {
+                                          if (Get.isRegistered<CustomerShellController>()) {
+                                            Get.find<CustomerShellController>().changeTab(1);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
-                              const SizedBox(height: AppSpacing.s),
-                              AppText.body(
-                                _selectedTab.value == 0
-                                    ? 'You do not have any active orders being prepared or delivered.'
-                                    : 'You have not completed or cancelled any orders yet.',
-                                textAlign: TextAlign.center,
-                                color: AppColors.textSecondary,
-                              ),
-                              if (_selectedTab.value == 0) ...[
-                                const SizedBox(height: AppSpacing.xl),
-                                AppButton.primary(
-                                  label: 'Explore Fresh Produce',
-                                  icon: Icons.search_rounded,
-                                  width: 220,
-                                  onPressed: () {
-                                    if (Get.isRegistered<CustomerShellController>()) {
-                                      Get.find<CustomerShellController>().changeTab(1);
-                                    }
-                                  },
-                                ),
-                              ],
-                            ],
+                            ),
                           ),
                         ),
                       )
@@ -289,21 +304,26 @@ class OrdersView extends GetView<OrdersController> {
                                     MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      AppText.cardTitle(
-                                        'Order #$orderShortId',
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                      const SizedBox(height: 2),
-                                      AppText.caption(
-                                        orderDate,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ],
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        AppText.cardTitle(
+                                          'Order #$orderShortId',
+                                          fontWeight: FontWeight.w700,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        AppText.caption(
+                                          orderDate,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  const SizedBox(width: AppSpacing.s),
                                   AppChip.status(status: order.status),
                                 ],
                               ),
@@ -353,10 +373,14 @@ class OrdersView extends GetView<OrdersController> {
                                       color: AppColors.textSecondary,
                                     ),
                                     const SizedBox(width: AppSpacing.xs),
-                                    Text(
-                                      'Farmer: ${order.farmerName}',
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.textSecondary,
+                                    Expanded(
+                                      child: Text(
+                                        'Farmer: ${order.farmerName}',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -374,11 +398,15 @@ class OrdersView extends GetView<OrdersController> {
                                       color: AppColors.primary,
                                     ),
                                     const SizedBox(width: AppSpacing.xs),
-                                    Text(
-                                      'Pickup Slot: ${order.pickupSlotTime}',
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.primaryDark,
-                                        fontWeight: FontWeight.w600,
+                                    Expanded(
+                                      child: Text(
+                                        'Pickup Slot: ${order.pickupSlotTime}',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.primaryDark,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -396,6 +424,7 @@ class OrdersView extends GetView<OrdersController> {
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Column(
                                     crossAxisAlignment:
@@ -411,36 +440,46 @@ class OrdersView extends GetView<OrdersController> {
                                       ),
                                     ],
                                   ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (order.canModify) ...[
-                                        AppTextButton(
-                                          label: 'Change Slot',
-                                          leadingIcon: Icons.schedule_rounded,
-                                          onPressed: () =>
-                                              _openChangeSlotSheet(order),
-                                        ),
-                                        const SizedBox(width: AppSpacing.xs),
-                                        AppTextButton(
-                                          label: 'Cancel',
-                                          leadingIcon: Icons.close_rounded,
-                                          color: AppColors.accentRed,
-                                          onPressed: () =>
-                                              _showCancelDialog(order),
-                                        ),
-                                      ] else if (order.status ==
-                                              OrderStatus.completed ||
-                                          order.status ==
-                                              OrderStatus.cancelled) ...[
-                                        AppTextButton(
-                                          label: 'Reorder',
-                                          leadingIcon: Icons.replay_rounded,
-                                          color: AppColors.primary,
-                                          onPressed: () => _reorder(order),
-                                        ),
+                                  const SizedBox(width: AppSpacing.s),
+                                  Flexible(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        if (order.canModify) ...[
+                                          Flexible(
+                                            child: AppTextButton(
+                                              label: 'Change Slot',
+                                              leadingIcon: Icons.schedule_rounded,
+                                              onPressed: () =>
+                                                  _openChangeSlotSheet(order),
+                                            ),
+                                          ),
+                                          const SizedBox(width: AppSpacing.xs),
+                                          Flexible(
+                                            child: AppTextButton(
+                                              label: 'Cancel',
+                                              leadingIcon: Icons.close_rounded,
+                                              color: AppColors.accentRed,
+                                              onPressed: () =>
+                                                  _showCancelDialog(order),
+                                            ),
+                                          ),
+                                        ] else if (order.status ==
+                                                OrderStatus.completed ||
+                                            order.status ==
+                                                OrderStatus.cancelled) ...[
+                                          Flexible(
+                                            child: AppTextButton(
+                                              label: 'Reorder',
+                                              leadingIcon: Icons.replay_rounded,
+                                              color: AppColors.primary,
+                                              onPressed: () => _reorder(order),
+                                            ),
+                                          ),
+                                        ],
                                       ],
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ),
