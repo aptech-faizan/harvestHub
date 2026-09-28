@@ -26,6 +26,10 @@ abstract class Routes {
   // Farmer Module
   static const farmerDashboard = '/farmer/dashboard';
   static const farmerProfile = '/farmer/profile';
+  static const farmerBio = '/farmer/profile/bio';
+  static const farmerAddress = '/farmer/profile/address';
+  static const farmerContact = '/farmer/profile/contact';
+  static const farmerChangePassword = '/farmer/profile/change-password';
   static const farmerProducts = '/farmer/products';
   static const farmerProductForm = '/farmer/products/form';
   static const farmerInventory = '/farmer/inventory';

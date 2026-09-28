@@ -8,6 +8,7 @@ class FarmerModel {
   final String description;
   final double rating;
   final int lowStockThreshold;
+  final bool isVerified;
 
   // Constructor
   FarmerModel({
@@ -19,19 +20,21 @@ class FarmerModel {
     this.description = '',
     this.rating = 0.0,
     this.lowStockThreshold = 5,
+    this.isVerified = false,
   });
 
   // Map se FarmerModel banane ke liye
   factory FarmerModel.fromMap(Map<String, dynamic> map, String id) {
     return FarmerModel(
       id: id,
-      userId: map['userId'] ?? '',
-      marketId: map['marketId'] ?? '',
-      marketName: map['marketName'] ?? '',
-      businessName: map['businessName'] ?? '',
-      description: map['description'] ?? '',
+      userId: (map['userId'] ?? '').toString(),
+      marketId: (map['marketId'] ?? '').toString(),
+      marketName: (map['marketName'] ?? '').toString(),
+      businessName: (map['businessName'] ?? '').toString(),
+      description: (map['description'] ?? map['bio'] ?? map['farmStory'] ?? '').toString(),
       rating: (map['rating'] ?? 0).toDouble(),
       lowStockThreshold: (map['lowStockThreshold'] ?? 5).toInt(),
+      isVerified: map['isVerified'] == true,
     );
   }
 

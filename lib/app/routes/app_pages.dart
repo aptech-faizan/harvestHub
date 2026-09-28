@@ -73,6 +73,10 @@ import 'package:harvest_hub/app/modules/farmer/products/views/farmer_product_for
 import 'package:harvest_hub/app/modules/farmer/products/views/farmer_products_view.dart';
 import 'package:harvest_hub/app/modules/farmer/profile/bindings/farmer_profile_binding.dart';
 import 'package:harvest_hub/app/modules/farmer/profile/views/farmer_profile_view.dart';
+import 'package:harvest_hub/app/modules/farmer/profile/views/farmer_bio_view.dart';
+import 'package:harvest_hub/app/modules/farmer/profile/views/farmer_address_view.dart';
+import 'package:harvest_hub/app/modules/farmer/profile/views/farmer_contact_view.dart';
+import 'package:harvest_hub/app/modules/farmer/profile/views/farmer_change_password_view.dart';
 import 'package:harvest_hub/app/modules/farmer/reports/bindings/farmer_reports_binding.dart';
 import 'package:harvest_hub/app/modules/farmer/reports/views/farmer_reports_view.dart';
 import 'package:harvest_hub/app/modules/splash/bindings/splash_binding.dart';
@@ -201,6 +205,30 @@ class AppPages {
     GetPage(
       name: Routes.farmerProfile,
       page: () => const FarmerProfileView(),
+      binding: FarmerProfileBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerBio,
+      page: () => const FarmerBioView(),
+      binding: FarmerProfileBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerAddress,
+      page: () => const FarmerAddressView(),
+      binding: FarmerProfileBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerContact,
+      page: () => const FarmerContactView(),
+      binding: FarmerProfileBinding(),
+      middlewares: [FarmerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.farmerChangePassword,
+      page: () => const FarmerChangePasswordView(),
       binding: FarmerProfileBinding(),
       middlewares: [FarmerMiddleware()],
     ),

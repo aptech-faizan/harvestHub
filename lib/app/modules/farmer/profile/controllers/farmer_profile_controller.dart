@@ -39,6 +39,8 @@ class FarmerProfileController extends GetxController {
   final rating = 0.0.obs;
   final lowStockThreshold = 5.obs;
   final email = ''.obs;
+  final isVerified = false.obs;
+  final farmerDocId = ''.obs;
 
   String get uid => authService.currentUser?.uid ?? '';
 
@@ -71,7 +73,9 @@ class FarmerProfileController extends GetxController {
       phoneC.text = user?.phone ?? '';
       addressC.text = user?.address ?? '';
 
-      final farmer = await _farmerRepo.getFarmerById(uid);
+      final farmer = (await _farmerRepo.getFarmerById(uid)) ??
+          (await _farmerRepo.getFarmerByUserId(uid));
+      farmerDocId.value = farmer?.id ?? uid;
       businessC.text = farmer?.businessName.isNotEmpty == true
           ? farmer!.businessName
           : (user?.name ?? '');
@@ -79,6 +83,7 @@ class FarmerProfileController extends GetxController {
       selectedMarketId.value = farmer?.marketId ?? '';
       rating.value = farmer?.rating ?? 0;
       lowStockThreshold.value = farmer?.lowStockThreshold ?? 5;
+      isVerified.value = farmer?.isVerified ?? false;
     } catch (e) {
       showError('Could not load profile: ${errorText(e)}');
     } finally {
@@ -95,10 +100,6 @@ class FarmerProfileController extends GetxController {
       showError('Name, phone and business name are required.');
       return;
     }
-    if (selectedMarketId.value.isEmpty) {
-      showError('Select a farmers market so customers can find your stall.');
-      return;
-    }
 
     isSaving.value = true;
     try {
@@ -111,27 +112,35 @@ class FarmerProfileController extends GetxController {
       final selectedMarket = markets.firstWhereOrNull(
         (m) => m.id == selectedMarketId.value,
       );
+      final effectiveMarketId = selectedMarket != null ? selectedMarket.id : '';
+      final effectiveMarketName =
+          selectedMarket != null ? selectedMarket.marketName : '';
+
+      final targetDocId = farmerDocId.value.isNotEmpty ? farmerDocId.value : uid;
       final farmer = FarmerModel(
-        id: uid,
+        id: targetDocId,
         userId: uid,
-        marketId: selectedMarketId.value,
-        marketName: selectedMarket?.marketName ?? '',
+        marketId: effectiveMarketId,
+        marketName: effectiveMarketName,
         businessName: business,
         description: descriptionC.text.trim(),
         rating: rating.value,
         lowStockThreshold: lowStockThreshold.value,
+        isVerified: isVerified.value,
       );
       await _farmerRepo.upsertFarmer(farmer);
 
-      final market = await _marketRepo.getMarketById(farmer.marketId);
-      await _productRepo.syncFarmerDenormOnProducts(
-        farmerId: uid,
-        farmerName: farmer.businessName,
-        marketId: farmer.marketId,
-        marketName: market?.marketName ?? '',
-        lat: market?.lat ?? 0,
-        lng: market?.lng ?? 0,
-      );
+      if (farmer.marketId.isNotEmpty) {
+        final market = await _marketRepo.getMarketById(farmer.marketId);
+        await _productRepo.syncFarmerDenormOnProducts(
+          farmerId: uid,
+          farmerName: farmer.businessName,
+          marketId: farmer.marketId,
+          marketName: market?.marketName ?? '',
+          lat: market?.lat ?? 0,
+          lng: market?.lng ?? 0,
+        );
+      }
 
       authService.currentUserModel.value = UserModel(
         uid: uid,
@@ -141,6 +150,7 @@ class FarmerProfileController extends GetxController {
         address: addressC.text.trim(),
         role: Roles.farmer,
         isActive: true,
+        photoUrl: authService.currentUserModel.value?.photoUrl ?? '',
       );
 
       if (Get.isRegistered<FarmerDashboardController>()) {

@@ -4,6 +4,9 @@ import 'package:harvest_hub/app/modules/farmer/profile/controllers/farmer_profil
 class FarmerProfileBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<FarmerProfileController>(() => FarmerProfileController());
+    Get.lazyPut<FarmerProfileController>(
+      () => FarmerProfileController(),
+      fenix: true,
+    );
   }
 }
