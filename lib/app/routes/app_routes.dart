@@ -8,6 +8,7 @@ abstract class Routes {
   // Customer Module
   static const customerShell = '/customer/shell';
   static const customerCheckout = '/customer/checkout';
+  static const orderSuccess = '/customer/order-success';
   static const customerFarmers = '/customer/farmers';
   static const customerFarmerDetails = '/customer/farmers/details';
   static const customerProductDetails = '/customer/products/details';

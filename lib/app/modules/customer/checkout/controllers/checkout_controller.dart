@@ -2,6 +2,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
 import '../../../../data/models/order_model.dart';
 import '../../../../data/models/pickup_slot_model.dart';
 import '../../../../data/repositories/order_repository.dart';
@@ -165,11 +166,34 @@ class CheckoutController extends GetxController {
       cartController.clear();
       if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadData();
       if (Get.isRegistered<ProductSearchController>()) Get.find<ProductSearchController>().loadData();
-      AppSnackbar.success('Your order was successfully placed!', title: 'Order Placed');
-      Get.back();
-      if (Get.isRegistered<CustomerShellController>()) {
-        Get.find<CustomerShellController>().changeTab(3);
-      }
+
+      // Gather summary values existing in checkout controller before navigating
+      final firstOrder = ordersToPlace.isNotEmpty ? ordersToPlace.first : null;
+      final totalItemsCount = ordersToPlace.fold<int>(
+        0,
+        (sum, order) => sum + order.items.fold<int>(0, (iSum, item) => iSum + ((item['qty'] as num?)?.toInt() ?? 0)),
+      );
+      final uniqueFarmerNames = ordersToPlace
+          .map((o) => o.farmerName)
+          .where((name) => name.isNotEmpty)
+          .toSet()
+          .join(', ');
+      final pickupSlotLabel = ordersToPlace
+          .map((o) => o.pickupSlotTime)
+          .where((time) => time.isNotEmpty && time != 'Standard Delivery')
+          .toSet()
+          .join(', ');
+
+      Get.offNamed(
+        Routes.orderSuccess,
+        arguments: {
+          'orderId': firstOrder?.id.isNotEmpty == true ? firstOrder!.id : '',
+          'totalAmount': finalTotal,
+          'itemCount': totalItemsCount,
+          'pickupSlot': pickupSlotLabel.isNotEmpty ? pickupSlotLabel : firstOrder?.pickupSlotTime,
+          'farmerName': uniqueFarmerNames,
+        },
+      );
     } catch (e) {
       final msg = e.toString().replaceFirst('Exception: ', '');
       AppSnackbar.error(msg, title: 'Order Failed');

@@ -205,25 +205,40 @@ class CheckoutView extends GetView<CheckoutController> {
           );
         }
 
+        if (controller.isPlacing.value) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
+
         final items = controller.cartController.items;
         if (items.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.remove_shopping_cart_outlined,
-                  size: 64,
-                  color: AppColors.textDisabled,
-                ),
-                const SizedBox(height: AppSpacing.m),
-                Text('Your cart is empty', style: AppTextStyles.sectionHeading),
-                const SizedBox(height: AppSpacing.l),
-                AppButton.small(
-                  label: 'Add more items',
-                  onPressed: () => Get.back(),
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenHorizontalPadding,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.remove_shopping_cart_outlined,
+                    size: 64,
+                    color: AppColors.textDisabled,
+                  ),
+                  const SizedBox(height: AppSpacing.m),
+                  Text('Your cart is empty', style: AppTextStyles.sectionHeading),
+                  const SizedBox(height: AppSpacing.l),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 280),
+                    child: AppButton.small(
+                      width: double.infinity,
+                      label: 'Add more items',
+                      onPressed: () => Get.back(),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -363,7 +378,8 @@ class CheckoutView extends GetView<CheckoutController> {
                     // 2. AppSectionHeader "Pickup Slot" + slot-selection UI via AppSlotPicker
                     const AppSectionHeader(title: 'Pickup Slot'),
                     const SizedBox(height: AppSpacing.xs),
-                    ...controller.cartController.groupedByFarmer.entries.map((entry) {
+                    ...controller.cartController.groupedByFarmer.entries
+                        .map((entry) {
                       final farmerId = entry.key;
                       final farmerItems = entry.value;
                       final farmerName = farmerItems.isNotEmpty
@@ -377,9 +393,12 @@ class CheckoutView extends GetView<CheckoutController> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (controller.cartController.groupedByFarmer.length > 1)
+                            if (controller
+                                    .cartController.groupedByFarmer.length >
+                                1)
                               Padding(
-                                padding: const EdgeInsets.only(bottom: AppSpacing.s),
+                                padding:
+                                    const EdgeInsets.only(bottom: AppSpacing.s),
                                 child: Text(
                                   'For $farmerName:',
                                   style: AppTextStyles.caption.copyWith(
@@ -417,12 +436,15 @@ class CheckoutView extends GetView<CheckoutController> {
                         const SizedBox(height: 4),
 
                         // Address lines
-                        Obx(() => Text(
-                              controller.addressController.text.isNotEmpty
-                                  ? controller.addressController.text
-                                  : 'No address set',
-                              style: AppTextStyles.bodyText,
-                            )),
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: controller.addressController,
+                          builder: (context, value, _) => Text(
+                            value.text.isNotEmpty
+                                ? value.text
+                                : 'No address set',
+                            style: AppTextStyles.bodyText,
+                          ),
+                        ),
                         const SizedBox(height: 4),
 
                         // Phone

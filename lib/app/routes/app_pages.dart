@@ -34,6 +34,7 @@ import 'package:harvest_hub/app/modules/customer/assistant/bindings/assistant_bi
 import 'package:harvest_hub/app/modules/customer/assistant/views/assistant_view.dart';
 import 'package:harvest_hub/app/modules/customer/checkout/bindings/checkout_binding.dart';
 import 'package:harvest_hub/app/modules/customer/checkout/views/checkout_view.dart';
+import 'package:harvest_hub/app/modules/customer/checkout/views/order_success_view.dart';
 import 'package:harvest_hub/app/modules/customer/farmers/bindings/farmers_binding.dart'
     as customer_farmers_bind;
 import 'package:harvest_hub/app/modules/customer/farmers/views/farmer_details_view.dart'
@@ -119,6 +120,11 @@ class AppPages {
       name: Routes.customerCheckout,
       page: () => const CheckoutView(),
       binding: CheckoutBinding(),
+      middlewares: [CustomerMiddleware()],
+    ),
+    GetPage(
+      name: Routes.orderSuccess,
+      page: () => const OrderSuccessView(),
       middlewares: [CustomerMiddleware()],
     ),
     GetPage(
