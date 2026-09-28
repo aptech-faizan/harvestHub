@@ -237,10 +237,14 @@ class ProfileController extends GetxController {
   }
 
   Future<void> logout() async {
+    // Clear in-memory state so stale data is not visible during the transition.
+    // Do NOT delete this controller here — it is registered as permanent in
+    // CustomerShellBinding. Deleting it before Get.offAllNamed causes a
+    // "ProfileController not found" crash because IndexedStack still holds
+    // ProfileView in its widget tree during the outgoing frame.
+    // GetX disposes permanent controllers automatically once the shell route
+    // is removed from the navigation stack by offAllNamed.
     reset();
-    if (Get.isRegistered<ProfileController>()) {
-      Get.delete<ProfileController>(force: true);
-    }
     await Get.find<AuthService>().logout();
   }
 }
