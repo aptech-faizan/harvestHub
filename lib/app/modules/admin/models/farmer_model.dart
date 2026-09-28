@@ -16,6 +16,9 @@ class FarmerModel {
   final String email;
   final String phone;
   final bool isActive;
+  final bool isVerified;
+  final DateTime? createdAt;
+  final String imageUrl;
 
   FarmerModel({
     required this.id,
@@ -30,11 +33,17 @@ class FarmerModel {
     required this.email,
     required this.phone,
     required this.isActive,
+    this.isVerified = true,
+    this.createdAt,
+    this.imageUrl = '',
   });
 
   // Creates FarmerModel from Firestore document snapshot and joined user
   factory FarmerModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc, UserModel? user) {
     final d = doc.data() ?? {};
+    final verified = d['isVerified'] is bool
+        ? d['isVerified'] as bool
+        : (d['marketId'] != null && d['marketId'].toString().isNotEmpty);
     return FarmerModel(
       id: doc.id,
       userId: (d['userId'] ?? doc.id).toString(),
@@ -48,6 +57,9 @@ class FarmerModel {
       email: user?.email ?? '',
       phone: user?.phone ?? '',
       isActive: user?.isActive ?? true,
+      isVerified: verified,
+      createdAt: user?.createdAt ?? readDate(d['createdAt']),
+      imageUrl: (d['imageUrl'] ?? d['photoUrl'] ?? d['profileImage'] ?? '').toString(),
     );
   }
 }
