@@ -4,6 +4,7 @@ import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/farmer/profile/controllers/farmer_profile_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
@@ -51,11 +52,7 @@ class FarmerProfileView extends GetView<FarmerProfileController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          );
+          return const ShimmerDetailBlock();
         }
 
         return SingleChildScrollView(

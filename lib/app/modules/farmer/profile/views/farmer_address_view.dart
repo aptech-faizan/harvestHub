@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import '../controllers/farmer_profile_controller.dart';
 
@@ -31,11 +32,7 @@ class FarmerAddressView extends GetView<FarmerProfileController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          );
+          return const ShimmerDetailBlock();
         }
 
         return SingleChildScrollView(
@@ -101,11 +98,17 @@ class _InfoField extends StatelessWidget {
           children: [
             Icon(icon, size: 15, color: AppColors.textSecondary),
             const SizedBox(width: 5),
-            Text(
-              label,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
+            // Flexible: a long label (or a large OS font) previously overflowed
+            // the row. No visual change when the text fits; ellipsis when it
+            // does not.
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

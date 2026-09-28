@@ -4,6 +4,7 @@ import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,12 +26,7 @@ class ProfileView extends GetView<ProfileController> {
       appBar: const AppAppBar(titleText: 'My Profile'),
       body: Obx(() {
         if (controller.isLoading.value && controller.user.value == null) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              strokeWidth: 2.5,
-            ),
-          );
+          return const ShimmerDetailBlock();
         }
 
         final u = controller.user.value;

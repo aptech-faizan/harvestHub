@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/responsive/responsive.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 import '../../shell/controllers/customer_shell_controller.dart';
 import '../../wishlist/controllers/wishlist_controller.dart';
 import '../controllers/home_controller.dart';
-
 /// Customer Home screen conforming to the Farmers App UI Design Specification:
 /// Screen Layout Order (Section 7):
 /// App bar → Search + filter → Promo banner → Categories (header + chips) → Browse Products (header + 2-col grid) → Bottom nav
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
-
   @override
   Widget build(BuildContext context) {
     // Safe lookup for WishlistController
     final wishlistController = Get.isRegistered<WishlistController>()
         ? Get.find<WishlistController>()
         : Get.put(WishlistController());
-
+    // Responsive metrics for this screen. Read once per build, which is enough:
+    // MediaQuery changes (rotation, resize) rebuild this widget anyway.
+    final resp = context.resp;
     final searchController = TextEditingController(text: controller.searchQuery.value);
-
     return Scaffold(
       backgroundColor: AppColors.surfaceWhite,
       // 1. App Bar: Left-aligned logo image with fallback, Notification bell, and Profile button
@@ -45,7 +46,6 @@ class HomeView extends GetView<HomeController> {
           Obx(() {
             final authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : null;
             final user = authService?.currentUserModel.value;
-
             void openProfile() {
               if (Get.isRegistered<CustomerShellController>()) {
                 Get.find<CustomerShellController>().changeTab(4);
@@ -53,7 +53,6 @@ class HomeView extends GetView<HomeController> {
                 Get.toNamed(Routes.customerShell);
               }
             }
-
             return Semantics(
               label: 'Profile',
               button: true,
@@ -76,14 +75,13 @@ class HomeView extends GetView<HomeController> {
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screenHorizontalPadding,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: resp.dx(AppSpacing.screenHorizontalPadding),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: AppSpacing.m),
-
+                      SizedBox(height: resp.dy(AppSpacing.m)),
                       // 2. Search + Filter: 48px height, 12px radius, surfaceMuted fill, matching adjacent filter button (Section 6.2 & Section 8 item 5)
                       Obx(() {
                         final isFiltering = controller.searchQuery.value.isNotEmpty;
@@ -102,9 +100,7 @@ class HomeView extends GetView<HomeController> {
                           },
                         );
                       }),
-
-                      const SizedBox(height: AppSpacing.xxl),
-
+                      SizedBox(height: resp.dy(AppSpacing.xxl)),
                       // 3. Promo Banner: 16px radius, gradient bannerBgStart -> bannerBgEnd, pill badge in corner, headline in bold (Section 6.3)
                       AppBanner(
                         badgeText: 'FRESH TODAY',
@@ -117,9 +113,7 @@ class HomeView extends GetView<HomeController> {
                           }
                         },
                       ),
-
-                      const SizedBox(height: AppSpacing.xxl),
-
+                      SizedBox(height: resp.dy(AppSpacing.xxl)),
                       // 4. Categories: Section Header ("Categories" + "View all" link) (Section 6.4)
                       AppSectionHeader(
                         title: 'Categories',
@@ -128,20 +122,18 @@ class HomeView extends GetView<HomeController> {
                           controller.selectCategory('');
                         },
                       ),
-                      const SizedBox(height: AppSpacing.s),
-
+                      SizedBox(height: resp.dy(AppSpacing.s)),
                       // Horizontal category chips list: AppChip.circular (58px diameter, soft pastel tint, icon, chipLabel below, 12px gap) (Section 6.5)
                       SizedBox(
-                        height: 96,
+                        height: resp.dy(96),
                         child: Obx(() {
                           final cats = controller.categories;
                           final selectedId = controller.selectedCategoryId.value;
-
                           return ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: cats.length + 1,
                             separatorBuilder: (_, __) =>
-                                const SizedBox(width: AppSpacing.m), // 12px gap
+                                SizedBox(width: resp.dx(AppSpacing.m)),
                             itemBuilder: (context, index) {
                               if (index == 0) {
                                 final isAllSelected = selectedId.isEmpty;
@@ -153,14 +145,12 @@ class HomeView extends GetView<HomeController> {
                                   onTap: () => controller.selectCategory(''),
                                 );
                               }
-
                               final cat = cats[index - 1];
                               final isSelected = selectedId == cat.id;
                               final bgColor =
                                   AppChip.getCategoryBgColor(cat.name);
                               final icon =
                                   AppChip.getCategoryIcon(cat.name);
-
                               return AppChip.circular(
                                 label: cat.name,
                                 iconData: icon,
@@ -172,9 +162,7 @@ class HomeView extends GetView<HomeController> {
                           );
                         }),
                       ),
-
                       const SizedBox(height: AppSpacing.xl),
-
                       // 5. Browse Products Header ("Browse Products" + "View all" link) (Section 6.4)
                       AppSectionHeader(
                         title: 'Browse Products',
@@ -190,20 +178,16 @@ class HomeView extends GetView<HomeController> {
                   ),
                 ),
               ),
-
               // Product Grid: 2 columns, 12px horizontal gutter, 16px vertical gutter, 16px horizontal padding (Section 3 & Section 7)
               Obx(() {
                 if (controller.isLoading.value) {
-                  return const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.xxl),
-                      child: Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
-                      ),
-                    ),
+                  // Shimmer grid rather than a centred spinner: it matches the
+                  // shape and column count of the real grid, so nothing shifts
+                  // when the products arrive.
+                  return SliverToBoxAdapter(
+                    child: ShimmerProductGrid(count: resp.productColumns * 3),
                   );
                 }
-
                 final products = controller.filteredProducts;
                 if (products.isEmpty) {
                   return SliverToBoxAdapter(
@@ -245,30 +229,33 @@ class HomeView extends GetView<HomeController> {
                     ),
                   );
                 }
-
-                // Standardized 2-column grid with ProductCard adhering to Section 6.6 & Section 8
+                // Product grid. Column count and tile height are derived from the
+                // available width instead of being hardcoded, which is what stops
+                // the 2-column layout clipping on a small phone and stretching
+                // oddly on a tablet. The aspect ratio reproduces the current
+                // ~270px card height at the 360px design width, so the approved
+                // design is unchanged on a standard phone.
                 return SliverPadding(
-                  padding: const EdgeInsets.only(
-                    left: AppSpacing.screenHorizontalPadding,
-                    right: AppSpacing.screenHorizontalPadding,
-                    bottom: 84.0, // Space for floating assistant button
+                  padding: EdgeInsets.only(
+                    left: resp.dx(AppSpacing.screenHorizontalPadding),
+                    right: resp.dx(AppSpacing.screenHorizontalPadding),
+                    bottom: resp.dy(84), // Space for floating assistant button
                   ),
                   sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px gutter
-                      mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px gutter
-                      mainAxisExtent: 270, // fixed height; immune to screen width
+                    // Column count and tile height come from the shared
+                    // responsive helper, so this grid and the loading shimmer
+                    // below it can never disagree.
+                    gridDelegate: resp.productGridDelegate(
+                      horizontalPad: AppSpacing.screenHorizontalPadding,
+                      horizontalGutter: AppSpacing.gridHorizontalGutter,
+                      verticalGutter: AppSpacing.gridVerticalGutter,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final product = products[index];
-
                         return Obx(() {
                           final isWishlisted =
                               wishlistController.isWishlisted(product.id);
-
                           return ProductCard(
                             product: product,
                             isWishlisted: isWishlisted,

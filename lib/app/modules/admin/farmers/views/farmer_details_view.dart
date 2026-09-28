@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/info_row.dart';
 import 'package:harvest_hub/app/modules/admin/farmers/controllers/farmers_controller.dart';
 
@@ -44,7 +45,7 @@ class FarmerDetailsView extends GetView<FarmersController> {
           const Divider(height: 32),
           const Text('Products', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           if (controller.isLoadingProducts.value)
-            const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
+            const ShimmerListSkeleton(count: 4)
           else if (controller.farmerProducts.isEmpty)
             const Padding(padding: EdgeInsets.all(8), child: Text('This farmer has no products'))
           else

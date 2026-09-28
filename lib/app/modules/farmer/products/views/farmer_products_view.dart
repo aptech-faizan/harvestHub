@@ -1,3 +1,4 @@
+import 'package:harvest_hub/app/core/responsive/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
@@ -23,7 +24,6 @@ class FarmerProductsView extends GetView<FarmerProductsController> {
       appBar: AppAppBar(
         titleText: 'My Products',
         actions: [
-          
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary),
             tooltip: 'Refresh',
@@ -62,6 +62,7 @@ class FarmerProductsView extends GetView<FarmerProductsController> {
                 isEmpty: list.isEmpty,
                 emptyText: 'No products yet.\nTap "Add Product" to list your first item.',
                 onRetry: controller.load,
+                variant: StateViewVariant.grid,
                 child: GridView.builder(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.l,
@@ -69,7 +70,10 @@ class FarmerProductsView extends GetView<FarmerProductsController> {
                     AppSpacing.l,
                     AppSpacing.l,
                   ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  // Column count and tile height derived from the available
+                  // width. aspect 1.468 reproduces the original
+                  // childAspectRatio 0.68 at the 360px design width.
+                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: AppSpacing.m,
                     mainAxisSpacing: AppSpacing.m,
@@ -130,6 +134,7 @@ class _ProductCard extends StatelessWidget {
           Stack(
             children: [
               Container(
+                
                 height: 120,
                 width: double.infinity,
                 color: AppColors.surfaceMuted,

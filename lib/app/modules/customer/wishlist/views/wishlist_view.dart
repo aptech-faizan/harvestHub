@@ -1,3 +1,4 @@
+import 'package:harvest_hub/app/core/responsive/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
@@ -125,11 +126,10 @@ class WishlistView extends GetView<WishlistController> {
               horizontal: AppSpacing.screenHorizontalPadding,
               vertical: AppSpacing.l,
             ),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: AppSpacing.gridHorizontalGutter, // 12px gutter
-              mainAxisSpacing: AppSpacing.gridVerticalGutter,   // 16px gutter
-              mainAxisExtent: 270, // fixed height; immune to screen width
+            gridDelegate: context.resp.productGridDelegate(
+              horizontalPad: AppSpacing.screenHorizontalPadding,
+              horizontalGutter: AppSpacing.gridHorizontalGutter,
+              verticalGutter: AppSpacing.gridVerticalGutter,
             ),
             itemCount: controller.items.length,
             itemBuilder: (context, index) {

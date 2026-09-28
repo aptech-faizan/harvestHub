@@ -4,6 +4,7 @@ import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/data/models/order_model.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/controllers/farmer_dashboard_controller.dart';
@@ -65,7 +66,7 @@ class FarmerDashboardView extends GetView<FarmerDashboardController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return const ShimmerDetailBlock();
         }
 
         return RefreshIndicator(
@@ -174,12 +175,7 @@ class _PendingOrdersList extends StatelessWidget {
 
     return Obx(() {
       if (ordersCtrl.isLoading.value) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(AppSpacing.l),
-            child: CircularProgressIndicator(),
-          ),
-        );
+        return const ShimmerOrderList(count: 3);
       }
 
       final pending = ordersCtrl.orders

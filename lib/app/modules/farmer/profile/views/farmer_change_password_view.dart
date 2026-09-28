@@ -205,11 +205,17 @@ class _InfoField extends StatelessWidget {
           children: [
             Icon(icon, size: 15, color: AppColors.textSecondary),
             const SizedBox(width: 5),
-            Text(
-              label,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
+            // Flexible: a long label (or a large OS font) previously overflowed
+            // the row. No visual change when the text fits; ellipsis when it
+            // does not.
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

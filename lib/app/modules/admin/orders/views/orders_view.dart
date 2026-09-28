@@ -6,6 +6,7 @@ import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/admin/models/order_model.dart';
 import 'package:harvest_hub/app/modules/admin/orders/controllers/orders_controller.dart';
@@ -293,9 +294,7 @@ class OrdersView extends GetView<OrdersController> {
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return const Center(
-                  child: CircularProgressIndicator(color: AppColors.primaryButton),
-                );
+                return const ShimmerOrderList();
               }
 
               if (controller.error.value.isNotEmpty) {

@@ -107,14 +107,20 @@ class LoginView extends GetView<LoginController> {
                     const SizedBox(height: AppSpacing.xxl), // 24px gap
 
                     // Bottom: "Don't have an account?" + "Register"
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    //
+                    // Wrap rather than Row: the two labels take their natural
+                    // width, which overflowed by ~4px on a narrow surface. Wrap
+                    // keeps them on one line when there is room and breaks to
+                    // two when there is not - no clipping, no ellipsis.
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4.0,
                       children: [
-                        const AppText.body(
+                        AppText.body(
                           "Don't have an account?",
                           color: AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 4.0),
                         AppTextButton(
                           label: 'Register',
                           color: AppColors.primaryDark,

@@ -7,6 +7,7 @@ import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/admin/reports/controllers/reports_controller.dart';
 import 'package:harvest_hub/app/modules/admin/widgets/admin_drawer.dart';
@@ -89,9 +90,7 @@ class ReportsView extends GetView<ReportsController> {
       drawer: const AdminDrawer(),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryButton),
-          );
+          return const ShimmerDetailBlock();
         }
 
         if (controller.error.value.isNotEmpty) {
