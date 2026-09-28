@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
@@ -35,6 +36,42 @@ class AppChip extends StatelessWidget {
     this.isSelected = false,
     this.onTap,
   }) : isCircular = true;
+
+  /// Consistent status chip variant with predefined palettes
+  factory AppChip.status({
+    Key? key,
+    required String status,
+    VoidCallback? onTap,
+  }) {
+    final colors = getStatusColors(status);
+    final label = OrderStatus.label(status);
+    return AppChip.pill(
+      key: key,
+      label: label,
+      backgroundColor: colors.bg,
+      textColor: colors.text,
+      onTap: onTap,
+    );
+  }
+
+  // Predefined consistent order status color palettes
+  static ({Color bg, Color text}) getStatusColors(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return (bg: Color(0xFFFFF3E0), text: Color(0xFFE65100)); // soft amber / orange
+      case 'confirmed':
+        return (bg: Color(0xFFE3F2FD), text: Color(0xFF1565C0)); // soft blue
+      case 'ready_for_pickup':
+      case 'ready':
+        return (bg: Color(0xFFE0F2F1), text: Color(0xFF00695C)); // soft teal
+      case 'completed':
+        return (bg: AppColors.chipHerbsBg, text: AppColors.primaryDark); // soft green
+      case 'cancelled':
+        return (bg: Color(0xFFFFEBEE), text: AppColors.accentRed); // soft red
+      default:
+        return (bg: AppColors.surfaceMuted, text: AppColors.textSecondary);
+    }
+  }
 
   // Helper method to automatically pick soft tint color based on category name
   static Color getCategoryBgColor(String name) {

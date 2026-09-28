@@ -11,4 +11,5 @@ export 'app_section_header.dart';
 export 'app_slot_picker.dart';
 export 'app_text.dart';
 export 'app_text_field.dart';
+export 'app_toggle_tabs.dart';
 export 'product_card.dart';
