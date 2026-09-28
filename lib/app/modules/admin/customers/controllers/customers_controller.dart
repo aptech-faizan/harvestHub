@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
 import 'package:harvest_hub/app/core/widgets/edit_dialog.dart';
+import 'package:harvest_hub/app/modules/admin/models/order_model.dart';
 import 'package:harvest_hub/app/modules/admin/models/user_model.dart';
 import 'package:harvest_hub/app/modules/admin/repositories/admin_repository.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
@@ -13,6 +14,8 @@ class CustomersController extends GetxController {
   final error = ''.obs;
   final search = ''.obs;
   final customers = <UserModel>[].obs;
+  final orders = <OrderModel>[].obs;
+  final farmerNames = <String, String>{}.obs;
   final selected = Rxn<UserModel>();
 
   @override
@@ -32,11 +35,25 @@ class CustomersController extends GetxController {
         .toList();
   }
 
+  List<OrderModel> ordersForCustomer(String customerId) {
+    return orders.where((o) => o.customerId == customerId).toList();
+  }
+
+  int orderCount(String customerId) {
+    return orders.where((o) => o.customerId == customerId).length;
+  }
+
+  String farmerName(String id) => farmerNames[id] ?? 'Unknown farmer';
+
   Future<void> load() async {
     isLoading.value = true;
     error.value = '';
     try {
       customers.assignAll(await repo.getUsersByRole(Roles.customer));
+      try {
+        orders.assignAll(await repo.getOrders());
+        farmerNames.assignAll(await repo.getFarmerNames());
+      } catch (_) {}
     } catch (e) {
       error.value = 'Could not load customers: ${errorText(e)}';
     } finally {
