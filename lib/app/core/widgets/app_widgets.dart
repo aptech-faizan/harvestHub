@@ -8,6 +8,7 @@ export 'app_chat_bubble.dart';
 export 'app_chip.dart';
 export 'app_icon.dart';
 export 'app_section_header.dart';
+export 'app_slot_picker.dart';
 export 'app_text.dart';
 export 'app_text_field.dart';
 export 'product_card.dart';
