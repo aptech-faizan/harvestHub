@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/auth/controllers/login_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
@@ -26,6 +27,7 @@ class LoginView extends GetView<LoginController> {
               constraints: const BoxConstraints(maxWidth: 420.0),
               child: Form(
                 key: controller.formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -51,12 +53,7 @@ class LoginView extends GetView<LoginController> {
                         size: 20,
                         color: AppColors.textSecondary,
                       ),
-                      validator: (v) {
-                        final t = (v ?? '').trim();
-                        if (t.isEmpty) return 'Email is required';
-                        if (!GetUtils.isEmail(t)) return 'Enter a valid email';
-                        return null;
-                      },
+                      validator: AppValidators.email(),
                     ),
 
                     const SizedBox(height: AppSpacing.l), // 16px gap
@@ -85,12 +82,7 @@ class LoginView extends GetView<LoginController> {
                             ),
                             onPressed: controller.togglePasswordVisibility,
                           ),
-                          validator: (v) {
-                            if (v == null || v.isEmpty) {
-                              return 'Password is required';
-                            }
-                            return null;
-                          },
+                          validator: AppValidators.password(minLength: 1),
                         )),
 
                     const SizedBox(height: AppSpacing.xxl), // 24px gap
@@ -138,3 +130,4 @@ class LoginView extends GetView<LoginController> {
     );
   }
 }
+

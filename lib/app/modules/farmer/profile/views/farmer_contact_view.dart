@@ -7,6 +7,7 @@ import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
 import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import '../controllers/farmer_profile_controller.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 
 /// Contact Details edit screen conforming to UI Master Rules.
 /// Edits Owner Name and Phone, shows Read-only Email, and saves via FarmerProfileController.save().
@@ -115,8 +116,12 @@ class FarmerContactView extends GetView<FarmerProfileController> {
                 label: 'Phone Number',
                 child: AppTextField(
                   controller: controller.phoneC,
-                  hintText: 'e.g. +1 555-0199',
+                  hintText: '03001234567',
                   keyboardType: TextInputType.phone,
+                  // The old hint suggested a US number. This screen has no
+                  // Form, so the rule is repeated for the inline error text;
+                  // FarmerProfileController.save() is the authoritative check.
+                  validator: AppValidators.phone(),
                   prefixIcon: const Icon(
                     Icons.phone_outlined,
                     size: 20,

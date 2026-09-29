@@ -6,7 +6,9 @@ import 'package:harvest_hub/app/data/models/user_model.dart';
 import 'package:harvest_hub/app/data/services/fcm_service.dart';
 import 'package:harvest_hub/app/modules/customer/cart/controllers/cart_controller.dart';
 import 'package:harvest_hub/app/modules/customer/follow/controllers/follow_controller.dart';
+import 'package:harvest_hub/app/modules/customer/orders/controllers/orders_controller.dart';
 import 'package:harvest_hub/app/modules/customer/wishlist/controllers/wishlist_controller.dart';
+import 'package:harvest_hub/app/modules/farmer/orders/controllers/farmer_orders_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
 
 /// Centralized authentication service managing auth state, user profile, and role-based routing.
@@ -192,6 +194,26 @@ class AuthService extends GetxService {
     return resolvedRole ?? normalizedRole;
   }
 
+  /// Ends the session that a freshly created account implicitly gained.
+  ///
+  /// `createUserWithEmailAndPassword` signs the new user in as part of creating
+  /// them, so registration leaves a live session behind that must be dropped:
+  /// `/login` is guarded by `GuestMiddleware`, which redirects any
+  /// authenticated user straight back to their role home.
+  ///
+  /// [logout] is deliberately not reused for this. It unregisters the device's
+  /// FCM token, and a token is only re-registered at app start or on platform
+  /// rotation, so a brand-new account would end up with no push notifications
+  /// until the app was restarted. Cart, wishlist and follow state are left
+  /// alone too - the previous session was already cleared by the logout that
+  /// brought the user to the registration screen.
+  Future<void> endSessionAfterRegistration() async {
+    try {
+      await _auth.signOut();
+    } catch (_) {}
+    _clearState();
+  }
+
   /// Centralized logout clearing Firebase Auth, in-memory state, cart, and wishlist.
   Future<void> logout() async {
     try {
@@ -209,6 +231,26 @@ class AuthService extends GetxService {
     // Follow state is per-account, so drop the previous user's follows.
     if (Get.isRegistered<FollowController>()) {
       Get.find<FollowController>().refreshForCurrentUser();
+    }
+    // Both of these controllers hold the previous account's rows in an RxList.
+    // GetX's route-scoped disposal probably already drops them when the module
+    // route is removed, so this is a deliberate belt-and-braces guarantee rather
+    // than a fix for an observed leak: no per-user order data survives a session
+    // boundary regardless of how the route lifecycle is configured later, and a
+    // load still in flight from the old session cannot land in a controller the
+    // next user goes on to read. Deleted outright rather than emptied for that
+    // reason. The owning bindings re-register on the next visit.
+    //
+    // Note: `OrdersController` here is the CUSTOMER one. An unrelated
+    // `admin/orders/controllers/orders_controller.dart` declares a different
+    // class under the same name; it is deliberately not imported in this file,
+    // so this reference is unambiguous - but the duplicate name is worth
+    // renaming at some point.
+    if (Get.isRegistered<OrdersController>()) {
+      Get.delete<OrdersController>(force: true);
+    }
+    if (Get.isRegistered<FarmerOrdersController>()) {
+      Get.delete<FarmerOrdersController>(force: true);
     }
     // Drop this device's push token so the next user on the same handset does
     // not inherit the previous account's notifications.

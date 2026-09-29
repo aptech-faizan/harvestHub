@@ -4,6 +4,7 @@ import 'package:harvest_hub/app/core/theme/app_colors.dart';
 import 'package:harvest_hub/app/core/theme/app_radius.dart';
 import 'package:harvest_hub/app/core/theme/app_spacing.dart';
 import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import 'package:harvest_hub/app/modules/auth/controllers/register_controller.dart';
 import 'package:harvest_hub/app/routes/app_routes.dart';
@@ -43,6 +44,9 @@ class RegisterView extends GetView<RegisterController> {
               constraints: const BoxConstraints(maxWidth: 420.0),
               child: Form(
                 key: controller.formKey,
+                // Surface mistakes as the user types rather than all at once
+                // when they press Register.
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -82,10 +86,7 @@ class RegisterView extends GetView<RegisterController> {
                         size: 20,
                         color: AppColors.textSecondary,
                       ),
-                      validator: (v) {
-                        if ((v ?? '').trim().isEmpty) return 'Full name is required';
-                        return null;
-                      },
+                      validator: AppValidators.name(label: 'Full name'),
                     ),
 
                     const SizedBox(height: AppSpacing.l), // 16px gap
@@ -102,12 +103,7 @@ class RegisterView extends GetView<RegisterController> {
                         size: 20,
                         color: AppColors.textSecondary,
                       ),
-                      validator: (v) {
-                        final t = (v ?? '').trim();
-                        if (t.isEmpty) return 'Email is required';
-                        if (!GetUtils.isEmail(t)) return 'Enter a valid email';
-                        return null;
-                      },
+                      validator: AppValidators.email(),
                     ),
 
                     const SizedBox(height: AppSpacing.l), // 16px gap
@@ -116,7 +112,7 @@ class RegisterView extends GetView<RegisterController> {
                     AppTextField(
                       controller: controller.phoneController,
                       labelText: 'Phone Number',
-                      hintText: 'Enter phone number',
+                      hintText: '03001234567 or +923001234567',
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       prefixIcon: const Icon(
@@ -124,10 +120,7 @@ class RegisterView extends GetView<RegisterController> {
                         size: 20,
                         color: AppColors.textSecondary,
                       ),
-                      validator: (v) {
-                        if ((v ?? '').trim().isEmpty) return 'Phone number is required';
-                        return null;
-                      },
+                      validator: AppValidators.phone(),
                     ),
 
                     const SizedBox(height: AppSpacing.l), // 16px gap
@@ -144,10 +137,7 @@ class RegisterView extends GetView<RegisterController> {
                         size: 20,
                         color: AppColors.textSecondary,
                       ),
-                      validator: (v) {
-                        if ((v ?? '').trim().isEmpty) return 'Address is required';
-                        return null;
-                      },
+                      validator: AppValidators.address(),
                     ),
 
                     // Farmer-only: optionally link the account to a market
@@ -258,12 +248,7 @@ class RegisterView extends GetView<RegisterController> {
                                 ),
                                 onPressed: controller.togglePasswordVisibility,
                               ),
-                              validator: (v) {
-                                if (v == null || v.length < 6) {
-                                  return 'Password must be at least 6 characters';
-                                }
-                                return null;
-                              },
+                              validator: AppValidators.password(),
                             ),
                             const SizedBox(height: 4.0),
                             const Padding(
@@ -315,3 +300,4 @@ class RegisterView extends GetView<RegisterController> {
     );
   }
 }
+

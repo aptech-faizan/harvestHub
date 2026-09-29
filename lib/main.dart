@@ -45,8 +45,7 @@ class HarvestHubApp extends StatelessWidget {
       title: 'HarvestHub',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       // Root setup for the responsiveness utility.
       //
       // `Responsive` reads MediaQuery at each call site rather than caching

@@ -40,8 +40,8 @@ class AppTextStyles {
 
   // priceText: 15px, Bold (700), textPrimary
   static TextStyle get priceText => GoogleFonts.inter(
-        fontSize: 15,
-        fontWeight: FontWeight.w700,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       );
 

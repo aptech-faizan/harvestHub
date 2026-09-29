@@ -196,7 +196,7 @@ class FarmerDetailsView extends GetView<FarmersController> {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: AppSectionHeader(
-                    title: 'Listed Produce',
+                    title: 'Listed Products',
                     trailing: isLoading
                         ? const SizedBox(
                             width: 16,
@@ -221,8 +221,13 @@ class FarmerDetailsView extends GetView<FarmersController> {
               if (isLoading)
                 // Shimmer grid using the same column derivation as the real grid
                 // below, so the products do not reflow when they arrive.
-                SliverToBoxAdapter(
-                  child: ShimmerProductGrid(count: context.resp.productColumns * 2),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.l),
+                  sliver: SliverToBoxAdapter(
+                    child: ShimmerProductGrid(
+                      count: context.resp.productColumns * 2,
+                    ),
+                  ),
                 )
               else if (products.isEmpty)
                 SliverFillRemaining(
@@ -238,18 +243,18 @@ class FarmerDetailsView extends GetView<FarmersController> {
                     AppSpacing.xxl,
                   ),
                   sliver: SliverGrid(
-                    gridDelegate: context.resp.productGridDelegate(
-                      horizontalPad: AppSpacing.screenHorizontalPadding,
-                      horizontalGutter: AppSpacing.gridHorizontalGutter,
-                      verticalGutter: AppSpacing.m,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: context.resp.productColumns,
+                      crossAxisSpacing: AppSpacing.gridHorizontalGutter,
+                      mainAxisSpacing: AppSpacing.m,
+                      childAspectRatio: 0.78, // 0.72–0.85 ke beech adjust karo
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final product = products[index];
                         return AppMediaCard(
                           title: product.itemName,
-                          subtitle:
-                              product.unit.isNotEmpty ? product.unit : null,
+                          // subtitle hata diya: price mein unit pehle se hai
                           price: 'Rs. ${product.pricePerUnit}/${product.unit}',
                           imageUrl: product.imageUrl,
                           isOutOfStock: product.stockQty <= 0,

@@ -164,44 +164,75 @@ class Responsive {
   ///
   /// Pass the same [columns] used by the grid delegate. [horizontalPad] is the
   /// total padding on both sides, [gutter] the space between tiles.
-  double gridExtent({
-    required int columns,
-    required double horizontalPad,
-    required double gutter,
-    double aspect = 1.70,
-    double min = 190,
-    double max = 340,
-  }) {
-    final pad = dx(horizontalPad) * 2;
-    final gap = dx(gutter) * (columns - 1);
-    final usable = size.width - pad - gap;
-    final tileWidth = columns > 0 ? usable / columns : usable;
-    return (tileWidth * aspect).clamp(min, max);
-  }
+   double gridExtent({
+
+required int columns,
+
+required double horizontalPad,
+
+required double gutter,
+
+double aspect = 1.70,
+
+double min = 190,
+
+double max = 340,
+
+ }) {
+
+ final pad = dx(horizontalPad) * 2;
+
+ final gap = dx(gutter) * (columns - 1);
+
+ final usable = size.width - pad - gap;
+
+ final tileWidth = columns > 0 ? usable / columns : usable;
+
+ return (tileWidth * aspect).clamp(min, max);
+
+ }
 
   /// Grid delegate for product-style cards.
-  ///
-  /// Defaults reproduce the app's existing card metrics: 2 columns, 12px
-  /// gutter, ~270px tall at 360px width.
-  SliverGridDelegateWithFixedCrossAxisCount productGridDelegate({
-    double horizontalPad = 16,
-    double horizontalGutter = 12,
-    double verticalGutter = 16,
-    double aspect = 1.70,
-  }) {
-    final cols = productColumns;
-    return SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: cols,
-      crossAxisSpacing: dx(horizontalGutter),
-      mainAxisSpacing: dy(verticalGutter),
-      mainAxisExtent: gridExtent(
-        columns: cols,
-        horizontalPad: horizontalPad,
-        gutter: horizontalGutter,
-        aspect: aspect,
-      ),
-    );
-  }
+
+ ///
+
+ /// Defaults reproduce the app's existing card metrics: 2 columns, 12px
+
+ /// gutter, ~270px tall at 360px width.
+
+ SliverGridDelegateWithFixedCrossAxisCount productGridDelegate({
+
+ double horizontalPad = 16,
+ double horizontalGutter = 12,
+ double verticalGutter = 16,
+ double aspect = 1.70,
+
+ }) {
+
+ final cols = productColumns;
+
+ return SliverGridDelegateWithFixedCrossAxisCount(
+ crossAxisCount: cols,
+
+ crossAxisSpacing: dx(horizontalGutter),
+ mainAxisSpacing: dy(verticalGutter),
+
+mainAxisExtent: gridExtent(
+
+columns: cols,
+
+ horizontalPad: horizontalPad,
+
+ gutter: horizontalGutter,
+
+aspect: aspect,
+
+ ),
+
+);
+
+}
+
 
   /// Grid delegate for dashboard metric/stat tiles.
   ///

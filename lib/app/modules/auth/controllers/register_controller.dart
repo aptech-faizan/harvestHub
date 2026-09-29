@@ -6,6 +6,7 @@ import 'package:harvest_hub/app/core/utils/helpers.dart';
 import 'package:harvest_hub/app/data/models/market_model.dart';
 import 'package:harvest_hub/app/data/repositories/market_repository.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
+import 'package:harvest_hub/app/routes/app_routes.dart';
 
 class RegisterController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
@@ -36,7 +37,21 @@ class RegisterController extends GetxController {
 
   bool _marketsRequested = false;
 
+  /// Whether the user reached this screen by navigating over an existing login
+  /// screen, which is then still sitting in the route stack underneath us.
+  ///
+  /// Captured once in [onInit] because it has to be read at the moment this
+  /// screen was entered; by the time the user submits, [Get.previousRoute] has
+  /// moved on.
+  late final bool _loginRouteIsUnderneath;
+
   bool get isFarmer => selectedRole.value == Roles.farmer;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loginRouteIsUnderneath = Get.previousRoute == Routes.login;
+  }
 
   @override
   void onClose() {
@@ -108,6 +123,46 @@ class RegisterController extends GetxController {
     }
   }
 
+  /// Returns the user to the login screen with a confirmation toast.
+  void _redirectToLogin() {
+    // The login screen the user came from is normally still in the route stack
+    // underneath this one, with a live LoginController bound to it. Pushing a
+    // *second* /login over the top with `Get.offAllNamed` makes GetX tear the
+    // old /login down at the same time as it builds the new one, and the
+    // controller the new screen was handed ends up disposed - so its
+    // TextFields throw "A TextEditingController was used after being disposed"
+    // the moment the user touches them.
+    //
+    // Popping back to the screen that is already there avoids creating a second
+    // one altogether, and leaves the user with the same single-entry stack
+    // (they cannot navigate back into the finished registration form).
+    if (_loginRouteIsUnderneath) {
+      Get.until((route) => route.settings.name == Routes.login);
+
+      // Get.until returns void, so confirm it actually landed on login. If the
+      // route was not there after all, never leave the user on a bare navigator.
+      if (Get.currentRoute != Routes.login) {
+        Get.offAllNamed(Routes.login);
+      }
+    } else {
+      // Arrived here without a login screen underneath (a deep link, say), so
+      // there is nothing to collide with and a clean stack is what is wanted.
+      Get.offAllNamed(Routes.login);
+    }
+
+    // Raised after the redirect, in a post-frame callback. `Get.showSnackbar`
+    // attaches to the current overlay, and the navigation above is still
+    // settling at this point, so a toast raised before it is silently lost.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showSuccess('Account created successfully! Please log in.');
+    });
+  }
+
+  /// Registers a new Customer or Farmer, then returns them to the login screen.
+  ///
+  /// Registration deliberately does NOT sign the new account in: the user must
+  /// log in with the credentials they just chose, so the login screen is shown
+  /// with a confirmation toast instead of dropping them into their home.
   Future<void> register() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -123,8 +178,9 @@ class RegisterController extends GetxController {
     }
 
     isLoading.value = true;
+    var created = false;
     try {
-      final role = await authService.register(
+      await authService.register(
         name: nameController.text.trim(),
         email: emailController.text.trim(),
         phone: phoneController.text.trim(),
@@ -134,14 +190,28 @@ class RegisterController extends GetxController {
         marketId: market?.id ?? '',
         marketName: market?.marketName ?? '',
       );
-      showSuccess('Registration successful!');
-      authService.navigateToRoleHome(role);
+      created = true;
     } on FirebaseAuthException catch (e) {
       showError(_getAuthErrorMessage(e));
     } catch (e) {
       showError(errorText(e));
     } finally {
+      // Runs before the redirect below, so the loading flag is cleared while
+      // this controller is still alive rather than after offAllNamed disposes
+      // the route.
       isLoading.value = false;
     }
+
+    // Only follow the happy path into the login screen. A failure has already
+    // surfaced its own error and must leave the form up so it can be corrected.
+    if (!created) return;
+
+    // Firebase signs the new account in as part of creating it, and
+    // AuthService.register also caches the role and profile. Drop both before
+    // redirecting: `/login` is guarded by GuestMiddleware, which sends any
+    // still-authenticated user straight back to their home screen, which would
+    // silently undo the redirect below.
+    await authService.endSessionAfterRegistration();
+    _redirectToLogin();
   }
 }

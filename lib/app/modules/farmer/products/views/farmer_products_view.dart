@@ -1,4 +1,3 @@
-import 'package:harvest_hub/app/core/responsive/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/theme/app_colors.dart';
@@ -71,14 +70,14 @@ class FarmerProductsView extends GetView<FarmerProductsController> {
                     AppSpacing.l,
                   ),
                   // Column count and tile height derived from the available
-                  // width. aspect 1.468 reproduces the original
-                  // childAspectRatio 0.68 at the 360px design width.
+                  // width. aspect 1.818 reproduces the original
+                  // childAspectRatio 0.55 at the 360px design width.
                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: AppSpacing.m,
-                    mainAxisSpacing: AppSpacing.m,
-                    childAspectRatio: 0.55,
-                  ),
+  crossAxisCount: 2,
+  crossAxisSpacing: AppSpacing.m,
+  mainAxisSpacing: AppSpacing.m,
+  mainAxisExtent: 310,
+),
                   itemCount: list.length,
                   itemBuilder: (_, i) => _ProductCard(
                     product: list[i],

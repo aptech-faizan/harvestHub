@@ -33,7 +33,6 @@ class CloudinaryService {
 
       // Fix 2: Detailed error handling
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        print('Cloudinary Error Body: ${response.body}');
         final body = jsonDecode(response.body);
         final errorMessage = body['error']?['message'] ?? 'Unknown error';
         throw Exception('Cloudinary Upload Failed (${response.statusCode}): $errorMessage');
@@ -46,7 +45,6 @@ class CloudinaryService {
 
       return body['secure_url'].toString();
     } catch (e) {
-      print('CloudinaryService Exception: $e');
       rethrow;
     }
   }

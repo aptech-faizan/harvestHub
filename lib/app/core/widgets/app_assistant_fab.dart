@@ -76,12 +76,14 @@ class AppAssistantFabLocation extends FloatingActionButtonLocation {
   const AppAssistantFabLocation({this.hasPinnedBottomBar = false});
 
   @override
-  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    const double fabX = 16.0;
-    final double contentBottom = scaffoldGeometry.contentBottom;
-    final double fabHeight = scaffoldGeometry.floatingActionButtonSize.height;
-    final double extraOffset = hasPinnedBottomBar ? 88.0 : 0.0;
-    final double fabY = contentBottom - fabHeight - 16.0 - extraOffset;
-    return Offset(fabX, fabY);
-  }
+Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+  final double fabX = scaffoldGeometry.scaffoldSize.width -
+      scaffoldGeometry.floatingActionButtonSize.width -
+      16.0; // right margin
+  final double contentBottom = scaffoldGeometry.contentBottom;
+  final double fabHeight = scaffoldGeometry.floatingActionButtonSize.height;
+  final double extraOffset = hasPinnedBottomBar ? 88.0 : 0.0;
+  final double fabY = contentBottom - fabHeight - 16.0 - extraOffset;
+  return Offset(fabX, fabY);
+}
 }

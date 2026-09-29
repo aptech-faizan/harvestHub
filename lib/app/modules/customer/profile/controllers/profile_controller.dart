@@ -7,6 +7,7 @@ import '../../../../data/repositories/user_repository.dart';
 import '../../../../data/services/auth_service.dart';
 import '../../../../data/services/cloudinary_service.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 
 /// Manages customer profile details, updates, password changes and logout.
 class ProfileController extends GetxController {
@@ -68,9 +69,26 @@ class ProfileController extends GetxController {
     final phone = phoneC.text.trim();
     final address = addressC.text.trim();
 
-    if (name.isEmpty || phone.isEmpty) {
-      AppSnackbar.warning('Name and phone number are required', title: 'Invalid Input');
+    // Same rules the register form enforces, so a number that was accepted at
+    // signup cannot be silently replaced with an invalid one here.
+    final nameError = AppValidators.name()(name);
+    if (nameError != null) {
+      AppSnackbar.warning(nameError, title: 'Invalid Input');
       return;
+    }
+    final phoneError = AppValidators.phone()(phone);
+    if (phoneError != null) {
+      AppSnackbar.warning(phoneError, title: 'Invalid Input');
+      return;
+    }
+    // The address is only validated when something was typed, so a customer
+    // who has not set one yet is not blocked from saving their name/phone.
+    if (address.isNotEmpty) {
+      final addressError = AppValidators.address(minLength: 5)(address);
+      if (addressError != null) {
+        AppSnackbar.warning(addressError, title: 'Invalid Input');
+        return;
+      }
     }
 
     isLoading.value = true;
@@ -180,3 +198,4 @@ class ProfileController extends GetxController {
     await Get.find<AuthService>().logout();
   }
 }
+

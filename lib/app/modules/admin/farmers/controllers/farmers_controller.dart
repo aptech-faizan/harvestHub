@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 import 'package:harvest_hub/app/core/widgets/edit_dialog.dart';
 import 'package:harvest_hub/app/modules/admin/models/farmer_model.dart';
 import 'package:harvest_hub/app/modules/admin/models/product_model.dart';
@@ -71,9 +72,13 @@ class FarmersController extends GetxController {
   // Updates farmer business and user account details
   Future<void> edit(FarmerModel f) async {
     final r = await showEditDialog('Edit farmer', [
-      FieldDef('name', 'Owner name', initial: f.ownerName),
-      FieldDef('phone', 'Phone', initial: f.phone, required: false),
-      FieldDef('businessName', 'Business name', initial: f.businessName),
+      FieldDef('name', 'Owner name',
+          initial: f.ownerName, validator: AppValidators.name(label: 'Owner name')),
+      // Optional field, but if a number is given it still has to be a real one.
+      FieldDef('phone', 'Phone',
+          initial: f.phone, required: false, validator: AppValidators.phone(allowEmpty: true)),
+      FieldDef('businessName', 'Business name',
+          initial: f.businessName, validator: AppValidators.text(minLength: 3, label: 'Business name')),
       FieldDef('description', 'Description', initial: f.description, required: false, lines: 3),
       FieldDef('marketId', 'Market',
           initial: f.marketId, required: false, options: Map<String, String>.of(marketNames)),
@@ -133,3 +138,4 @@ class FarmersController extends GetxController {
     }
   }
 }
+

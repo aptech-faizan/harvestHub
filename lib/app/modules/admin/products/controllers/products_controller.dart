@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 import 'package:harvest_hub/app/core/widgets/edit_dialog.dart';
 import 'package:harvest_hub/app/modules/admin/models/category_model.dart';
 import 'package:harvest_hub/app/modules/admin/models/product_model.dart';
@@ -14,6 +15,16 @@ class ProductsController extends GetxController {
   final error = ''.obs;
   final search = ''.obs;
   final categoryFilter = 'All'.obs;
+
+  /// Status filter chip selection.
+  ///
+  /// Lives here rather than as a module-level variable so it is scoped like
+  /// [search] and [categoryFilter]. As a top-level `Rx` it was process-wide: a
+  /// selection survived navigation everywhere in the app, so re-entering this
+  /// screen silently relabelled every product with whatever chip was last
+  /// tapped.
+  final statusFilter = 'All'.obs;
+
   final products = <ProductModel>[].obs;
   final categories = <CategoryModel>[].obs;
   final farmerNames = <String, String>{}.obs;
@@ -67,11 +78,16 @@ class ProductsController extends GetxController {
     if (p.category.isNotEmpty) categoryOptions.putIfAbsent(p.category, () => p.category);
 
     final r = await showEditDialog('Edit product', [
-      FieldDef('itemName', 'Product name', initial: p.itemName),
+      FieldDef('itemName', 'Product name',
+          initial: p.itemName, validator: AppValidators.text(minLength: 3, label: 'Product name')),
       FieldDef('category', 'Category', initial: p.category, options: categoryOptions),
       FieldDef('description', 'Description', initial: p.description, required: false, lines: 3),
       FieldDef('price', 'Price per unit', initial: '${p.pricePerUnit}', numeric: true),
-      FieldDef('stock', 'Stock quantity', initial: '${p.stockQty}', numeric: true),
+      // Zero stock is a legitimate state (sold out), so this one allows zero
+      // while still rejecting a negative quantity.
+      FieldDef('stock', 'Stock quantity',
+          initial: '${p.stockQty}',
+          validator: AppValidators.positiveNumber(label: 'Stock quantity', allowZero: true)),
       FieldDef('imageUrl', 'Image URL', initial: p.imageUrl, required: false),
     ]);
     if (r == null) return;
@@ -143,3 +159,4 @@ class ProductsController extends GetxController {
     }
   }
 }
+

@@ -89,6 +89,18 @@ class MockAuthService extends AuthService {
     role.value = '';
     Get.offAllNamed(Routes.login);
   }
+
+  /// Mirrors the real service: registration leaves an active session, and this
+  /// is what ends it. Must clear `mockRole` as well, because the mock's
+  /// `isAuthenticated` reads that field rather than the real
+  /// `currentUser != null && role.isNotEmpty` rule.
+  @override
+  Future<void> endSessionAfterRegistration() async {
+    mockRole = '';
+    role.value = '';
+    firebaseUser.value = null;
+    currentUserModel.value = null;
+  }
 }
 
 void main() {
@@ -336,6 +348,183 @@ void main() {
       expect(find.text('Full Name'), findsOneWidget);
       expect(find.text('Phone Number'), findsOneWidget);
       expect(find.text('Address'), findsOneWidget);
+    });
+
+    // Registration must NOT sign the new account in. Firebase's
+    // createUserWithEmailAndPassword leaves a live session behind, so the
+    // controller has to tear it down - otherwise `/login`, which is guarded by
+    // GuestMiddleware, would bounce the user straight back to their home and
+    // the "please log in" redirect would be undone.
+    for (final role in [Roles.customer, Roles.farmer]) {
+      testWidgets(
+          'Registration as $role ends on the login screen, not the home screen',
+          (tester) async {
+        final controller = Get.put(RegisterController());
+        controller.selectedRole.value = role;
+
+        await tester.pumpWidget(
+          GetMaterialApp(
+            home: const RegisterView(),
+            getPages: AppPages.pages,
+          ),
+        );
+
+        // Entered through the real input path (not assigned to the
+        // TextEditingControllers) because form validation reads each
+        // FormField's value, which only tracks genuine user input.
+        //
+        // Scoped to RegisterView on purpose: this test starts on /login, and
+        // the login screen is still in the stack - an unscoped
+        // find.byType(TextFormField) also matches its two fields, so the
+        // register form received the wrong values.
+        final fields = find.descendant(
+          of: find.byType(RegisterView),
+          matching: find.byType(TextFormField),
+        );
+        await tester.enterText(fields.at(0), 'Test User');
+        await tester.enterText(fields.at(1), 'newuser@test.com');
+        await tester.enterText(fields.at(2), '03001234567');
+        await tester.enterText(fields.at(3), 'Karachi, Pakistan');
+        await tester.enterText(fields.at(4), 'secret123');
+        await tester.pump();
+
+        await controller.register();
+        await tester.pumpAndSettle();
+
+        // 1. The session Firebase created is gone, so AuthService no longer
+        //    considers anybody signed in.
+        expect(mockAuth.isAuthenticated, isFalse,
+            reason: 'registration must not leave a live session');
+        expect(mockAuth.role.value, isEmpty,
+            reason: 'cached role must be cleared');
+
+        // 2. The user lands on the login screen...
+        expect(Get.currentRoute, Routes.login);
+
+        // 3. ...and explicitly NOT on that role's home screen.
+        final homeForRole = role == Roles.customer
+            ? Routes.customerShell
+            : Routes.farmerDashboard;
+        expect(Get.currentRoute, isNot(homeForRole));
+      });
+    }
+
+    testWidgets('A failed registration stays on the form and does not redirect',
+        (tester) async {
+      // Guards the happy-path guard: on failure the user must keep the form
+      // so the bad input can be corrected.
+      final controller = Get.put(RegisterController());
+      controller.selectedRole.value = Roles.customer;
+
+      await tester.pumpWidget(
+        GetMaterialApp(
+          home: const RegisterView(),
+          getPages: AppPages.pages,
+        ),
+      );
+
+      // Invalid email fails the form validator, so register() returns early.
+      final fields = find.descendant(
+        of: find.byType(RegisterView),
+        matching: find.byType(TextFormField),
+      );
+      await tester.enterText(fields.at(0), 'Test User');
+      await tester.enterText(fields.at(1), 'not-an-email');
+      await tester.enterText(fields.at(2), '03001234567');
+      await tester.enterText(fields.at(3), 'House 12, Street 4, Karachi');
+      await tester.enterText(fields.at(4), 'secret123');
+      await tester.pump();
+
+      await controller.register();
+      await tester.pumpAndSettle();
+
+      expect(Get.currentRoute, isNot(Routes.login));
+      expect(find.byType(RegisterView), findsOneWidget);
+    });
+
+    // Regression: "A TextEditingController was used after being disposed" on
+    // the login screen right after registering.
+    //
+    // The precondition matters. LoginBinding uses Get.lazyPut, so the visit to
+    // /login below creates a LoginController that stays cached in the container
+    // for as long as /login remains in the route stack - which it does while
+    // /register is pushed on top of it. Get.offAllNamed then removes that
+    // still-mounted login screen and disposes the cached controller, so the
+    // rebuilt screen can be handed a controller whose TextEditingControllers
+    // are already disposed.
+    testWidgets(
+        'Login -> Register -> register returns to a login screen with live controllers',
+        (tester) async {
+      // Start on /login so a LoginController is genuinely created first.
+      await tester.pumpWidget(
+        GetMaterialApp(
+          initialRoute: Routes.login,
+          getPages: AppPages.pages,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginView), findsOneWidget);
+
+      final staleController = Get.find<LoginController>();
+      expect(staleController.emailController.text, isNotNull);
+
+      // Navigate to the registration form, leaving /login in the stack.
+      Get.toNamed(Routes.register);
+      await tester.pumpAndSettle();
+      final registerController = Get.find<RegisterController>();
+      registerController.selectedRole.value = Roles.customer;
+
+      // Scoped to RegisterView because the login screen is still in the stack
+      // and would otherwise supply the first two matches.
+      final fields = find.descendant(
+        of: find.byType(RegisterView),
+        matching: find.byType(TextFormField),
+      );
+      await tester.enterText(fields.at(0), 'Test User');
+      await tester.enterText(fields.at(1), 'newuser@test.com');
+      await tester.enterText(fields.at(2), '03001234567');
+      // A realistically complete address: the field requires 10+ characters.
+      await tester.enterText(fields.at(3), 'House 12, Street 4, Karachi');
+      await tester.enterText(fields.at(4), 'secret123');
+      await tester.pump();
+
+      await registerController.register();
+      await tester.pumpAndSettle();
+
+      // The reported symptom: a disposed TextEditingController still in use.
+      expect(tester.takeException(), isNull,
+          reason: 'no "used after being disposed" on the rebuilt login screen');
+
+      expect(Get.currentRoute, Routes.login);
+      expect(find.byType(LoginView), findsOneWidget);
+
+      // Assert on what the live TextFields are actually bound to rather than on
+      // the GetX container: touching a disposed TextEditingController throws on
+      // access, which is the real contract the user hits.
+      final emailField = tester.widget<TextFormField>(
+        find.widgetWithText(TextFormField, 'Email'),
+      );
+      final boundEmail = emailField.controller!;
+      final boundPassword = tester
+          .widget<TextFormField>(find.byType(TextFormField).last)
+          .controller!;
+
+      // The screen we landed on is the ORIGINAL one from before registration,
+      // still bound to the original controllers - which were never disposed.
+      // That reuse is the fix: pushing a second /login while the first was being
+      // torn down is what handed the new screen a disposed controller.
+      expect(identical(boundEmail, staleController.emailController), isTrue,
+          reason: 'expected the live login screen to be reused, not rebuilt');
+      expect(
+          identical(boundPassword, staleController.passwordController), isTrue,
+          reason: 'expected the live login screen to be reused, not rebuilt');
+
+      // Both are alive: writing to a disposed controller throws here. This is
+      // the exact call the user makes when they type their email.
+      boundEmail.text = 'typed-after-registration';
+      boundPassword.text = 'secret123';
+      expect(boundEmail.text, 'typed-after-registration');
+      expect(boundPassword.text, 'secret123');
     });
 
     testWidgets('FarmerDashboardView renders overview and logout', (tester) async {

@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/responsive/responsive.dart';
+import 'package:harvest_hub/app/core/theme/app_spacing.dart';
+import 'package:harvest_hub/app/core/widgets/app_bottom_nav_bar.dart';
+import 'package:harvest_hub/app/core/widgets/app_card.dart';
+import 'package:harvest_hub/app/core/widgets/app_chip.dart';
 import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_stat_card.dart';
+import 'package:harvest_hub/app/core/widgets/app_text_field.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
 import 'package:harvest_hub/app/modules/auth/controllers/login_controller.dart';
 import 'package:harvest_hub/app/modules/auth/views/login_view.dart';
@@ -185,7 +190,164 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('Shared widget library survives a small phone', () {
+    // Most screens cannot be pumped here because their controllers are backed
+    // by Firestore. The shared widget library can be, and nearly every screen
+    // is composed from it, so an overflow in one of these appears on many
+    // screens at once. The strings are deliberately long - a component that
+    // only fits "Ok" is not the case users hit.
+    Future<void> expectNoOverflow(
+      WidgetTester tester,
+      Size size,
+      Widget child,
+    ) async {
+      final overflows = _captureOverflows(tester);
+      await tester.binding.setSurfaceSize(size);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        GetMaterialApp(
+          home: Scaffold(body: SingleChildScrollView(child: child)),
+        ),
+      );
+      await tester.pump();
+      expect(overflows, isEmpty,
+          reason: _format('${size.width}x${size.height}', overflows));
+    }
+
+    const phoneSizes = {'small': Size(320, 568), 'design': Size(360, 690)};
+
+    for (final entry in phoneSizes.entries) {
+      testWidgets('AppCard with long text and a chip row does not overflow (${entry.key})',
+          (tester) async {
+        await expectNoOverflow(
+          tester,
+          entry.value,
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Freshly harvested tomatoes from Green Valley Farm',
+                ),
+                const SizedBox(height: AppSpacing.s),
+                // The pattern that blanked the admin products list: a Row inside
+                // a horizontally scrolling viewport must contain no flex child.
+                SizedBox(
+                  width: double.infinity,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        AppChip.pill(label: 'Vegetables'),
+                        SizedBox(width: AppSpacing.xs),
+                        AppChip.pill(label: 'Pending approval'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      });
+
+      testWidgets('AppStatCard with a trend pill does not overflow (${entry.key})',
+          (tester) async {
+        await expectNoOverflow(
+          tester,
+          entry.value,
+          const AppStatCard(
+            title: 'Total Revenue This Month',
+            value: 'PKR 1,284,500',
+            trend: '+12.4%',
+          ),
+        );
+      });
+
+      testWidgets('AppSearchBar does not overflow (${entry.key})', (tester) async {
+        await expectNoOverflow(
+          tester,
+          entry.value,
+          const AppSearchBar(hintText: 'Search by product or farmer...'),
+        );
+      });
+
+      testWidgets('AppBottomNavBar with four tabs does not overflow (${entry.key})',
+          (tester) async {
+        await expectNoOverflow(
+          tester,
+          entry.value,
+          const AppBottomNavBar(
+            currentIndex: 0,
+            onTap: _noop,
+            items: [
+              AppNavItem(
+                outlineIcon: Icons.home_outlined,
+                filledIcon: Icons.home,
+                label: 'Home',
+              ),
+              AppNavItem(
+                outlineIcon: Icons.search,
+                filledIcon: Icons.search,
+                label: 'Explore',
+              ),
+              AppNavItem(
+                outlineIcon: Icons.shopping_cart_outlined,
+                filledIcon: Icons.shopping_cart,
+                label: 'Cart',
+              ),
+              AppNavItem(
+                outlineIcon: Icons.person_outline,
+                filledIcon: Icons.person,
+                label: 'Profile',
+              ),
+            ],
+          ),
+        );
+      });
+    }
+
+    testWidgets(
+        'A flex child inside a horizontal scroll is rejected, not silently blank',
+        (tester) async {
+      // Pins the constraint that the admin products list violated. A Row inside
+      // a horizontally scrolling viewport has unbounded width, so any
+      // Flexible/Expanded child makes Flutter throw - and the failure removes
+      // the whole subtree from the layout pass, rendering the rows blank rather
+      // than obviously broken.
+      final errors = <String>[];
+      final previous = FlutterError.onError;
+      FlutterError.onError = (d) => errors.add('${d.exception}');
+      addTearDown(() => FlutterError.onError = previous);
+
+      await tester.pumpWidget(
+        GetMaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  Flexible(child: const SizedBox(width: 60, height: 20)),
+                  const SizedBox(width: 4),
+                  const SizedBox(width: 40, height: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(errors.join(' '), contains('unbounded'),
+          reason: 'expected Flutter to reject a flex child in an unbounded Row');
+    });
+  });
 }
+
+void _noop(int _) {}
 
 /// Installs a [FlutterError.onError] hook that records overflow errors instead
 /// of throwing, so the assertion can report the offending widget by name.

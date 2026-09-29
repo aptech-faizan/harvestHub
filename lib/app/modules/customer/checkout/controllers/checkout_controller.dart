@@ -15,6 +15,37 @@ import '../../../../core/widgets/app_snackbar.dart';
 
 // Ye checkout process, slot selection aur order placement handle karta hai
 class CheckoutController extends GetxController {
+  /// Returns the first farmer in [farmerIds] that has no usable pickup slot, or
+  /// null when every farmer has one.
+  ///
+  /// A slot counts as usable only if the farmer has an actual entry selected
+  /// *and* that entry still exists in [farmerSlots]. Both halves matter:
+  ///
+  ///  * Requiring a non-empty id alone would still let a stale selection through
+  ///    after the slot list is reloaded or a slot is withdrawn - and such an id
+  ///    resolves to nothing further down, producing an order with an empty
+  ///    pickupSlotId.
+  ///  * Requiring a slot only where [farmerSlots] is non-empty was the bug this
+  ///    replaces: a farmer whose slots have not loaded, failed to load, or all
+  ///    lie in the past would silently get an order with no pickup slot at all.
+  ///
+  /// Static and side-effect free so the rule is testable without Firebase.
+  static String? farmerMissingPickupSlot({
+    required Iterable<String> farmerIds,
+    required Map<String, List<PickupSlotModel>> farmerSlots,
+    required Map<String, String> selectedSlotId,
+  }) {
+    for (final farmerId in farmerIds) {
+      final slotId = selectedSlotId[farmerId] ?? '';
+      if (slotId.isEmpty) return farmerId;
+      final isKnownSlot =
+          (farmerSlots[farmerId] ?? const <PickupSlotModel>[])
+              .any((s) => s.id == slotId);
+      if (!isKnownSlot) return farmerId;
+    }
+    return null;
+  }
+
   final CartController cartController = Get.find<CartController>();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController instructionsController = TextEditingController();
@@ -24,17 +55,25 @@ class CheckoutController extends GetxController {
   final RxMap<String, List<PickupSlotModel>> farmerSlots = <String, List<PickupSlotModel>>{}.obs;
   final RxMap<String, String> selectedSlotId = <String, String>{}.obs;
 
-  final RxString customerName = 'Rajesh Kumar'.obs;
-  final RxString customerPhone = '+91 98765 43210'.obs;
+  final RxString customerName = ''.obs;
+  // A valid Pakistani placeholder. The previous '+91 98765 43210' was an
+  // Indian number and would be rejected by the shipping form's validation
+  // before the user had a chance to correct it.
+  final RxString customerPhone = ''.obs;
   final RxString appliedCoupon = 'FARM20'.obs;
   final RxDouble couponDiscount = 20.0.obs;
   final RxDouble deliveryFee = 40.0.obs;
+  final RxString customerAddress = ''.obs;
+  final RxBool orderPlaced = false.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    loadCheckoutData();
-  }
+ @override
+void onInit() {
+  super.onInit();
+  addressController.addListener(() {
+    customerAddress.value = addressController.text;
+  });
+  loadCheckoutData();
+}
 
   @override
   void onClose() {
@@ -99,6 +138,7 @@ class CheckoutController extends GetxController {
 
   // Validations check karke orders place karta hai
   Future<void> placeOrder() async {
+    orderPlaced.value = false;
     if (isPlacing.value) return;
     if (cartController.items.isEmpty) {
       AppSnackbar.warning('Your cart is empty', title: 'Empty Cart');
@@ -109,15 +149,30 @@ class CheckoutController extends GetxController {
       AppSnackbar.warning('Delivery address is required', title: 'Address Missing');
       return;
     }
+    // Every farmer's part of the order needs a real pickup slot.
+    //
+    // This is deliberately NOT conditional on the farmer having slots
+    // available. Previously the requirement was skipped whenever
+    // `farmerSlots[farmerId]` came back empty, which happens when the fetch is
+    // still in flight, when it failed, or when every slot has already passed
+    // (loadFarmerSlots filters on startTime.isAfter(now)). The order was then
+    // still created - with an empty pickupSlotId and a misleading
+    // "Standard Delivery" label, on an order that is meant to be collected.
+    //
+    // Runs before isPlacing and before any write, so a failure here leaves the
+    // cart, the database and the existing slot selections untouched.
     final grouped = cartController.groupedByFarmer;
-    for (final farmerId in grouped.keys) {
-      final availableSlots = farmerSlots[farmerId] ?? [];
-      // Only require slot if the farmer has slots configured
-      if (availableSlots.isNotEmpty &&
-          (!selectedSlotId.containsKey(farmerId) || selectedSlotId[farmerId]!.isEmpty)) {
-        AppSnackbar.warning('Please select a pickup slot for each farmer', title: 'Slot Missing');
-        return;
-      }
+    final farmerMissingSlot = farmerMissingPickupSlot(
+      farmerIds: grouped.keys,
+      farmerSlots: farmerSlots,
+      selectedSlotId: selectedSlotId,
+    );
+    if (farmerMissingSlot != null) {
+      AppSnackbar.warning(
+        'This farmer currently has no upcoming pickup slots.',
+        title: 'Slot Missing',
+      );
+      return;
     }
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
@@ -160,16 +215,21 @@ class CheckoutController extends GetxController {
           createdAt: DateTime.now(),
         ));
       }
+await OrderRepository().placeOrders(ordersToPlace);
 
-      await OrderRepository().placeOrders(ordersToPlace);
-      cartController.clear();
-      if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadData();
-      if (Get.isRegistered<ProductSearchController>()) Get.find<ProductSearchController>().loadData();
-      AppSnackbar.success('Your order was successfully placed!', title: 'Order Placed');
-      Get.back();
-      if (Get.isRegistered<CustomerShellController>()) {
-        Get.find<CustomerShellController>().changeTab(3);
-      }
+// Flag pehle set karo taake cart clear hone par empty-state na dikhe
+orderPlaced.value = true;
+cartController.clear();
+
+if (Get.isRegistered<HomeController>()) Get.find<HomeController>().loadData();
+if (Get.isRegistered<ProductSearchController>()) Get.find<ProductSearchController>().loadData();
+
+// Pehle checkout se bahar niklo, phir tab badlo, snackbar sab se aakhir mein
+Get.back();
+if (Get.isRegistered<CustomerShellController>()) {
+  Get.find<CustomerShellController>().changeTab(3);
+}
+AppSnackbar.success('Your order was successfully placed!', title: 'Order Placed');
     } catch (e) {
       final msg = e.toString().replaceFirst('Exception: ', '');
       AppSnackbar.error(msg, title: 'Order Failed');

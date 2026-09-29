@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../../orders/controllers/orders_controller.dart';
+import 'package:harvest_hub/app/modules/customer/orders/controllers/orders_controller.dart';
 
 // Ye customer main shell ke tabs aur screen navigation ko control karta hai
 class CustomerShellController extends GetxController {

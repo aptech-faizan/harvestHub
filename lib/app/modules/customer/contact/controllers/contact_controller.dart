@@ -10,6 +10,9 @@ class ContactController extends GetxController {
   final messageController = TextEditingController();
   final RxBool isSubmitting = false.obs;
 
+  /// Drives the field-level messages; [submitFeedback] checks it before sending.
+  final formKey = GlobalKey<FormState>();
+
   // Initializes form with current user's name if logged in
   @override
   void onInit() {
@@ -33,8 +36,10 @@ class ContactController extends GetxController {
     final name = nameController.text.trim();
     final message = messageController.text.trim();
 
-    if (name.isEmpty || message.isEmpty) {
-      AppSnackbar.warning('Please enter your name and message', title: 'Required Fields');
+    // The form owns the per-field messages, so this only has to agree with it.
+    if (!(formKey.currentState?.validate() ?? false)) {
+      AppSnackbar.warning('Please fix the highlighted fields',
+          title: 'Required Fields');
       return;
     }
 

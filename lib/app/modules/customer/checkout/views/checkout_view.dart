@@ -7,6 +7,7 @@ import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
 import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import '../controllers/checkout_controller.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 
 /// Customer Checkout screen conforming to the HarvestHub Design System:
 /// - Order summary via AppCard.list (collapsed/summarized item rows)
@@ -115,65 +116,19 @@ class CheckoutView extends GetView<CheckoutController> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.only(
-          left: AppSpacing.l,
-          right: AppSpacing.l,
-          top: AppSpacing.l,
-          bottom: MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.l,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Edit Shipping Details',
-                  style: AppTextStyles.sectionHeading,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: () => Navigator.of(sheetContext).pop(),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.m),
-            Text('Recipient Name', style: AppTextStyles.cardTitle),
-            const SizedBox(height: 4),
-            AppTextField(
-              hintText: 'Full Name',
-              controller:
-                  TextEditingController(text: controller.customerName.value)
-                    ..addListener(() {}),
-              onChanged: (val) => controller.customerName.value = val,
-            ),
-            const SizedBox(height: AppSpacing.m),
-            Text('Delivery Address', style: AppTextStyles.cardTitle),
-            const SizedBox(height: 4),
-            AppTextField(
-              controller: controller.addressController,
-              hintText: 'Street, House No, City',
-              maxLines: 2,
-            ),
-            const SizedBox(height: AppSpacing.m),
-            Text('Phone Number', style: AppTextStyles.cardTitle),
-            const SizedBox(height: 4),
-            AppTextField(
-              hintText: '+91 ...',
-              controller:
-                  TextEditingController(text: controller.customerPhone.value)
-                    ..addListener(() {}),
-              onChanged: (val) => controller.customerPhone.value = val,
-            ),
-            const SizedBox(height: AppSpacing.l),
-            AppButton.primary(
-              label: 'Save Address',
-              onPressed: () => Navigator.of(sheetContext).pop(),
-            ),
-          ],
-        ),
+      // A StatefulWidget owns the name and phone controllers for the lifetime
+      // of the sheet and disposes them with it.
+      //
+      // They used to be constructed inline in `build`, which made a fresh
+      // controller on every rebuild and released none of them - and, worse,
+      // each new one was seeded from the stored value, so anything the user
+      // typed was thrown away the next time the sheet rebuilt.
+      builder: (sheetContext) => _EditAddressSheet(
+        initialName: controller.customerName.value,
+        initialPhone: controller.customerPhone.value,
+        addressController: controller.addressController,
+        onNameChanged: (v) => controller.customerName.value = v,
+        onPhoneChanged: (v) => controller.customerPhone.value = v,
       ),
     );
   }
@@ -206,6 +161,7 @@ class CheckoutView extends GetView<CheckoutController> {
 
         final items = controller.cartController.items;
         if (items.isEmpty) {
+          if (controller.orderPlaced.value) return const SizedBox.shrink();
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -416,12 +372,13 @@ class CheckoutView extends GetView<CheckoutController> {
                         const SizedBox(height: 4),
 
                         // Address lines
-                        Obx(() => Text(
-                              controller.addressController.text.isNotEmpty
-                                  ? controller.addressController.text
-                                  : 'No address set',
-                              style: AppTextStyles.bodyText,
-                            )),
+                        // Address lines
+Obx(() => Text(
+      controller.customerAddress.value.isNotEmpty
+          ? controller.customerAddress.value
+          : 'No address set',
+      style: AppTextStyles.bodyText,
+    )),
                         const SizedBox(height: 4),
 
                         // Phone
@@ -614,6 +571,121 @@ class CheckoutView extends GetView<CheckoutController> {
           ],
         );
       }),
+    );
+  }
+}
+
+/// Shipping-details bottom sheet.
+///
+/// Exists as a StatefulWidget purely to own the name and phone
+/// [TextEditingController]s. Both used to be created inline in the sheet's
+/// `build`, which meant a new controller on every rebuild and no disposal at
+/// all - and because each new controller was seeded from the stored value, the
+/// text the user had typed was discarded on the next rebuild.
+class _EditAddressSheet extends StatefulWidget {
+  final String initialName;
+  final String initialPhone;
+  final TextEditingController addressController;
+  final ValueChanged<String> onNameChanged;
+  final ValueChanged<String> onPhoneChanged;
+
+  const _EditAddressSheet({
+    required this.initialName,
+    required this.initialPhone,
+    required this.addressController,
+    required this.onNameChanged,
+    required this.onPhoneChanged,
+  });
+
+  @override
+  State<_EditAddressSheet> createState() => _EditAddressSheetState();
+}
+
+class _EditAddressSheetState extends State<_EditAddressSheet> {
+  // Seeded once. The address controller is owned by CheckoutController, so it
+  // is deliberately not disposed here.
+  late final _nameC = TextEditingController(text: widget.initialName);
+  late final _phoneC = TextEditingController(text: widget.initialPhone);
+
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _nameC.dispose();
+    _phoneC.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    widget.onNameChanged(_nameC.text.trim());
+    widget.onPhoneChanged(_phoneC.text.trim());
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.l,
+        right: AppSpacing.l,
+        top: AppSpacing.l,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.l,
+      ),
+      child: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Edit Shipping Details', style: AppTextStyles.sectionHeading),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.m),
+            Text('Recipient Name', style: AppTextStyles.cardTitle),
+            const SizedBox(height: 4),
+            AppTextField(
+              hintText: 'Full Name',
+              controller: _nameC,
+              validator: AppValidators.name(),
+              onChanged: widget.onNameChanged,
+            ),
+            const SizedBox(height: AppSpacing.m),
+            Text('Delivery Address', style: AppTextStyles.cardTitle),
+            const SizedBox(height: 4),
+            AppTextField(
+              controller: widget.addressController,
+              hintText: 'Street, House No, City',
+              maxLines: 2,
+              validator: AppValidators.address(),
+            ),
+            const SizedBox(height: AppSpacing.m),
+            Text('Phone Number', style: AppTextStyles.cardTitle),
+            const SizedBox(height: 4),
+            AppTextField(
+              // Pakistani format; the old hint suggested +91.
+              hintText: '03001234567',
+              keyboardType: TextInputType.phone,
+              controller: _phoneC,
+              validator: AppValidators.phone(),
+              onChanged: widget.onPhoneChanged,
+            ),
+            const SizedBox(height: AppSpacing.l),
+            AppButton.primary(
+              label: 'Save Address',
+              onPressed: _save,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

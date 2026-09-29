@@ -91,24 +91,7 @@ class SearchView extends GetView<ProductSearchController> {
                       ),
                     ),
                   )),
-              const SizedBox(height: AppSpacing.m),
-
-              // Distance Filter
-              Text('Max Distance', style: AppTextStyles.cardTitle),
-              const SizedBox(height: AppSpacing.xs),
-              Obx(() => Wrap(
-                    spacing: AppSpacing.s,
-                    children: [0.0, 2.0, 5.0, 10.0, 25.0].map((dist) {
-                      final isSelected = controller.maxDistanceKm.value == dist;
-                      final label = dist == 0 ? 'Any distance' : '${dist.toInt()} km';
-                      return ChoiceChip(
-                        label: Text(label),
-                        selected: isSelected,
-                        selectedColor: AppColors.chipHerbsBg,
-                        onSelected: (_) => controller.selectDistance(dist),
-                      );
-                    }).toList(),
-                  )),
+             
               const SizedBox(height: AppSpacing.xl),
 
               // Apply button

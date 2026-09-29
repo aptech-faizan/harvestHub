@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:harvest_hub/app/core/constants/app_constants.dart';
 import 'package:harvest_hub/app/core/utils/helpers.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 import 'package:harvest_hub/app/core/widgets/edit_dialog.dart';
 import 'package:harvest_hub/app/modules/admin/models/order_model.dart';
 import 'package:harvest_hub/app/modules/admin/models/user_model.dart';
@@ -68,9 +69,12 @@ class CustomersController extends GetxController {
 
   Future<void> edit(UserModel c) async {
     final r = await showEditDialog('Edit customer', [
-      FieldDef('name', 'Full name', initial: c.name),
-      FieldDef('phone', 'Phone', initial: c.phone),
-      FieldDef('address', 'Address', initial: c.address, required: false, lines: 2),
+      FieldDef('name', 'Full name',
+          initial: c.name, validator: AppValidators.name(label: 'Full name')),
+      FieldDef('phone', 'Phone',
+          initial: c.phone, validator: AppValidators.phone()),
+      FieldDef('address', 'Address',
+          initial: c.address, validator: AppValidators.address()),
     ]);
     if (r == null) return;
     try {
@@ -116,3 +120,4 @@ class CustomersController extends GetxController {
     }
   }
 }
+

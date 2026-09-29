@@ -10,7 +10,7 @@ import 'package:harvest_hub/app/data/models/order_model.dart';
 import 'package:harvest_hub/app/data/repositories/product_repository.dart';
 import '../../cart/controllers/cart_controller.dart';
 import '../../shell/controllers/customer_shell_controller.dart';
-import '../controllers/orders_controller.dart';
+import 'package:harvest_hub/app/modules/customer/orders/controllers/orders_controller.dart';
 
 /// Customer Orders screen conforming to the HarvestHub Design System:
 /// - AppAppBar with title

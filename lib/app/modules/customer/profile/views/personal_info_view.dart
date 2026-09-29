@@ -7,6 +7,7 @@ import 'package:harvest_hub/app/core/theme/app_text_styles.dart';
 import 'package:harvest_hub/app/core/widgets/app_shimmer.dart';
 import 'package:harvest_hub/app/core/widgets/app_widgets.dart';
 import '../controllers/profile_controller.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 
 /// Personal Information edit screen conforming to UI Master Rules.
 /// Contains the existing form (Email, Full Name, Phone, Delivery Address)
@@ -93,8 +94,12 @@ class PersonalInfoView extends GetView<ProfileController> {
                     label: 'Phone',
                     child: AppTextField(
                       controller: controller.phoneC,
-                      hintText: 'Enter your phone number',
+                      hintText: '03001234567',
                       keyboardType: TextInputType.phone,
+                      // This screen is not wrapped in a Form, so the rule is
+                      // repeated for the inline error text; the authoritative
+                      // check is in ProfileController.saveProfile().
+                      validator: AppValidators.phone(),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.m),

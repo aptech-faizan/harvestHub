@@ -109,7 +109,6 @@ class AdminRepository {
   Future<void> addCategory(String name) {
     return _db.collection(Db.categories).add({
       'name': name,
-      'iconUrl': '',
       'isActive': true,
     });
   }

@@ -12,6 +12,7 @@ import 'package:harvest_hub/app/data/repositories/user_repository.dart';
 import 'package:harvest_hub/app/data/services/auth_service.dart';
 import 'package:harvest_hub/app/modules/farmer/dashboard/controllers/farmer_dashboard_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 
 class FarmerProfileController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
@@ -98,6 +99,17 @@ class FarmerProfileController extends GetxController {
     final business = businessC.text.trim();
     if (name.isEmpty || phone.isEmpty || business.isEmpty) {
       showError('Name, phone and business name are required.');
+      return;
+    }
+
+    // Reuse the shared rules so the same number and name that the register
+    // form accepts are the only ones accepted here too. Reported one at a time
+    // so the message names the actual problem field.
+    final problem = AppValidators.name()(name) ??
+        AppValidators.phone()(phone) ??
+        AppValidators.text(minLength: 3, label: 'Business name')(business);
+    if (problem != null) {
+      showError(problem);
       return;
     }
 
@@ -190,3 +202,4 @@ class FarmerProfileController extends GetxController {
     }
   }
 }
+

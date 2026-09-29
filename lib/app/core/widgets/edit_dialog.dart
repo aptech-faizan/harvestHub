@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../utils/validators.dart';
 
 // Describes one field of the dialog form.
 class FieldDef {
@@ -11,12 +12,30 @@ class FieldDef {
   final int lines;
   final Map<String, String>? options; // if set, shows a dropdown (value -> label)
 
+  /// Overrides the rule inferred from [numeric]/[required] when a field needs
+  /// something specific - a phone number, an email, a long address.
+  ///
+  /// Left null the dialog infers a sensible rule, which covers the common
+  /// "required text" and "positive number" cases without every call site
+  /// spelling them out.
+  final FormFieldValidator<String>? validator;
+
   const FieldDef(this.key, this.label,
       {this.initial = '',
       this.required = true,
       this.numeric = false,
       this.lines = 1,
-      this.options});
+      this.options,
+      this.validator});
+
+  /// The rule to apply, preferring an explicit [validator].
+  FormFieldValidator<String> get effectiveValidator {
+    if (validator != null) return validator!;
+    // Explicitly optional fields stay optional, whatever the other flags say.
+    if (!required) return AppValidators.optional();
+    if (numeric) return AppValidators.positiveNumber(label: label);
+    return AppValidators.text(minLength: 1, label: label);
+  }
 }
 
 // Opens a validated form dialog. Returns the entered values, or null if cancelled.
@@ -64,14 +83,13 @@ class _EditDialogState extends State<_EditDialog> {
     return TextFormField(
       controller: controller,
       maxLines: f.lines,
-      keyboardType: f.numeric ? const TextInputType.numberWithOptions(decimal: true, signed: true) : null,
+      textInputAction:
+          f.lines > 1 ? TextInputAction.newline : TextInputAction.next,
+      keyboardType: f.numeric
+          ? const TextInputType.numberWithOptions(decimal: true, signed: true)
+          : null,
       decoration: InputDecoration(labelText: f.label, border: const OutlineInputBorder()),
-      validator: (v) {
-        final t = (v ?? '').trim();
-        if (f.required && t.isEmpty) return '${f.label} is required';
-        if (f.numeric && t.isNotEmpty && double.tryParse(t) == null) return 'Enter a valid number';
-        return null;
-      },
+      validator: f.effectiveValidator,
     );
   }
 
@@ -83,6 +101,9 @@ class _EditDialogState extends State<_EditDialog> {
         width: 400,
         child: Form(
           key: _formKey,
+          // Re-validate as the user types, so a mistake surfaces before Save is
+          // pressed rather than all at once on submit.
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               for (final f in widget.fields)

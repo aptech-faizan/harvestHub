@@ -6,6 +6,7 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
 class AppChip extends StatelessWidget {
+
   final String label;
   final Widget? icon;
   final IconData? iconData;
@@ -14,6 +15,8 @@ class AppChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final bool isCircular;
+
+  final bool compact;
 
   const AppChip.pill({
     super.key,
@@ -24,6 +27,7 @@ class AppChip extends StatelessWidget {
     this.textColor,
     this.isSelected = false,
     this.onTap,
+    this.compact = false,
   }) : isCircular = false;
 
   const AppChip.circular({
@@ -35,7 +39,8 @@ class AppChip extends StatelessWidget {
     this.textColor,
     this.isSelected = false,
     this.onTap,
-  }) : isCircular = true;
+  })  : isCircular = true,
+        compact = false;
 
   /// Consistent status chip variant with predefined palettes
   factory AppChip.status({
@@ -161,8 +166,8 @@ class AppChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppRadius.chipRadius,
         child: Container(
-          height: 32.0,
-          padding: const EdgeInsets.symmetric(horizontal: 14.0),
+          height: compact ? 26.0 : 32.0,
+          padding: EdgeInsets.symmetric(horizontal: compact ? 8.0 : 14.0),
           alignment: Alignment.center,
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -170,19 +175,25 @@ class AppChip extends StatelessWidget {
               if (iconData != null) ...[
                 Icon(
                   iconData,
-                  size: 16.0,
+                  size: compact ? 13.0 : 16.0,
                   color: effectiveText,
                 ),
-                const SizedBox(width: AppSpacing.xs),
+                SizedBox(width: compact ? 4.0 : AppSpacing.xs),
               ] else if (icon != null) ...[
                 icon!,
-                const SizedBox(width: AppSpacing.xs),
+                SizedBox(width: compact ? 4.0 : AppSpacing.xs),
               ],
-              Text(
-                label,
-                style: AppTextStyles.chipLabel.copyWith(
-                  color: effectiveText,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: AppTextStyles.chipLabel.copyWith(
+                    color: effectiveText,
+                    fontSize: compact ? 11.0 : null,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
               ),
             ],

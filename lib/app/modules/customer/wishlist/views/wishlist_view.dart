@@ -126,11 +126,12 @@ class WishlistView extends GetView<WishlistController> {
               horizontal: AppSpacing.screenHorizontalPadding,
               vertical: AppSpacing.l,
             ),
-            gridDelegate: context.resp.productGridDelegate(
-              horizontalPad: AppSpacing.screenHorizontalPadding,
-              horizontalGutter: AppSpacing.gridHorizontalGutter,
-              verticalGutter: AppSpacing.gridVerticalGutter,
-            ),
+           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+  crossAxisCount: context.resp.productColumns,
+  crossAxisSpacing: AppSpacing.gridHorizontalGutter,
+  mainAxisSpacing: AppSpacing.gridVerticalGutter,
+  mainAxisExtent: 285, // card ki fixed height, overflow ho to 295 kar do
+),
             itemCount: controller.items.length,
             itemBuilder: (context, index) {
               final product = controller.items[index];

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harvest_hub/app/core/utils/validators.dart';
 import 'package:harvest_hub/app/core/widgets/market_location_picker.dart';
 import 'package:harvest_hub/app/modules/admin/markets/controllers/market_form_controller.dart';
 
@@ -15,6 +16,7 @@ class MarketFormView extends GetView<MarketFormController> {
       ),
       body: Form(
         key: controller.formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -24,7 +26,8 @@ class MarketFormView extends GetView<MarketFormController> {
                 labelText: 'Market name',
                 border: OutlineInputBorder(),
               ),
-              validator: (v) => (v ?? '').trim().isEmpty ? 'Market name is required' : null,
+              validator:
+                  AppValidators.text(minLength: 3, label: 'Market name'),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -34,7 +37,7 @@ class MarketFormView extends GetView<MarketFormController> {
                 labelText: 'Address',
                 border: OutlineInputBorder(),
               ),
-              validator: (v) => (v ?? '').trim().isEmpty ? 'Address is required' : null,
+              validator: AppValidators.address(),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -43,8 +46,8 @@ class MarketFormView extends GetView<MarketFormController> {
                 labelText: 'Operating hours (e.g. 8am - 6pm)',
                 border: OutlineInputBorder(),
               ),
-              validator: (v) =>
-                  (v ?? '').trim().isEmpty ? 'Operating hours are required' : null,
+              validator: AppValidators.text(
+                  minLength: 3, label: 'Operating hours'),
             ),
             const SizedBox(height: 12),
             Obx(() => SwitchListTile(
@@ -95,6 +98,11 @@ class MarketFormView extends GetView<MarketFormController> {
                             labelText: 'Latitude',
                             border: OutlineInputBorder(),
                           ),
+                          // A coordinate outside the valid range would place the
+                          // market pin nowhere useful on the map, so this is
+                          // range-checked rather than just being a number.
+                          validator: AppValidators.coordinate(
+                              label: 'Latitude', min: -90, max: 90),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -107,6 +115,8 @@ class MarketFormView extends GetView<MarketFormController> {
                             labelText: 'Longitude',
                             border: OutlineInputBorder(),
                           ),
+                          validator: AppValidators.coordinate(
+                              label: 'Longitude', min: -180, max: 180),
                         ),
                       ),
                     ],
@@ -147,3 +157,4 @@ class MarketFormView extends GetView<MarketFormController> {
     );
   }
 }
+

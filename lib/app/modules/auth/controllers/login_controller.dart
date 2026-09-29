@@ -8,11 +8,20 @@ class LoginController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
 
   final formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+
+  // Late initialization prevents "used after being disposed" exception
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
 
   final RxBool isLoading = false.obs;
   final RxBool hidePassword = true.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+  }
 
   @override
   void onClose() {
