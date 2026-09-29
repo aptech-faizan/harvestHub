@@ -263,6 +263,14 @@ class AuthService extends GetxService {
 
   /// Routes the user to their respective module based on their verified role.
   void navigateToRoleHome(String userRole) {
+    // Whoever signs in, register this device for push now that a uid exists.
+    // FcmService.init() ran at app start with nobody signed in, so its own
+    // registration attempt was a no-op; without this the token would only ever
+    // be written if the platform happened to rotate it, which is rare.
+    if (Get.isRegistered<FcmService>()) {
+      Get.find<FcmService>().registerCurrentDevice();
+    }
+
     switch (userRole.toLowerCase()) {
       case Roles.customer:
         if (Get.isRegistered<WishlistController>()) {

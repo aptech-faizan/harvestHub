@@ -118,6 +118,19 @@ class FcmService extends GetxService {
     );
   }
 
+  /// Registers this device's token for the currently signed-in user.
+  ///
+  /// Public on purpose: [init] runs at app start, before anyone has signed in,
+  /// so its own registration attempt finds no uid and bails out. Without a
+  /// public entry point there was nothing to call once a user *had* signed in,
+  /// so the token was only ever written if the platform happened to rotate it -
+  /// which is rare. The result was that most devices had no token document at
+  /// all and could never be reached by a notification.
+  ///
+  /// Safe to call repeatedly: the document id is derived from the token, so a
+  /// repeat call overwrites the same entry instead of duplicating it.
+  Future<void> registerCurrentDevice() => _registerTokenLocally();
+
   /// Stores the token under `users/{uid}/fcm_tokens/{hash}`.
   ///
   /// Keyed by a hash of the token so re-registering after a rotation replaces
